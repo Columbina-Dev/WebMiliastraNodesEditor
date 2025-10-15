@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <defs>
+    <font id="TutorialExtraPUA" horiz-adv-x="1000">
+      <font-face font-family="TutorialExtraPUA" units-per-em="1000" ascent="880" descent="-120"/>
+      <missing-glyph horiz-adv-x="500"/>
+      <glyph unicode="&#xE69C;" horiz-adv-x="1000" d="M 500,440 m -180,0 a 180,180 0 1,0 360,0 a 180,180 0 1,0 -360,0 z">
+        <desc>Bullet Point</desc>
+      </glyph>
+    </font>
+  </defs>
+  
+  <!-- Demo text using the font -->
+  <text x="50" y="100" font-family="TutorialExtraPUA" font-size="120" fill="#596FFE">&#xE69C;</text>
+  <text x="50" y="250" font-family="TutorialExtraPUA" font-size="60" fill="#596FFE">&#xE69C;&#xE69C;&#xE69C;</text>
+  
+  <!-- Reference grid -->
+  <line x1="50" y1="0" x2="50" y2="300" stroke="#ccc" stroke-width="1"/>
+  <line x1="170" y1="0" x2="170" y2="300" stroke="#ccc" stroke-width="1"/>
+  <line x1="0" y1="100" x2="300" y2="100" stroke="#ccc" stroke-width="1"/>
+</svg>

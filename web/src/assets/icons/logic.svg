@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <style>
+    .a{fill:none; stroke: #0D5A8B ; stroke-width:50}
+  </style>
+
+  <!-- Clip to the rounded-corner square (interior only) -->
+  <defs>
+    <clipPath id="insideBox" clipPathUnits="userSpaceOnUse">
+      <!-- Same path as the border, but used as a filled shape for clipping -->
+      <path d="M304.9 98.2h413.6c27.2 0 54.1 5.3 79.2 15.7 25 10.4 47.8 25.7 67 44.9 19.3 19.2 34.5 42 44.9 67.1 10.4 25.1 15.7 52 15.7 79.1v413.6c0 27.2-5.3 54.1-15.7 79.2-10.4 25.1-25.6 47.9-44.9 67.1-19.2 19.2-42 34.4-67 44.8-25.1 10.4-52 15.8-79.2 15.8H304.9c-27.2 0-54.1-5.4-79.2-15.8-25.1-10.4-47.9-25.6-67.1-44.8-19.2-19.2-34.4-42-44.8-67.1-10.4-25.1-15.7-52-15.7-79.2V305c0-27.1 5.3-54 15.7-79.1 10.4-25.1 25.6-47.9 44.8-67.1 19.2-19.2 42-34.5 67.1-44.9 25.1-10.4 52-15.7 79.2-15.7z"/>
+    </clipPath>
+
+    <!-- Mask to knock out the + and – from the left-half fill -->
+    <mask id="leftCut" maskUnits="userSpaceOnUse" x="0" y="0" width="512" height="1024">
+      <rect x="0" y="0" width="512" height="1024" fill="#fff"/>
+      <!-- “Holes” (black) where the + and – should be transparent -->
+      <g fill="none" stroke="#000" stroke-width="50">
+        <path d="M429 305H180.8"/>          <!-- minus -->
+        <path d="M304.9 739.3V491.1"/>     <!-- plus (vertical) -->
+        <path d="M429 615.2H180.8"/>       <!-- plus (horizontal) -->
+      </g>
+    </mask>
+  </defs>
+
+  <!-- Blue fill, limited to inside the rounded square and only on the left side -->
+  <rect x="0" y="0" width="512" height="1024" fill="#0D5A8B"
+        clip-path="url(#insideBox)" mask="url(#leftCut)"/>
+
+  <!-- Original strokes (right side unchanged) -->
+  <path class="a" d="M304.9 98.2h413.6c27.2 0 54.1 5.3 79.2 15.7 25 10.4 47.8 25.7 67 44.9 19.3 19.2 34.5 42 44.9 67.1 10.4 25.1 15.7 52 15.7 79.1v413.6c0 27.2-5.3 54.1-15.7 79.2-10.4 25.1-25.6 47.9-44.9 67.1-19.2 19.2-42 34.4-67 44.8-25.1 10.4-52 15.8-79.2 15.8H304.9c-27.2 0-54.1-5.4-79.2-15.8-25.1-10.4-47.9-25.6-67.1-44.8-19.2-19.2-34.4-42-44.8-67.1-10.4-25.1-15.7-52-15.7-79.2V305c0-27.1 5.3-54 15.7-79.1 10.4-25.1 25.6-47.9 44.8-67.1 19.2-19.2 42-34.5 67.1-44.9 25.1-10.4 52-15.7 79.2-15.7z"/>
+  <path class="a" d="M511.7 98.2v827.3"/>
+  <path class="a" d="M594.4 563.5h248.2"/>
+  <path class="a" d="M594.4 460.1h248.2"/>
+
+  <!-- Hide the left-side strokes so they don't redraw over the holes -->
+  <path class="a" style="display:none" d="M304.9 739.3v-248.2"/>
+  <path class="a" style="display:none" d="M429 615.2H180.8"/>
+  <path class="a" style="display:none" d="M429 305H180.8"/>
+</svg>

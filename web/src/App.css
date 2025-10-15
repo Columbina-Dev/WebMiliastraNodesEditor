@@ -1,0 +1,270 @@
+﻿* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(128, 128, 128, 0.65);
+  border-radius: 6px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+select,
+input,
+textarea {
+  color: inherit;
+}
+
+select {
+  background: rgba(24, 24, 34, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 8px;
+  color: inherit;
+  appearance: none;
+  padding: 6px 12px;
+}
+
+select:focus {
+  outline: 1px solid #4c9cff;
+}
+
+option {
+  background: rgba(18, 18, 26, 0.95);
+  color: #f6f6ff;
+}
+
+@font-face {
+  font-family: 'DreamHanSans';
+  src: url('../assets/font/DreamHanSans-W17.ttc') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.app {
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: #08080f;
+  color: #f7f7ff;
+  font-family: 'DreamHanSans', 'Segoe UI', sans-serif;
+  overflow: hidden;
+  user-select: none;
+}
+
+.app__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  background: rgba(17, 17, 24, 0.95);
+}
+
+.app__topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.app__history {
+  display: flex;
+  gap: 8px;
+}
+
+.app__history button,
+.app__actions button {
+  padding: 8px 14px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: pointer;
+  transition: background 0.2s ease, border 0.2s ease, opacity 0.2s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app__history button:hover,
+.app__actions button:hover {
+  background: rgba(92, 186, 255, 0.15);
+  border-color: rgba(92, 186, 255, 0.4);
+}
+
+.app__history button:disabled,
+.app__actions button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.app__name {
+  flex: 1;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  font-size: 16px;
+}
+
+.app__name:focus {
+  outline: 1px solid #4c9cff;
+}
+
+.app__actions {
+  display: flex;
+  gap: 8px;
+}
+
+.app__button-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  border: 0;
+}
+
+.app__version-info {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 600;
+  padding: 6px 0;
+  color: rgba(247, 247, 255, 0.85);
+  background: rgba(17, 17, 24, 0.92);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.app input,
+.app textarea,
+.app select {
+  user-select: text;
+}
+
+.app__body {
+  flex: 1;
+  display: grid;
+  grid-template-columns: var(--palette-width, 320px) 1fr var(--inspector-width, 300px);
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+}
+
+.graph-panel {
+  padding: 10px 14px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.55);
+  color: rgba(255, 255, 255, 0.82);
+  font-size: 12px;
+  max-width: 320px;
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.5s ease, transform 0.5s ease;
+  pointer-events: auto;
+}
+
+.graph-panel.graph-panel--hidden {
+  opacity: 0;
+  transform: translateY(-10px);
+  pointer-events: none;
+}
+
+.graph-panel__content {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.graph-panel__text {
+  flex: 1;
+  line-height: 1.5;
+}
+
+.graph-panel__close {
+  position: relative;
+  top: -2px;
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.graph-panel__close:hover {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.app__save-toast {
+  position: fixed;
+  top: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(92, 186, 255, 0.4);
+  background: rgba(36, 40, 54, 0.96);
+  color: #f6f6ff;
+  font-size: 14px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  z-index: 2000;
+}
+
+.app__not-found {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 48px 24px;
+  text-align: center;
+}
+
+.app__not-found h1 {
+  margin: 0;
+  font-size: 48px;
+  letter-spacing: 4px;
+}
+
+.app__not-found p {
+  margin: 0;
+  font-size: 16px;
+  opacity: 0.8;
+}
+
+.app__not-found button {
+  padding: 10px 22px;
+  border-radius: 999px;
+  border: 1px solid rgba(92, 186, 255, 0.4);
+  background: rgba(92, 186, 255, 0.18);
+  color: inherit;
+  cursor: pointer;
+  transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
+}
+
+.app__not-found button:hover {
+  border-color: rgba(92, 186, 255, 0.65);
+  background: rgba(92, 186, 255, 0.28);
+  transform: translateY(-1px);
+}

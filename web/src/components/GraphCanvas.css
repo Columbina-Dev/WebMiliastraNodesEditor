@@ -1,0 +1,156 @@
+.graph-canvas-wrapper {
+  position: relative;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  background: #08080f;
+}
+
+.graph-canvas-grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(199, 199, 199, 0.25) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(199, 199, 199, 0.25) 1px, transparent 1px);
+  background-size: 50px 50px;
+  background-position: 0 0;
+  z-index: 1;
+  pointer-events: none;
+}
+
+.graph-canvas-watermark {
+  position: absolute;
+  bottom: 24px;
+  right: 50px;
+  color: rgba(199, 199, 199, 0.63);
+  font-size: 42px;
+  font-weight: 500;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.graph-canvas-wrapper .react-flow {
+  position: relative;
+  z-index: 3;
+}
+
+.floating-panel {
+  position: fixed;
+  z-index: 1100;
+}
+
+.graph-context-menu {
+  min-width: 180px;
+  background: rgba(20, 20, 28, 0.97);
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.45);
+  color: #f6f6ff;
+  overflow: hidden;
+}
+
+.graph-context-menu__section {
+  display: flex;
+  flex-direction: column;
+  padding: 8px;
+  gap: 6px;
+}
+
+.graph-context-menu button {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  border-radius: 8px;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+.graph-context-menu button:hover {
+  background: rgba(92, 186, 255, 0.16);
+}
+
+.graph-context-menu button.is-danger {
+  color: #ff8a8a;
+}
+
+.graph-context-menu button.is-danger:hover {
+  background: rgba(255, 74, 74, 0.2);
+  color: #ffd6d6;
+}
+
+.graph-context-menu__divider {
+  height: 1px;
+  background: rgba(255, 255, 255, 0.1);
+  margin: 2px -4px;
+}
+
+.graph-node-browser .node-library {
+  border-radius: 18px;
+}
+
+.graph-info-trigger {
+  pointer-events: none;
+}
+
+.graph-info-trigger__button {
+  pointer-events: auto;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(12, 12, 20, 0.85);
+  color: rgba(255, 255, 255, 0.8);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
+}
+
+.graph-info-trigger__icon {
+  width: 16px;
+  height: 16px;
+}
+
+.graph-info-trigger__button:hover,
+.graph-info-trigger__button.is-active {
+  border-color: rgba(92, 186, 255, 0.5);
+  color: rgba(255, 255, 255, 0.95);
+  background: rgba(92, 186, 255, 0.18);
+}
+
+.react-flow__edge-path {
+  stroke: var(--edge-stroke-color, #8cc2ff);
+  stroke-width: var(--edge-stroke-width, 2.5);
+  transition: stroke-width 0.2s ease, stroke 0.2s ease;
+}
+
+.react-flow__edge-path-selector {
+  stroke-width: calc(var(--edge-stroke-width, 2.5) + 8px);
+}
+
+.react-flow__edge.selected .react-flow__edge-path {
+  stroke: #ffd36b;
+}
+
+.react-flow__selection rect {
+  fill: rgba(92, 186, 255, 0.16);
+  stroke: rgba(92, 186, 255, 0.72);
+  stroke-width: 1px;
+}
+
+.graph-canvas-wrapper--cross-select .react-flow__selection {
+  background: rgba(118, 255, 180, 0.18);
+  border: 1px dotted rgba(118, 255, 180, 0.72);
+}
+
+.graph-canvas-wrapper--partial-active .react-flow__nodesselection-rect {
+  background: rgba(118, 255, 180, 0.12);
+  border: 1px dotted rgba(118, 255, 180, 0.72);
+}

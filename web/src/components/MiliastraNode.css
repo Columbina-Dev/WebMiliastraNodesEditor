@@ -1,0 +1,204 @@
+﻿.miliastra-node {
+  border-radius: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.12);
+  background-color: #0f0f0f80;
+  color: #f6f6f6;
+  min-width: 320px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+  overflow: hidden;
+}
+
+@font-face {
+  font-family: 'DreamHanSans';
+  src: url('../assets/font/DreamHanSans-W17.ttc') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+.miliastra-node {
+  font-family: 'DreamHanSans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.miliastra-node__header {
+  /* prefer explicit background (gradient) when provided, otherwise use solid color */
+  background: var(--miliastra-header-bg, var(--miliastra-header-color, rgba(255, 255, 255, 0.08)));
+  background-repeat: no-repeat;
+  color: #000;
+  padding: 10px 16px;
+  border-radius: 14px 14px 0 0;
+  font-size: 20px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.miliastra-node__title {
+  display: block;
+  line-height: 1.2;
+}
+
+.miliastra-node__icon {
+  width: 24px;
+  height: 24px;
+  opacity: 0.9;
+}
+
+.miliastra-node__body {
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  background-color: #0f0f0f80;
+}
+
+.miliastra-row {
+  display: flex;
+  align-items: stretch;
+}
+
+.miliastra-row--flow {
+  margin-bottom: 4px;
+}
+
+.miliastra-row__cell {
+  flex: 1;
+  display: flex;
+  align-items: center;
+}
+
+.miliastra-row__cell--left {
+  justify-content: flex-start;
+}
+
+.miliastra-row__cell--right {
+  justify-content: flex-end;
+}
+
+.miliastra-port {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 36px;
+  width: 100%;
+}
+
+.miliastra-port--flow-in,
+.miliastra-port--data-in {
+  justify-content: flex-start;
+  padding-left: 16px;
+}
+
+.miliastra-port--flow-out,
+.miliastra-port--data-out {
+  justify-content: flex-end;
+  padding-right: 16px;
+  text-align: right;
+}
+
+.miliastra-port-placeholder {
+  width: 100%;
+  min-height: 32px;
+}
+
+.miliastra-port__content {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.miliastra-port__content--right {
+  align-items: flex-end;
+  text-align: right;
+}
+
+.miliastra-port__label {
+  font-size: 16px;
+  opacity: 0.9;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.miliastra-port__badge {
+  font-size: 13px;
+  opacity: 0.7;
+}
+
+.miliastra-port__control {
+  width: 100%;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.07);
+  color: inherit;
+  padding: 4px 6px;
+  font-size: 12px;
+  appearance: none;
+}
+
+.miliastra-port__control:focus {
+  outline: 1px solid #4c9cff;
+}
+
+.miliastra-port__control option {
+  background: rgba(18, 18, 26, 0.95);
+  color: #f6f6ff;
+}
+
+.miliastra-handle {
+  position: absolute;
+  top: 50%;
+  width: 14px;
+  height: 14px;
+  border: 2px solid #ffffff;
+  background: rgba(0, 0, 0, 0.25);
+  transform: translateY(-50%);
+}
+
+.miliastra-handle.is-disabled {
+  border-color: #808080;
+  background: rgba(128, 128, 128, 0.2);
+}
+
+.miliastra-handle.is-input {
+  left: -7px;
+}
+
+.miliastra-handle.is-output {
+  right: -7px;
+}
+
+.miliastra-handle.is-data {
+  border-radius: 50%;
+}
+
+.miliastra-handle.is-flow {
+  border-radius: 4px;
+  transform: translateY(-50%) rotate(45deg);
+}
+
+.miliastra-port--flow-out .miliastra-port__label,
+.miliastra-port--data-out .miliastra-port__label {
+  text-align: right;
+}
+
+.miliastra-vector3 {
+  display: flex;
+  gap: 8px;
+}
+
+.miliastra-vector3__axis {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.miliastra-vector3__axis input {
+  width: 40px;
+}
