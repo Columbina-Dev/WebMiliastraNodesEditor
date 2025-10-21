@@ -671,7 +671,7 @@ const App = () => {
 
   return (
     <div className="app">
-      <div className="app__version-info">v0.9.53 (节点 OS 6.0.53.38255959 | 指南 v2.3.5_apps-ugc-wiki-sea)</div>
+      <div className="app__version-info">v0.9.55 (节点 OS 6.1.0.??? | 指南 v2.3.7_apps-ugc-wiki-sea) | Last Update: 22 Oct 2025 07:35 (UTC+8)</div>
       {view === 'editor'
         ? renderEditor()
         : view === 'tutorial'
