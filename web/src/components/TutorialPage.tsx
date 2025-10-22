@@ -96,8 +96,8 @@ const buildPlaceholder = (title: string, updatedAt?: string) => {
 };
 
 const TABS: Array<{ key: TutorialKind; label: string; description: string }> = [
-  { key: 'knowledge', label: '知识库', description: '专题文档索引' },
-  { key: 'course', label: '课程', description: '任务式教学课程' },
+  { key: 'knowledge', label: '说明书', description: '专题文档索引' },
+  { key: 'course', label: '教程', description: '任务式教学课程' },
 ];
 
 const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
