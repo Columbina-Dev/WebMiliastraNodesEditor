@@ -103,7 +103,7 @@ html文件将被储存到 `web/public/tutorial/knowledge` 和 `web/public/tutori
 1. 所有官方提供的html只有简中版，如需获取其他语言，可 `curl https://act-webstatic.hoyoverse.com/ugc-tutorial/knowledge/sea/<语言码>/textMap.json` 获取对应语言的 `textMap.json`，并对 `web/src/components/TutorialPage.tsx` 及 `web/src/app.tsx` 进行相应修改，可参考 [https://milidocs.tiiny.site/](https://milidocs.tiiny.site/)，此镜像站采用了与官方相同的处理方法（使用text map替换简中html中的所有文字），由于此修改较为复杂，这里不会详细展开做法，请自行研究。
 2. 由于代码局限性，目前仅能保证`知识库`及`课程`可以显示出来，如果官方在未来更新了更多类别，则需对 `web/src/components/TutorialPage.tsx`及 `web/src/app.tsx` 进行相应修改，新增相应的逻辑。
 
-### 图文档模式
+## JSON节点图文档格式
 
 (介绍由AI生成)  
 编辑器读写的 JSON 文档需要符合 `GraphDocument`：
@@ -137,7 +137,7 @@ html文件将被储存到 `web/public/tutorial/knowledge` 和 `web/public/tutori
 
 导入图时会使用 zod 进行 JSON 验证，以防止加载损坏的数据。
 
-### 节点定义模式
+## 节点定义格式
 
 (介绍由AI生成)  
 `web/src/data/nodeDefinitions.ts` 中的每一项遵循 `NodeDefinition` 接口（定义位于 `web/src/types/node.ts`）。下面给出简化版：
