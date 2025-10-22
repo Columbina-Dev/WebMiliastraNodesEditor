@@ -410,7 +410,7 @@ const GraphCanvasInner = () => {
       const dy = current.y - start.y;
       const distance = Math.hypot(dx, dy);
       if (distance < MIN_SELECTION_DISTANCE) return;
-      const usePartialMode = dx < 0 && dy < 0;
+      const usePartialMode = dx < 0;
       if (usePartialMode !== crossSelectionRef.current) {
         setIsCrossSelection(usePartialMode);
       }
@@ -1258,8 +1258,8 @@ const GraphCanvasInner = () => {
             </button>
             <div className="graph-panel__text">
               右键拖拽以平移视图，鼠标滚轮缩放视图<br />
-              左键可多选节点，向左上为接触选择<br />
-              向右下为框选选择，Del键删除选中节点<br />
+              左键可多选节点，向左移动为接触选择<br />
+              向右移动为框选选择，Del键删除选中节点<br />
             </div>
           </div>
         </Panel>
