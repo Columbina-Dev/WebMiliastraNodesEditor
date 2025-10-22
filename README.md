@@ -97,7 +97,7 @@ python scripts/fetch_tutorial_html.py
 html文件将被储存到 `web/public/tutorial/knowledge` 和 `web/public/tutorial/course` 目录中。
 
 #### 查看官方运行的WebApp版本号
-访问 [国际服链接](https://act.hoyoverse.com/ys/ugc/tutorial/) / [国服链接](https://act.hoyoverse.com/ys/ugc/tutorial/)，在网页源代码中 `window.__APP_VERSION__` 的值即为当前官方运行的版本号。
+访问 [国际服链接](https://act.hoyoverse.com/ys/ugc/tutorial/) / [国服链接](https://act.mihoyo.com/ys/ugc/tutorial)，在网页源代码中 `window.__APP_VERSION__` 的值即为当前官方运行的版本号。
 
 ### 局限性
 1. 所有官方提供的html只有简中版，如需获取其他语言，可 `curl https://act-webstatic.hoyoverse.com/ugc-tutorial/knowledge/sea/<语言码>/textMap.json` 获取对应语言的 `textMap.json`，并对 `web/src/components/TutorialPage.tsx` 及 `web/src/app.tsx` 进行相应修改，可参考 [https://milidocs.tiiny.site/](https://milidocs.tiiny.site/)，此镜像站采用了与官方相同的处理方法（使用text map替换简中html中的所有文字），由于此修改较为复杂，这里不会详细展开做法，请自行研究。
