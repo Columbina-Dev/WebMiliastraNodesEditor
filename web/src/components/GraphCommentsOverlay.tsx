@@ -15,7 +15,11 @@ const MAX_TEXT_HEIGHT = 180;
 const NODE_ICON_OFFSET_X = 12;
 const NODE_ICON_OFFSET_Y = 14;
 
-const GraphCommentsOverlay = () => {
+type GraphCommentsOverlayProps = {
+  selectionLocked?: boolean;
+};
+
+const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayProps) => {
   const reactFlow = useReactFlow();
   const comments = useGraphStore((state) => state.comments);
   const selectedCommentId = useGraphStore((state) => state.selectedCommentId);
@@ -185,8 +189,12 @@ const GraphCommentsOverlay = () => {
     window.addEventListener('mouseup', handleUp);
   };
 
+  const overlayClassName = classNames('graph-comments-overlay', {
+    'is-selection-active': selectionLocked,
+  });
+
   return (
-    <div className="graph-comments-overlay">
+    <div className={overlayClassName}>
       {comments.map((comment) => {
         let anchor: { x: number; y: number } | null = null;
         const nodeId = comment.nodeId?.trim();
@@ -298,6 +306,8 @@ const GraphCommentsOverlay = () => {
                 className={classNames('graph-comment-bubble', {
                   'is-editing': isEditing,
                 })}
+                data-comment-id={comment.id}
+                data-floating={isFloating ? 'true' : 'false'}
                 onMouseDown={(event) => {
                   event.stopPropagation();
                   setSelectedComment(comment.id);

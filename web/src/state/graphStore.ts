@@ -356,6 +356,14 @@ export const useGraphStore = create<GraphState>((set, get) => {
         state.selectedCommentId === commentId ? {} : { selectedCommentId: commentId }
       ),
     addComment: (nodeId) => {
+      const existing = get().comments.find((comment) => comment.nodeId === nodeId);
+      if (existing) {
+        set(() => ({
+          selectedCommentId: existing.id,
+          commentMode: 'inactive',
+        }));
+        return existing.id;
+      }
       captureSnapshot();
       const commentId = nanoid();
       set((state) => ({

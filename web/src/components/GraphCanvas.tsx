@@ -56,6 +56,13 @@ type SelectionBox = {
   current: ScreenPoint;
 };
 
+type ScreenRect = {
+  left: number;
+  top: number;
+  right: number;
+  bottom: number;
+};
+
 type PositionedEdge = Edge & {
   sourceX?: number;
   sourceY?: number;
@@ -122,6 +129,9 @@ const buildFlowRect = (a: ScreenPoint, b: ScreenPoint): FlowRect => ({
   maxX: Math.max(a.x, b.x),
   maxY: Math.max(a.y, b.y),
 });
+
+const rectanglesIntersect = (a: ScreenRect, b: ScreenRect) =>
+  a.left <= b.right && a.right >= b.left && a.top <= b.bottom && a.bottom >= b.top;
 
 const computeSelectionBounds = (nodes: Node[], edges: Edge[]): FlowRect | null => {
   let minX = Number.POSITIVE_INFINITY;
@@ -266,6 +276,7 @@ const GraphCanvasInner = () => {
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
+  const comments = useGraphStore((state) => state.comments);
   const updateNode = useGraphStore((state) => state.updateNode);
   const removeNode = useGraphStore((state) => state.removeNode);
   const removeNodesBatch = useGraphStore((state) => state.removeNodes);
@@ -288,6 +299,15 @@ const GraphCanvasInner = () => {
   const selectedNodeId = useGraphStore((state) => state.selectedNodeId);
 
   const memoizedNodeTypes = useMemo(() => nodeTypes, []);
+  const commentByNodeId = useMemo(() => {
+    const map = new Map<string, string>();
+    comments.forEach((comment) => {
+      if (comment.nodeId) {
+        map.set(comment.nodeId, comment.id);
+      }
+    });
+    return map;
+  }, [comments]);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [floatingPanel, setFloatingPanel] = useState<FloatingPanelState>(null);
@@ -302,6 +322,7 @@ const GraphCanvasInner = () => {
   const [isCrossSelection, setIsCrossSelection] = useState(false);
   const [connectionCursor, setConnectionCursor] = useState<'valid' | 'invalid' | null>(null);
   const [hasPartialSelection, setHasPartialSelection] = useState(false);
+  const [isSelectionActive, setIsSelectionActive] = useState(false);
   const selectionStartRef = useRef<ScreenPoint | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
   const selectionActiveRef = useRef(false);
@@ -383,6 +404,7 @@ const GraphCanvasInner = () => {
     setFloatingPanel(null);
     setIsCrossSelection(false);
     setHasPartialSelection(false);
+    setIsSelectionActive(false);
     selectionActiveRef.current = false;
     selectionStartRef.current = null;
     selectionBoxRef.current = null;
@@ -769,6 +791,7 @@ const GraphCanvasInner = () => {
 
   const handleSelectionStart = useCallback((event: ReactMouseEvent<Element>) => {
     const start = { x: event.clientX, y: event.clientY };
+    setIsSelectionActive(true);
     selectionActiveRef.current = true;
     selectionStartRef.current = start;
     selectionBoxRef.current = { start, current: start };
@@ -786,6 +809,7 @@ const GraphCanvasInner = () => {
       const lastPoint = activeBox?.current ?? startPoint;
       const eventPoint = { x: event.clientX, y: event.clientY };
 
+      setIsSelectionActive(false);
       selectionActiveRef.current = false;
       selectionStartRef.current = null;
       selectionBoxRef.current = null;
@@ -812,6 +836,13 @@ const GraphCanvasInner = () => {
         setHasPartialSelection(false);
         return;
       }
+
+      const selectionScreenRect: ScreenRect = {
+        left: Math.min(startPoint.x, finalPoint.x),
+        right: Math.max(startPoint.x, finalPoint.x),
+        top: Math.min(startPoint.y, finalPoint.y),
+        bottom: Math.max(startPoint.y, finalPoint.y),
+      };
 
       const startFlow = reactFlow.screenToFlowPosition(startPoint);
       const endFlow = reactFlow.screenToFlowPosition(finalPoint);
@@ -862,9 +893,41 @@ const GraphCanvasInner = () => {
           allNodes.some((node) => node.selected) ||
           allEdges.some((edge) => edge.selected);
         setHasPartialSelection(wasCrossSelection && anySelected);
+
+        const bubbleElements = document.querySelectorAll<HTMLDivElement>(
+          '.graph-comment-bubble[data-comment-id][data-floating="true"]'
+        );
+        let selectedFloatingCommentId: string | undefined;
+        bubbleElements.forEach((element) => {
+          const rect = element.getBoundingClientRect();
+          const bubbleRect: ScreenRect = {
+            left: rect.left,
+            right: rect.right,
+            top: rect.top,
+            bottom: rect.bottom,
+          };
+          if (!selectedFloatingCommentId && rectanglesIntersect(selectionScreenRect, bubbleRect)) {
+            selectedFloatingCommentId = element.dataset.commentId ?? undefined;
+          }
+        });
+
+        const state = useGraphStore.getState();
+        const currentCommentId = state.selectedCommentId;
+        const currentComment = currentCommentId
+          ? state.comments.find((comment) => comment.id === currentCommentId)
+          : undefined;
+        const currentIsFloating = currentComment ? !currentComment.nodeId : false;
+
+        if (selectedFloatingCommentId) {
+          if (selectedFloatingCommentId !== currentCommentId) {
+            setSelectedComment(selectedFloatingCommentId);
+          }
+        } else if (currentIsFloating && currentCommentId) {
+          setSelectedComment(undefined);
+        }
       });
     },
-    [reactFlow, setHasPartialSelection]
+    [reactFlow, setHasPartialSelection, setSelectedComment]
   );
 
   const openNodeMenu = useCallback(
@@ -1284,6 +1347,58 @@ const GraphCanvasInner = () => {
     [reactFlow, removeNodesBatch]
   );
 
+  const handleDisconnectNodes = useCallback(
+    (nodeIds: string[]) => {
+      if (!nodeIds.length) return;
+      const nodeSet = new Set(nodeIds);
+      const edgeIds = edges
+        .filter((edge) => nodeSet.has(edge.source.nodeId) || nodeSet.has(edge.target.nodeId))
+        .map((edge) => edge.id);
+      if (!edgeIds.length) {
+        setFloatingPanel(null);
+        return;
+      }
+      removeEdgesBatch(edgeIds);
+      setFloatingPanel(null);
+      setHasPartialSelection(false);
+    },
+    [edges, removeEdgesBatch, setFloatingPanel, setHasPartialSelection]
+  );
+
+  const handleAddCommentForNodes = useCallback(
+    (nodeIds: string[], screen: ScreenPoint) => {
+      if (!nodeIds.length) return;
+      const eligibleNodeIds = nodeIds.filter((nodeId) => !commentByNodeId.has(nodeId));
+      if (!eligibleNodeIds.length) {
+        setFloatingPanel(null);
+        return;
+      }
+      let targetId = eligibleNodeIds[0];
+      if (eligibleNodeIds.length > 1) {
+        const flowPoint = reactFlow.screenToFlowPosition(screen);
+        const liveNodes = reactFlow.getNodes();
+        let bestDistance = Number.POSITIVE_INFINITY;
+        eligibleNodeIds.forEach((nodeId) => {
+          const rfNode = liveNodes.find((node) => node.id === nodeId);
+          if (!rfNode) return;
+          const base = rfNode.positionAbsolute ?? rfNode.position;
+          const centerX = base.x + (rfNode.width ?? 0) / 2;
+          const centerY = base.y + (rfNode.height ?? 0) / 2;
+          const distance = Math.hypot(centerX - flowPoint.x, centerY - flowPoint.y);
+          if (distance < bestDistance) {
+            bestDistance = distance;
+            targetId = nodeId;
+          }
+        });
+      }
+      const commentId = addComment(targetId);
+      setSelectedComment(commentId);
+      collapseUnpinnedComments(targetId);
+      setFloatingPanel(null);
+    },
+    [addComment, collapseUnpinnedComments, commentByNodeId, reactFlow, setFloatingPanel, setSelectedComment]
+  );
+
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const meta = event.metaKey || event.ctrlKey;
@@ -1392,7 +1507,7 @@ const GraphCanvasInner = () => {
           </div>
         </Panel>
       </ReactFlow>
-      <GraphCommentsOverlay />
+      <GraphCommentsOverlay selectionLocked={isSelectionActive} />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
         <FloatingPanel
@@ -1430,16 +1545,37 @@ const GraphCanvasInner = () => {
       {floatingPanel?.type === 'selection' && (
         <FloatingPanel anchor={selectionAnchor} className="graph-context-menu" deps={[floatingPanel]}>
           <div className="graph-context-menu__section">
-            <button type="button" onClick={() => handleDuplicateSelection(floatingPanel.nodeIds)}>
-              复制节点
+            <button
+              type="button"
+              className={classNames('graph-context-menu__item', 'is-danger')}
+              onClick={() => handleDeleteSelection(floatingPanel.nodeIds)}
+            >
+              <span className="graph-context-menu__label">删除</span>
+              <span className="graph-context-menu__shortcut">Delete</span>
+            </button>
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              onClick={() => handleDuplicateSelection(floatingPanel.nodeIds)}
+            >
+              <span className="graph-context-menu__label">复制</span>
+              <span className="graph-context-menu__shortcut">Ctrl+C</span>
+            </button>
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              onClick={() => handleDisconnectNodes(floatingPanel.nodeIds)}
+            >
+              <span className="graph-context-menu__label">断开节点连线</span>
             </button>
             <div className="graph-context-menu__divider" />
             <button
               type="button"
-              className="is-danger"
-              onClick={() => handleDeleteSelection(floatingPanel.nodeIds)}
+              className="graph-context-menu__item"
+              disabled={!floatingPanel.nodeIds.some((nodeId) => !commentByNodeId.has(nodeId))}
+              onClick={() => handleAddCommentForNodes(floatingPanel.nodeIds, floatingPanel.screen)}
             >
-              删除节点
+              <span className="graph-context-menu__label">注释</span>
             </button>
           </div>
         </FloatingPanel>
@@ -1449,16 +1585,37 @@ const GraphCanvasInner = () => {
         <FloatingPanel anchor={nodeEdgeAnchor} className="graph-context-menu" deps={[floatingPanel]}>
           {floatingPanel.type === 'node' && (
             <div className="graph-context-menu__section">
-              <button type="button" onClick={() => handleDuplicateNode(floatingPanel.nodeId)}>
-                复制节点
+              <button
+                type="button"
+                className={classNames('graph-context-menu__item', 'is-danger')}
+                onClick={() => handleDeleteNode(floatingPanel.nodeId)}
+              >
+                <span className="graph-context-menu__label">删除</span>
+                <span className="graph-context-menu__shortcut">Delete</span>
+              </button>
+              <button
+                type="button"
+                className="graph-context-menu__item"
+                onClick={() => handleDuplicateNode(floatingPanel.nodeId)}
+              >
+                <span className="graph-context-menu__label">复制</span>
+                <span className="graph-context-menu__shortcut">Ctrl+C</span>
+              </button>
+              <button
+                type="button"
+                className="graph-context-menu__item"
+                onClick={() => handleDisconnectNodes([floatingPanel.nodeId])}
+              >
+                <span className="graph-context-menu__label">断开节点连线</span>
               </button>
               <div className="graph-context-menu__divider" />
               <button
                 type="button"
-                className="is-danger"
-                onClick={() => handleDeleteNode(floatingPanel.nodeId)}
+                className="graph-context-menu__item"
+                disabled={commentByNodeId.has(floatingPanel.nodeId)}
+                onClick={() => handleAddCommentForNodes([floatingPanel.nodeId], floatingPanel.screen)}
               >
-                删除节点
+                <span className="graph-context-menu__label">注释</span>
               </button>
             </div>
           )}

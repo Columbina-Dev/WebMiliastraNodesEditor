@@ -127,6 +127,12 @@
   pointer-events: auto;
 }
 
+.graph-comments-overlay.is-selection-active .graph-comment-cluster,
+.graph-comments-overlay.is-selection-active .graph-comment-bubble,
+.graph-comments-overlay.is-selection-active .graph-comment-icon {
+  pointer-events: none;
+}
+
 .graph-comment-bubble::after {
   content: '';
   position: absolute;
