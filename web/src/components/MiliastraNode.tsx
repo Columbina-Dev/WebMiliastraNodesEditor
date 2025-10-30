@@ -195,6 +195,7 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
       'is-input': port.kind === 'flow-in' || port.kind === 'data-in',
       'is-output': port.kind === 'flow-out' || port.kind === 'data-out',
       'is-disabled': isDisabled,
+      'is-previewing': Boolean(compatibilityMap),
     });
     return (
       <Handle
@@ -341,8 +342,14 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
     );
   };
 
+  const nodeClassName = classNames(
+    'miliastra-node',
+    `miliastra-node--${definition.kind}`,
+    { 'is-selected': selected }
+  );
+
   return (
-    <div className={classNames('miliastra-node', { 'is-selected': selected })} style={nodeStyle}>
+    <div className={nodeClassName} style={nodeStyle}>
       <header className="miliastra-node__header">
         <img className="miliastra-node__icon" src={nodeIcon} alt="" aria-hidden="true" />
         <span className="miliastra-node__title">{label ?? definition.displayName}</span>

@@ -42,7 +42,7 @@
   background: rgba(92, 186, 255, 0.12);
   color: #f6f6ff;
   font-size: 16px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
@@ -85,13 +85,13 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease;
 }
 
 .home__history-header button:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: var(--cursor-default);
 }
 
 .home__history-header button:not(:disabled):hover {
@@ -121,7 +121,7 @@
   align-items: flex-start;
   gap: 6px;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   position: relative;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
   outline: none;
@@ -149,7 +149,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
 }
 
@@ -232,7 +232,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
 }
 
@@ -270,7 +270,7 @@
   border: none;
   background: transparent;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
 .home__tutorial:focus-visible {

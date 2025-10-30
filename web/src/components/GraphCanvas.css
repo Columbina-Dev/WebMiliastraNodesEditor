@@ -3,18 +3,19 @@
   height: 100%;
   width: 100%;
   overflow: hidden;
-  background: #08080f;
+  background: #323237;
+  cursor: var(--cursor-default);
 }
 
 .graph-canvas-grid {
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(199, 199, 199, 0.25) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(199, 199, 199, 0.25) 1px, transparent 1px);
-  background-size: 50px 50px;
+    linear-gradient(#37373C 1px, transparent 1px),
+    linear-gradient(90deg, #37373C 1px, transparent 1px);
+  background-size: 25px 25px;
   background-position: 0 0;
-  z-index: 1;
+  z-index: 0;
   pointer-events: none;
 }
 
@@ -65,7 +66,7 @@
   background: transparent;
   border: none;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   border-radius: 8px;
   transition: background 0.2s ease, color 0.2s ease;
 }
@@ -81,6 +82,27 @@
 .graph-context-menu button.is-danger:hover {
   background: rgba(255, 74, 74, 0.2);
   color: #ffd6d6;
+}
+
+.graph-node-browser__actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-bottom: 8px;
+}
+
+.graph-node-browser__actions button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 214, 153, 0.4);
+  background: rgba(255, 214, 153, 0.14);
+  color: #ffd699;
+  cursor: var(--cursor-pointer);
+  transition: background 0.18s ease, border 0.18s ease;
+}
+
+.graph-node-browser__actions button:hover {
+  background: rgba(255, 214, 153, 0.26);
+  border-color: rgba(255, 214, 153, 0.6);
 }
 
 .graph-context-menu__divider {
@@ -105,7 +127,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(12, 12, 20, 0.85);
   color: rgba(255, 255, 255, 0.8);
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -153,4 +175,55 @@
 .graph-canvas-wrapper--partial-active .react-flow__nodesselection-rect {
   background: rgba(118, 255, 180, 0.12);
   border: 1px dotted rgba(118, 255, 180, 0.72);
+}
+
+
+.graph-canvas-wrapper--comment-mode {
+  cursor: var(--cursor-comment);
+}
+
+.graph-canvas-wrapper--comment-mode .react-flow__pane,
+.graph-canvas-wrapper--comment-mode .react-flow__node,
+.graph-canvas-wrapper--comment-mode .react-flow__edge,
+.graph-canvas-wrapper--comment-mode .miliastra-handle {
+  cursor: var(--cursor-comment) !important;
+}
+
+.graph-canvas-wrapper--panning,
+.graph-canvas-wrapper--panning * {
+  cursor: var(--cursor-drag) !important;
+}
+
+.react-flow__pane {
+  cursor: var(--cursor-default) !important;
+}
+
+.react-flow__node {
+  cursor: var(--cursor-move);
+}
+
+.graph-canvas-wrapper--connecting .react-flow__pane,
+.graph-canvas-wrapper--connecting .react-flow__node,
+.graph-canvas-wrapper--connecting .react-flow__edge,
+.graph-canvas-wrapper--connecting .miliastra-handle {
+  cursor: var(--cursor-conn-invalid) !important;
+}
+
+.graph-canvas-wrapper--connection-valid .react-flow__pane,
+.graph-canvas-wrapper--connection-valid .react-flow__node,
+.graph-canvas-wrapper--connection-valid .react-flow__edge,
+.graph-canvas-wrapper--connection-valid .miliastra-handle {
+  cursor: var(--cursor-conn-valid) !important;
+}
+
+.miliastra-handle {
+  cursor: var(--cursor-pointer);
+}
+
+.miliastra-handle.is-previewing {
+  cursor: var(--cursor-conn-valid);
+}
+
+.miliastra-handle.is-previewing.is-disabled {
+  cursor: var(--cursor-conn-invalid);
 }

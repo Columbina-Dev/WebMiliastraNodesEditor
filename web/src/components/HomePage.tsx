@@ -33,6 +33,8 @@ const formatTimestamp = (iso?: string) => {
 const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
 const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).href;
 
+const DEFAULT_PROJECT_NAME = '未命名项目';
+
 const HomePage = ({
   projects,
   duplicateNameCounts,
@@ -50,7 +52,7 @@ const HomePage = ({
 
   const sortedProjects = useMemo(
     () => [...projects].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)),
-    [projects]
+    [projects],
   );
 
   const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
@@ -78,14 +80,14 @@ const HomePage = ({
     <div className="home">
       <div className="home__panel">
         <div className="home__intro">
-          <h1>《原神·千星奇域》节点图模拟器</h1>
+          <h1>《原神·千星奇域》编辑器模拟器</h1>
         </div>
         <div className="home__actions">
           <button type="button" onClick={onCreateNew}>
-            新建节点图
+            新建项目
           </button>
           <button type="button" onClick={onImportClick}>
-            导入JSON
+            导入Zip项目
           </button>
         </div>
         <div
@@ -94,19 +96,17 @@ const HomePage = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          拖放JSON到此处导入节点图
-        </div>
+          拖放项目Zip到此处导入</div>
         <div className="home__history-header">
-          <h2>历史</h2>
+          <h2>历史项目</h2>
           <button type="button" onClick={onSaveAll} disabled={!hasHistory}>
-            导出所有
-          </button>
+            导出所有</button>
         </div>
         <div className="home__history">
           {hasHistory ? (
             <div className="home__history-list">
               {sortedProjects.map((project) => {
-                const displayName = project.name || '未命名';
+                const displayName = project.name || DEFAULT_PROJECT_NAME;
                 const showId = (duplicateNameCounts.get(displayName) ?? 0) > 1;
                 const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
                   if (event.key === 'Enter' || event.key === ' ') {
@@ -142,7 +142,7 @@ const HomePage = ({
               })}
             </div>
           ) : (
-            <div className="home__history-empty">暂无历史</div>
+            <div className="home__history-empty">暂无历史项目</div>
           )}
         </div>
       </div>
@@ -179,8 +179,8 @@ const HomePage = ({
           >
             <h3>确认删除</h3>
             <p>
-              确定要删除
-              <strong>「{pendingDelete.name || '未命名'}」</strong>
+              确定要删除项目
+              <strong>「{pendingDelete.name || DEFAULT_PROJECT_NAME}」</strong>
               吗？此操作无法撤销。
             </p>
             <div className="home__confirm-actions">

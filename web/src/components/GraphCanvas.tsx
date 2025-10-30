@@ -11,13 +11,7 @@ import type {
   MouseEvent as ReactMouseEvent,
 } from 'react';
 import classNames from 'classnames';
-import ReactFlow, {
-  Controls,
-  Panel,
-  ReactFlowProvider,
-  SelectionMode,
-  useReactFlow,
-} from 'reactflow';
+import ReactFlow, { Panel, ReactFlowProvider, SelectionMode, useReactFlow } from 'reactflow';
 import type {
   Connection,
   Edge,
@@ -38,6 +32,7 @@ import { useGraphStore } from '../state/graphStore';
 import MiliastraNode from './MiliastraNode';
 import type { ConnectionPreview } from '../types/node';
 import NodeLibrary from './NodeLibrary';
+import GraphCommentsOverlay from './GraphCommentsOverlay';
 import {
   canConnectPorts,
   isDataPort,
@@ -281,6 +276,18 @@ const GraphCanvasInner = () => {
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode);
   const upsertEdge = useGraphStore((state) => state.upsertEdge);
   const clearOverride = useGraphStore((state) => state.clearPortOverride);
+  const setZoomLevel = useGraphStore((state) => state.setZoomLevel);
+  const requestedZoom = useGraphStore((state) => state.requestedZoom);
+  const setRequestedZoom = useGraphStore((state) => state.setRequestedZoom);
+  const commentMode = useGraphStore((state) => state.commentMode);
+  const setCommentMode = useGraphStore((state) => state.setCommentMode);
+  const addComment = useGraphStore((state) => state.addComment);
+  const addFloatingComment = useGraphStore((state) => state.addFloatingComment);
+  const setSelectedComment = useGraphStore((state) => state.setSelectedComment);
+  const collapseUnpinnedComments = useGraphStore((state) => state.collapseUnpinnedComments);
+  const selectedNodeId = useGraphStore((state) => state.selectedNodeId);
+
+  const memoizedNodeTypes = useMemo(() => nodeTypes, []);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [floatingPanel, setFloatingPanel] = useState<FloatingPanelState>(null);
@@ -293,6 +300,7 @@ const GraphCanvasInner = () => {
   const [tipsDismissed, setTipsDismissed] = useState(false);
   const [currentSelectionMode, setCurrentSelectionMode] = useState<SelectionMode>(SelectionMode.Full);
   const [isCrossSelection, setIsCrossSelection] = useState(false);
+  const [connectionCursor, setConnectionCursor] = useState<'valid' | 'invalid' | null>(null);
   const [hasPartialSelection, setHasPartialSelection] = useState(false);
   const selectionStartRef = useRef<ScreenPoint | null>(null);
   const selectionBoxRef = useRef<SelectionBox | null>(null);
@@ -306,12 +314,22 @@ const GraphCanvasInner = () => {
     origin: { x: 0, y: 0 },
   });
 
+  const [isRightPanning, setIsRightPanning] = useState(false);
+
   useEffect(() => {
     const handleGlobalClick = () => setFloatingPanel(null);
     const handleEscape = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        setFloatingPanel(null);
-        setActiveConnection(null);
+      if (event.key !== 'Escape') return;
+      setFloatingPanel(null);
+      setActiveConnection(null);
+      setConnectionCursor(null);
+      const state = useGraphStore.getState();
+      if (state.commentMode === 'selecting') {
+        setCommentMode('inactive');
+      }
+      if (state.selectedCommentId) {
+        setSelectedComment(undefined);
+        collapseUnpinnedComments(undefined);
       }
     };
     window.addEventListener('click', handleGlobalClick);
@@ -320,7 +338,28 @@ const GraphCanvasInner = () => {
       window.removeEventListener('click', handleGlobalClick);
       window.removeEventListener('keydown', handleEscape);
     };
-  }, []);
+  }, [collapseUnpinnedComments, setCommentMode, setConnectionCursor, setSelectedComment]);
+
+  useEffect(() => {
+    setZoomLevel(reactFlow.getZoom());
+  }, [reactFlow, setZoomLevel]);
+
+  useEffect(() => {
+    if (requestedZoom == null) return;
+    reactFlow.zoomTo(requestedZoom);
+    setZoomLevel(requestedZoom);
+    setRequestedZoom(null);
+  }, [requestedZoom, reactFlow, setRequestedZoom, setZoomLevel]);
+
+  useEffect(() => {
+    collapseUnpinnedComments(selectedNodeId);
+  }, [collapseUnpinnedComments, selectedNodeId]);
+
+  useEffect(() => {
+    if (!activeConnection) {
+      setConnectionCursor(null);
+    }
+  }, [activeConnection]);
 
   useEffect(() => {
     if (tipsDismissed) return;
@@ -601,6 +640,7 @@ const GraphCanvasInner = () => {
       if (targetPort && isDataPort(targetPort) && targetPort.kind === 'data-in') {
         clearOverride(connection.target, connection.targetHandle);
       }
+      setConnectionCursor(null);
     },
     [clearOverride, upsertEdge, validateConnection]
   );
@@ -609,6 +649,7 @@ const GraphCanvasInner = () => {
     (_event, params) => {
       connectionSuccessRef.current = false;
       setFloatingPanel(null);
+      setConnectionCursor('invalid');
       if (!params.handleId || !params.nodeId || !params.handleType) {
         setActiveConnection(null);
         return;
@@ -643,29 +684,62 @@ const GraphCanvasInner = () => {
       }
       setActiveConnection(null);
       connectionSuccessRef.current = false;
+      setConnectionCursor(null);
     },
     [activeConnection, reactFlow]
   );
+
 
   const handleNodeClick = useCallback(
     (_: unknown, node: Node) => {
       setSelectedNode(node.id);
       setHasPartialSelection(false);
+      if (commentMode === 'selecting') {
+        const commentId = addComment(node.id);
+        setSelectedComment(commentId);
+        collapseUnpinnedComments(node.id);
+        return;
+      }
+      collapseUnpinnedComments(node.id);
     },
-    [setSelectedNode, setHasPartialSelection]
+    [addComment, collapseUnpinnedComments, commentMode, setHasPartialSelection, setSelectedComment, setSelectedNode]
   );
 
   const handlePaneClick = useCallback(
     (event?: ReactMouseEvent<Element>) => {
+      if (commentMode === 'selecting') {
+        if (event) {
+          const flowPoint = reactFlow.screenToFlowPosition({
+            x: event.clientX,
+            y: event.clientY,
+          });
+          const commentId = addFloatingComment(flowPoint);
+          setSelectedComment(commentId);
+        }
+        setCommentMode('inactive');
+        collapseUnpinnedComments(undefined);
+        return;
+      }
       if (event) {
         const point = { x: event.clientX, y: event.clientY };
         if (isPointInsideSelection(point)) {
           return;
         }
       }
+      setSelectedComment(undefined);
+      collapseUnpinnedComments(undefined);
       clearSelectionState();
     },
-    [clearSelectionState, isPointInsideSelection]
+    [
+      addFloatingComment,
+      clearSelectionState,
+      collapseUnpinnedComments,
+      commentMode,
+      isPointInsideSelection,
+      reactFlow,
+      setCommentMode,
+      setSelectedComment,
+    ],
   );
 
   const handleDrop = useCallback(
@@ -1056,18 +1130,62 @@ const GraphCanvasInner = () => {
         moved: false,
         origin: { x: event.clientX, y: event.clientY },
       };
+      setIsRightPanning(true);
     }
   }, []);
 
-  const handleWrapperMouseMove = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    const state = rightButtonStateRef.current;
-    if (!state.active || state.moved) return;
-    const dx = event.clientX - state.origin.x;
-    const dy = event.clientY - state.origin.y;
-    if (Math.hypot(dx, dy) > 4) {
-      state.moved = true;
-    }
-  }, []);
+  const handleWrapperMouseMove = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const state = rightButtonStateRef.current;
+      if (state.active && !state.moved) {
+        const dx = event.clientX - state.origin.x;
+        const dy = event.clientY - state.origin.y;
+        if (Math.hypot(dx, dy) > 4) {
+          state.moved = true;
+        }
+      }
+
+      if (activeConnection) {
+        const handleElement = (event.target as HTMLElement | null)?.closest('.react-flow__handle');
+        if (!handleElement) {
+          if (connectionCursor !== 'invalid') {
+            setConnectionCursor('invalid');
+          }
+        } else {
+          const dataset = (handleElement as HTMLElement).dataset;
+          const nodeId = dataset.nodeid ?? handleElement.getAttribute('data-nodeid');
+          const handleId =
+            dataset.handleid ?? handleElement.getAttribute('data-handleid');
+          if (!nodeId || !handleId) {
+            if (connectionCursor !== 'invalid') {
+              setConnectionCursor('invalid');
+            }
+          } else {
+            const connection: Connection =
+              activeConnection.handleType === 'source'
+                ? {
+                    source: activeConnection.nodeId,
+                    sourceHandle: activeConnection.port.id,
+                    target: nodeId,
+                    targetHandle: handleId,
+                  }
+                : {
+                    source: nodeId,
+                    sourceHandle: handleId,
+                    target: activeConnection.nodeId,
+                    targetHandle: activeConnection.port.id,
+                  };
+            const isValid = validateConnection(connection);
+            const next = isValid ? 'valid' : 'invalid';
+            if (connectionCursor !== next) {
+              setConnectionCursor(next);
+            }
+          }
+        }
+      }
+    },
+    [activeConnection, connectionCursor, validateConnection]
+  );
 
   const handleWrapperMouseUp = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (event.button === 2) {
@@ -1100,13 +1218,18 @@ const GraphCanvasInner = () => {
       }
       rightButtonStateRef.current.active = false;
       rightButtonStateRef.current.moved = false;
+      setIsRightPanning(false);
     }
   }, [clearSelectionState, isPointInsideSelection, reactFlow, setSelectedNode]);
 
   const handleWrapperMouseLeave = useCallback(() => {
     rightButtonStateRef.current.active = false;
     rightButtonStateRef.current.moved = false;
-  }, []);
+    setIsRightPanning(false);
+    if (connectionCursor !== null) {
+      setConnectionCursor(null);
+    }
+  }, [connectionCursor]);
 
   const duplicateSelection = useCallback(
     (explicitIds?: string[]) => {
@@ -1182,6 +1305,11 @@ const GraphCanvasInner = () => {
       className={classNames('graph-canvas-wrapper', {
         'graph-canvas-wrapper--cross-select': isCrossSelection,
         'graph-canvas-wrapper--partial-active': hasPartialSelection,
+        'graph-canvas-wrapper--comment-mode': commentMode === 'selecting',
+        'graph-canvas-wrapper--panning': isRightPanning,
+        'graph-canvas-wrapper--connecting': connectionCursor !== null,
+        'graph-canvas-wrapper--connection-valid': connectionCursor === 'valid',
+        'graph-canvas-wrapper--connection-invalid': connectionCursor === 'invalid',
       })}
       onMouseDown={handleWrapperMouseDown}
       onMouseMove={handleWrapperMouseMove}
@@ -1199,7 +1327,7 @@ const GraphCanvasInner = () => {
         edges={rfEdges}
         defaultEdgeOptions={defaultEdgeOptions}
         minZoom={0.25}
-        maxZoom={0.75}
+        maxZoom={1.5}
         selectionOnDrag
         selectionMode={currentSelectionMode}
         panOnDrag={[2]}
@@ -1216,13 +1344,13 @@ const GraphCanvasInner = () => {
         onEdgeContextMenu={(event, edge) => openEdgeMenu(event, edge.id)}
         onPaneClick={handlePaneClick}
         onPaneContextMenu={openCanvasMenu}
-        nodeTypes={nodeTypes}
+        nodeTypes={memoizedNodeTypes}
         proOptions={{ hideAttribution: true }}
         onDrop={handleDrop}
         onDragOver={handleDragOver}
+        onMoveEnd={(_, viewport) => setZoomLevel(viewport.zoom)}
         fitView
       >
-        <Controls position="bottom-right" showInteractive={false} />
         <Panel
           position="top-left"
           className="graph-info-trigger"
@@ -1264,6 +1392,7 @@ const GraphCanvasInner = () => {
           </div>
         </Panel>
       </ReactFlow>
+      <GraphCommentsOverlay />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
         <FloatingPanel

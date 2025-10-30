@@ -10,25 +10,40 @@ import type {
 
 const HISTORY_LIMIT = 50;
 
+
+interface GraphCommentState {
+  id: string;
+  nodeId?: string;
+  position?: { x: number; y: number };
+  text: string;
+  pinned: boolean;
+  collapsed: boolean;
+}
+
+type CommentMode = 'inactive' | 'selecting';
+
 interface GraphSnapshot {
+  graphId: string;
   name: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
-  projectId: string;
+  comments: GraphCommentState[];
   selectedNodeId?: string;
+  zoomLevel: number;
 }
 
 interface GraphState {
-  projectId: string;
+  graphId: string;
   name: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
+  comments: GraphCommentState[];
+  commentMode: CommentMode;
+  selectedCommentId?: string;
   selectedNodeId?: string;
   past: GraphSnapshot[];
   future: GraphSnapshot[];
-  setProjectId: (projectId: string) => void;
+  setGraphId: (graphId: string) => void;
   setName: (name: string) => void;
   addNode: (node: Omit<GraphNode, 'id'> & { id?: string }) => string;
   duplicateNode: (nodeId: string) => string | undefined;
@@ -43,11 +58,28 @@ interface GraphState {
   removeEdge: (edgeId: string, options?: { recordHistory?: boolean }) => void;
   removeEdges: (edgeIds: string[], options?: { recordHistory?: boolean }) => void;
   setSelectedNode: (nodeId?: string) => void;
-  importGraph: (doc: GraphDocument, options?: { projectId?: string; recordHistory?: boolean }) => void;
+  setCommentMode: (mode: CommentMode) => void;
+  setSelectedComment: (commentId?: string) => void;
+  addComment: (nodeId: string) => string;
+  addFloatingComment: (position: { x: number; y: number }) => string;
+  setCommentPosition: (commentId: string, position: { x: number; y: number }) => void;
+  updateCommentText: (commentId: string, text: string) => void;
+  setCommentPinned: (commentId: string, pinned: boolean) => void;
+  setCommentCollapsed: (commentId: string, collapsed: boolean) => void;
+  removeComment: (commentId: string) => void;
+  collapseUnpinnedComments: (activeNodeId?: string) => void;
+  importGraph: (
+    doc: GraphDocument,
+    options?: { graphId?: string; recordHistory?: boolean },
+  ) => void;
   exportGraph: () => GraphDocument;
-  reset: (options?: { projectId?: string }) => void;
+  reset: (options?: { graphId?: string }) => void;
   undo: () => void;
   redo: () => void;
+  zoomLevel: number;
+  requestedZoom: number | null;
+  setZoomLevel: (zoom: number) => void;
+  setRequestedZoom: (zoom: number | null) => void;
 }
 
 const cloneNode = (node: GraphNode): GraphNode => {
@@ -74,33 +106,40 @@ const cloneEdge = (edge: GraphEdge): GraphEdge => ({
 
 const cloneNodes = (nodes: GraphNode[]) => nodes.map(cloneNode);
 const cloneEdges = (edges: GraphEdge[]) => edges.map(cloneEdge);
+const cloneComments = (comments: GraphCommentState[]) => comments.map((comment) => ({ ...comment }));
 
 const createSnapshot = (state: GraphState): GraphSnapshot => ({
+  graphId: state.graphId,
   name: state.name,
   nodes: cloneNodes(state.nodes),
   edges: cloneEdges(state.edges),
-  metadata: state.metadata ? { ...state.metadata } : undefined,
-  projectId: state.projectId,
+  comments: cloneComments(state.comments),
   selectedNodeId: state.selectedNodeId,
+  zoomLevel: state.zoomLevel,
 });
 
 const applySnapshot = (snapshot: GraphSnapshot) => ({
+  graphId: snapshot.graphId,
   name: snapshot.name,
   nodes: cloneNodes(snapshot.nodes),
   edges: cloneEdges(snapshot.edges),
-  metadata: snapshot.metadata ? { ...snapshot.metadata } : undefined,
-  projectId: snapshot.projectId,
+  comments: cloneComments(snapshot.comments),
   selectedNodeId: snapshot.selectedNodeId,
+  zoomLevel: snapshot.zoomLevel,
 });
 
-const createDefaultState = (projectId?: string) => {
-  const id = projectId ?? nanoid();
+const createDefaultState = (graphId?: string) => {
+  const id = graphId ?? nanoid();
   return {
     name: '新建节点图',
     nodes: [],
     edges: [],
-    metadata: { projectId: id } as Record<string, unknown>,
-    projectId: id,
+    comments: [],
+    commentMode: 'inactive' as CommentMode,
+    selectedCommentId: undefined,
+    graphId: id,
+    zoomLevel: 1,
+    requestedZoom: null,
   };
 };
 
@@ -126,10 +165,9 @@ export const useGraphStore = create<GraphState>((set, get) => {
     selectedNodeId: undefined,
     past: [],
     future: [],
-    setProjectId: (projectId) => {
-      set((state) => ({
-        projectId,
-        metadata: { ...(state.metadata ?? {}), projectId },
+    setGraphId: (graphId) => {
+      set(() => ({
+        graphId,
       }));
     },
     setName: (name) => {
@@ -214,15 +252,26 @@ export const useGraphStore = create<GraphState>((set, get) => {
         captureSnapshot();
       }
       const idSet = new Set(uniqueIds);
-      set((state) => ({
-        nodes: state.nodes.filter((node) => !idSet.has(node.id)),
-        edges: state.edges.filter(
-          (edge) => !idSet.has(edge.source.nodeId) && !idSet.has(edge.target.nodeId)
-        ),
-        selectedNodeId: state.selectedNodeId && idSet.has(state.selectedNodeId)
-          ? undefined
-          : state.selectedNodeId,
-      }));
+      set((state) => {
+        const remainingComments = state.comments.filter(
+          (comment) => !comment.nodeId || !idSet.has(comment.nodeId)
+        );
+        const selectedCommentStillExists =
+          state.selectedCommentId &&
+          remainingComments.some((comment) => comment.id === state.selectedCommentId);
+        return {
+          nodes: state.nodes.filter((node) => !idSet.has(node.id)),
+          edges: state.edges.filter(
+            (edge) => !idSet.has(edge.source.nodeId) && !idSet.has(edge.target.nodeId)
+          ),
+          comments: remainingComments,
+          selectedNodeId: state.selectedNodeId && idSet.has(state.selectedNodeId)
+            ? undefined
+            : state.selectedNodeId,
+          selectedCommentId: selectedCommentStillExists ? state.selectedCommentId : undefined,
+          commentMode: selectedCommentStillExists ? state.commentMode : 'inactive',
+        };
+      });
     },
     setNodeData: (nodeId, data) => {
       captureSnapshot();
@@ -298,44 +347,158 @@ export const useGraphStore = create<GraphState>((set, get) => {
       const idSet = new Set(uniqueIds);
       set((state) => ({ edges: state.edges.filter((edge) => !idSet.has(edge.id)) }));
     },
-    setSelectedNode: (nodeId) => set(() => ({ selectedNodeId: nodeId })),
+    setSelectedNode: (nodeId) =>
+      set((state) => (state.selectedNodeId === nodeId ? {} : { selectedNodeId: nodeId })),
+    setCommentMode: (mode) =>
+      set((state) => (state.commentMode === mode ? {} : { commentMode: mode })),
+    setSelectedComment: (commentId) =>
+      set((state) =>
+        state.selectedCommentId === commentId ? {} : { selectedCommentId: commentId }
+      ),
+    addComment: (nodeId) => {
+      captureSnapshot();
+      const commentId = nanoid();
+      set((state) => ({
+        comments: [
+          ...state.comments,
+          { id: commentId, nodeId, text: '', pinned: false, collapsed: false },
+        ],
+        selectedCommentId: commentId,
+        commentMode: 'inactive',
+      }));
+      return commentId;
+    },
+    addFloatingComment: (position) => {
+      captureSnapshot();
+      const commentId = nanoid();
+      set((state) => ({
+        comments: [
+          ...state.comments,
+          {
+            id: commentId,
+            position,
+            text: '',
+            pinned: false,
+            collapsed: false,
+          },
+        ],
+        selectedCommentId: commentId,
+        commentMode: 'inactive',
+      }));
+      return commentId;
+    },
+    updateCommentText: (commentId, text) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.text === text) return;
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, text } : comment
+        ),
+      }));
+    },
+    setCommentPinned: (commentId, pinned) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.pinned === pinned) return;
+      captureSnapshot();
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, pinned } : comment
+        ),
+      }));
+    },
+    setCommentCollapsed: (commentId, collapsed) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.collapsed === collapsed) return;
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, collapsed } : comment
+        ),
+      }));
+    },
+    removeComment: (commentId) => {
+      captureSnapshot();
+      set((state) => ({
+        comments: state.comments.filter((comment) => comment.id !== commentId),
+        selectedCommentId:
+          state.selectedCommentId === commentId ? undefined : state.selectedCommentId,
+        commentMode: state.selectedCommentId === commentId ? 'inactive' : state.commentMode,
+      }));
+    },
+    setCommentPosition: (commentId, position) => {
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, position } : comment
+        ),
+      }));
+    },
+    collapseUnpinnedComments: (activeNodeId) => {
+      set((state) => {
+        let changed = false;
+        const comments = state.comments.map((comment) => {
+          if (!comment.nodeId) return comment;
+          if (comment.pinned || comment.nodeId === activeNodeId) return comment;
+          if (comment.collapsed) return comment;
+          changed = true;
+          return { ...comment, collapsed: true };
+        });
+        return changed ? { comments } : {};
+      });
+    },
+    setRequestedZoom: (zoom) =>
+      set((state) => (state.requestedZoom === zoom ? {} : { requestedZoom: zoom })),
+    setZoomLevel: (zoom) =>
+      set((state) => (state.zoomLevel === zoom ? {} : { zoomLevel: zoom })),
     importGraph: (doc, options) => {
       if (options?.recordHistory !== false) {
         captureSnapshot();
       }
-      const incomingMetadata = doc.metadata ? { ...doc.metadata } : undefined;
-      const incomingProjectId =
-        options?.projectId ??
-        (typeof incomingMetadata?.projectId === 'string' && incomingMetadata.projectId
-          ? String(incomingMetadata.projectId)
-          : nanoid());
-      const nextMetadata = { ...(incomingMetadata ?? {}), projectId: incomingProjectId };
+      const incomingGraphId = options?.graphId ?? get().graphId ?? nanoid();
+      const normalizedComments: GraphCommentState[] = [];
+      if (Array.isArray(doc.comments)) {
+        for (const comment of doc.comments) {
+          const rawNodeId = (comment.nodeId ?? '').trim();
+          const position = comment.position
+            ? { x: Number(comment.position.x) || 0, y: Number(comment.position.y) || 0 }
+            : undefined;
+          if (!rawNodeId && !position) continue;
+          normalizedComments.push({
+            id: comment.id ?? nanoid(),
+            nodeId: rawNodeId ? rawNodeId : undefined,
+            position,
+            text: comment.text ?? '',
+            pinned: Boolean(comment.pinned),
+            collapsed: Boolean(comment.collapsed),
+          });
+        }
+      }
       set(() => ({
         name: doc.name,
         nodes: cloneNodes(doc.nodes),
         edges: cloneEdges(doc.edges),
-        metadata: nextMetadata,
-        projectId: incomingProjectId,
+        comments: normalizedComments,
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        graphId: incomingGraphId,
         selectedNodeId: undefined,
+        zoomLevel: 1,
+        requestedZoom: null,
       }));
     },
     exportGraph: () => {
       const state = get();
-      const metadata = { ...(state.metadata ?? {}), projectId: state.projectId };
       return {
         schemaVersion: GRAPH_SCHEMA_VERSION,
         name: state.name,
         nodes: cloneNodes(state.nodes),
         edges: cloneEdges(state.edges),
-        metadata,
-        updatedAt: new Date().toISOString(),
+        comments: cloneComments(state.comments),
       } satisfies GraphDocument;
     },
     reset: (options) => {
       captureSnapshot();
-      const nextProjectId = options?.projectId ?? nanoid();
+      const nextGraphId = options?.graphId ?? nanoid();
       set(() => ({
-        ...createDefaultState(nextProjectId),
+        ...createDefaultState(nextGraphId),
         selectedNodeId: undefined,
       }));
     },
@@ -348,6 +511,9 @@ export const useGraphStore = create<GraphState>((set, get) => {
         ...applySnapshot(previous),
         past: state.past.slice(0, -1),
         future: [currentSnapshot, ...state.future],
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        requestedZoom: previous.zoomLevel,
       }));
     },
     redo: () => {
@@ -359,6 +525,9 @@ export const useGraphStore = create<GraphState>((set, get) => {
         ...applySnapshot(next),
         past: [...state.past, currentSnapshot],
         future: state.future.slice(1),
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        requestedZoom: next.zoomLevel,
       }));
     },
   };

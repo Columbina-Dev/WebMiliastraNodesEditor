@@ -106,17 +106,28 @@ export interface GraphEdge {
   target: GraphEdgeEndpoint;
 }
 
+export interface GraphComment {
+  id: string;
+  nodeId?: string;
+  position?: { x: number; y: number };
+  text: string;
+  pinned?: boolean;
+  collapsed?: boolean;
+}
+
+export type GraphSchemaVersion = 1 | 2;
+
 export interface GraphDocument {
-  schemaVersion: 1;
+  schemaVersion: GraphSchemaVersion;
   name: string;
   createdAt?: string;
   updatedAt?: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
+  comments?: GraphComment[];
 }
 
-export const GRAPH_SCHEMA_VERSION = 1;
+export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
 
 export interface ConnectionPreview {
   handleType: 'source' | 'target';

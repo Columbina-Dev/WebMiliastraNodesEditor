@@ -38,7 +38,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
   z-index: 5;
 }
@@ -49,7 +49,7 @@
 }
 
 .palette--collapsed {
-  background: transparent;
+  background: #323237;
   pointer-events: none;
 }
 

@@ -1,4 +1,4 @@
-import type { GraphDocument } from '../types/node';
+import type { ProjectDocument } from '../types/project';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
@@ -7,6 +7,24 @@ const KEY_AUTOSAVES = STORAGE_NAMESPACE + ':autosaves';
 const KEY_SESSION = STORAGE_NAMESPACE + ':session';
 
 export const AUTOSAVE_LIMIT = 4;
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const isProjectDocumentLike = (value: unknown): value is ProjectDocument => {
+  if (!isRecord(value)) return false;
+  const manifest = (value as { manifest?: unknown }).manifest;
+  if (!isRecord(manifest)) return false;
+  const project = manifest.project;
+  if (!isRecord(project)) return false;
+  if (typeof project.id !== 'string') return false;
+  if (typeof project.name !== 'string') return false;
+  if (!Array.isArray(manifest.graphs)) return false;
+  const graphs = (value as { graphs?: unknown }).graphs;
+  if (!isRecord(graphs)) return false;
+  if (manifest.groups !== undefined && !Array.isArray(manifest.groups)) return false;
+  return true;
+};
 
 export interface LayoutState {
   paletteCollapsed: boolean;
@@ -17,12 +35,12 @@ export interface StoredProject {
   id: string;
   name: string;
   savedAt: string;
-  document: GraphDocument;
+  document: ProjectDocument;
 }
 
 export interface AutoSaveEntry {
   savedAt: string;
-  document: GraphDocument;
+  document: ProjectDocument;
 }
 
 export type AutoSaveMap = Record<string, AutoSaveEntry[]>;
@@ -71,15 +89,14 @@ export const loadProjects = (): StoredProject[] => {
   if (!storage) return [];
   const parsed = safeParse<StoredProject[]>(storage.getItem(KEY_PROJECTS), []);
   if (!Array.isArray(parsed)) return [];
-  const sanitized = parsed.filter(
-    (item): item is StoredProject =>
-      !!item &&
-      typeof item.id === 'string' &&
-      typeof item.name === 'string' &&
-      typeof item.savedAt === 'string' &&
-      typeof item.document === 'object' &&
-      item.document !== null
-  );
+  const sanitized = parsed.filter((item): item is StoredProject => {
+    if (!item || typeof item !== 'object') return false;
+    const candidate = item as StoredProject;
+    if (typeof candidate.id !== 'string') return false;
+    if (typeof candidate.name !== 'string') return false;
+    if (typeof candidate.savedAt !== 'string') return false;
+    return isProjectDocumentLike(candidate.document);
+  });
   sanitized.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
   return sanitized;
 };
@@ -104,13 +121,12 @@ export const findProjectRecord = (projectId: string): StoredProject | undefined 
 
 const sanitizeAutoSaveEntries = (entries: unknown): AutoSaveEntry[] => {
   if (!Array.isArray(entries)) return [];
-  const sanitized = entries.filter(
-    (entry): entry is AutoSaveEntry =>
-      !!entry &&
-      typeof entry.savedAt === 'string' &&
-      typeof (entry as AutoSaveEntry).document === 'object' &&
-      (entry as AutoSaveEntry).document !== null
-  );
+  const sanitized = entries.filter((entry): entry is AutoSaveEntry => {
+    if (!entry || typeof entry !== 'object') return false;
+    const candidate = entry as AutoSaveEntry;
+    if (typeof candidate.savedAt !== 'string') return false;
+    return isProjectDocumentLike(candidate.document);
+  });
   sanitized.sort((a, b) => new Date(b.savedAt).getTime() - new Date(a.savedAt).getTime());
   return sanitized.slice(0, AUTOSAVE_LIMIT);
 };

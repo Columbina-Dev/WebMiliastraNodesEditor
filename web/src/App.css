@@ -1,4 +1,35 @@
-﻿* {
+:root {
+  --cursor-default: url('./assets/cursor/Default-60.png') 7 5, auto;
+  --cursor-pointer: url('./assets/cursor/Default-60.png') 7 5, pointer;
+  --cursor-text: url('./assets/cursor/Text-60.png') 9 10, text;
+  --cursor-move: url('./assets/cursor/Move-60.png') 10 9, move;
+  --cursor-drag: url('./assets/cursor/Drag-60.png') 7 5, move;
+  --cursor-comment: url('./assets/cursor/Comment-60.png') 0 14, pointer;
+  --cursor-conn-valid: url('./assets/cursor/ConnValid-60.png') 7 5, pointer;
+  --cursor-conn-invalid: url('./assets/cursor/ConnInvalid-60.png') 7 5, pointer;
+  --cursor-stretch-vertical: url('./assets/cursor/Stretch_V-60.png') 15 30, ns-resize;
+  --cursor-stretch-horizontal: url('./assets/cursor/Stretch_H-60.png') 30 15, ew-resize;
+  --cursor-stretch-diagonal-lr: url('./assets/cursor/Stretch_LR-60.png') 34 34, nesw-resize;
+  --cursor-stretch-diagonal-rl: url('./assets/cursor/Stretch_RL-60.png') 26 34, nwse-resize;
+  --cursor-text-invalid: url('./assets/cursor/TextInvalid-60.png') 20 20, not-allowed;
+  --cursor-jump: url('./assets/cursor/Jump-60.png') 24 18, pointer;
+}
+
+body,
+.app {
+  cursor: var(--cursor-default);
+}
+
+button {
+  cursor: var(--cursor-pointer);
+}
+
+input,
+textarea {
+  cursor: var(--cursor-text);
+}
+
+* {
   scrollbar-width: thin;
   scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
 }
@@ -43,7 +74,7 @@ option {
 
 @font-face {
   font-family: 'DreamHanSans';
-  src: url('../assets/font/DreamHanSans-W17.ttc') format('truetype');
+  src: url('../assets/font/DreamHanSans-W17.ttc') format('truetype-collection');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -55,83 +86,143 @@ option {
   flex-direction: column;
   background: #08080f;
   color: #f7f7ff;
-  font-family: 'DreamHanSans', 'Segoe UI', sans-serif;
+  font-family: 'DreamHanSans';
   overflow: hidden;
   user-select: none;
 }
 
-.app__topbar {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  padding: 12px 20px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  background: rgba(17, 17, 24, 0.95);
-}
 
-.app__topbar-left {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex: 1;
-}
 
-.app__history {
-  display: flex;
-  gap: 8px;
-}
-
-.app__history button,
-.app__actions button {
-  padding: 8px 14px;
-  border-radius: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.04);
-  color: inherit;
-  cursor: pointer;
-  transition: background 0.2s ease, border 0.2s ease, opacity 0.2s ease;
+.action_dock {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #26262CFA;
+  border-radius: 18px;
+  padding: 10px 14px;
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 12px;
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
+  z-index: 150;
 }
 
-.app__history button:hover,
-.app__actions button:hover {
-  background: rgba(92, 186, 255, 0.15);
-  border-color: rgba(92, 186, 255, 0.4);
+.action_dock__content {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
 }
 
-.app__history button:disabled,
-.app__actions button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-  background: rgba(255, 255, 255, 0.04);
-  border-color: rgba(255, 255, 255, 0.08);
+.action_dock--collapsed .action_dock__content {
+  display: none;
 }
 
-.app__name {
-  flex: 1;
-  padding: 8px 12px;
+.action_dock__button {
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(255, 255, 255, 0.05);
+  border: none;
+  background: rgba(255, 255, 255, 0.04);
   color: inherit;
-  font-size: 16px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease, color 0.2s ease, opacity 0.2s ease;
 }
 
-.app__name:focus {
-  outline: 1px solid #4c9cff;
+.action_dock__button:hover {
+  background: rgba(92, 186, 255, 0.18);
 }
 
-.app__actions {
+.action_dock__button:disabled {
+  opacity: 0.4;
+  cursor: var(--cursor-default);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.action_dock__button.is-active {
+  background: rgba(255, 214, 153, 0.22);
+  color: #ffd899;
+}
+
+.action_dock__button--wide {
+  width: auto;
+  min-width: 68px;
+  padding: 0 12px;
+}
+
+.action_dock__icon,
+.action_dock__icon-img {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
+}
+
+.action_dock__icon-img {
+  object-fit: contain;
+}
+
+.action_dock__separator {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.16);
+}
+
+.action_dock__name {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  color: inherit;
+  padding: 6px 12px;
+  font-size: 14px;
+  min-width: 200px;
+}
+
+.action_dock__name:focus {
+  outline: 1px solid rgba(92, 186, 255, 0.6);
+}
+
+.action_dock__zoom {
+  position: relative;
+  display: inline-flex;
+}
+
+.action_dock__dropdown {
+  position: absolute;
+  bottom: 42px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(20, 22, 30, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.45);
+  padding: 6px;
   display: flex;
-  gap: 8px;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 84px;
+  z-index: 200;
 }
 
-.app__button-icon {
-  width: 16px;
-  height: 16px;
+.action_dock__dropdown-item {
+  border: none;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 13px;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: var(--cursor-pointer);
+  text-align: center;
+}
+
+.action_dock__dropdown-item:hover {
+  background: rgba(92, 186, 255, 0.18);
+}
+
+.action_dock__dropdown-item.is-active {
+  color: rgba(255, 214, 153, 0.92);
 }
 
 .sr-only {
@@ -207,7 +298,7 @@ option {
   background: transparent;
   color: rgba(255, 255, 255, 0.7);
   font-size: 14px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: color 0.2s ease;
 }
 
@@ -259,12 +350,328 @@ option {
   border: 1px solid rgba(92, 186, 255, 0.4);
   background: rgba(92, 186, 255, 0.18);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
 .app__not-found button:hover {
   border-color: rgba(92, 186, 255, 0.65);
   background: rgba(92, 186, 255, 0.28);
-  transform: translateY(-1px);
 }
+
+.app__editor-bar {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  padding-top: 6px;
+  padding-bottom: 6px;
+  padding-left: 12px;
+  padding-right: 12px;
+  background: #1D1D21;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  column-gap: 16px;
+}
+
+.app__editor-bar-left,
+.app__editor-bar-right {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.app__editor-bar-left {
+  justify-self: start;
+}
+
+.app__editor-logo {
+  width: 24px;
+  height: 24px;
+}
+
+.app__editor-menu {
+  position: relative;
+  display: flex;
+  gap: 12px;
+}
+
+.app__editor-menu-item {
+  position: relative;
+}
+
+.app__editor-menu-button {
+  padding: 6px 10px;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 14px;
+  cursor: var(--cursor-pointer);
+  border-radius: 6px;
+  transition: background 0.2s ease;
+}
+
+.app__editor-menu-button:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.app__editor-menu-dropdown {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  min-width: 220px;
+  padding: 8px 0;
+  background: rgba(24, 26, 36, 0.96);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 10px;
+  box-shadow: 0 14px 28px rgba(0, 0, 0, 0.45);
+  z-index: 150;
+}
+
+.app__editor-menu-dropdown button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 14px;
+  background: transparent;
+  border: none;
+  color: rgba(255, 255, 255, 0.9);
+  font-size: 13px;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease;
+}
+
+.app__editor-menu-dropdown button:hover {
+  background: rgba(110, 169, 255, 0.2);
+}
+
+.app__editor-menu-dropdown img {
+  width: 16px;
+  height: 16px;
+}
+
+.app__editor-bar-center {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 16px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+  text-align: center;
+}
+
+.app__editor-bar-right {
+  justify-self: end;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.app__editor-icon-button {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  cursor: var(--cursor-pointer);
+  padding: 0;
+  transition: transform 0.2s ease;
+}
+
+.app__editor-icon-button img,
+.app__editor-icon-button svg {
+  width: 22px;
+  height: 22px;
+  fill: #ffffff;
+}
+
+.app__editor-icon-button:hover {
+  transform: scale(1.1);
+}
+
+.app__editor-icon-button--github svg {
+  fill: #ffffff;
+}
+
+.app__tabs {
+  display: flex;
+  gap: 6px;
+  padding: 8px 16px;
+  background: #1F1F25;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  overflow-x: auto;
+}
+
+.app__tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.app__tab.is-active {
+  border-color: rgba(92, 186, 255, 0.5);
+  background: rgba(92, 186, 255, 0.2);
+}
+
+.app__tab-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.app__tab-label img {
+  width: 16px;
+  height: 16px;
+}
+
+.app__tab-label span {
+  display: inline-block;
+}
+
+
+.app__tab-dirty {
+  color: rgba(255, 150, 150, 0.85);
+  margin-left: 4px;
+}
+
+.app__tab-close {
+  font-size: 16px;
+  line-height: 1;
+  cursor: var(--cursor-pointer);
+}
+
+.app__tab-close:hover {
+  color: rgba(255, 120, 120, 0.85);
+}
+
+.app__shortcut {
+  display: block;
+  font-size: 11px;
+  opacity: 0.6;
+}
+
+.app__body--explorer {
+  display: block;
+  padding: 0;
+  overflow: auto;
+}
+
+.app__version-info--hidden {
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.app__modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 16, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1700;
+  padding: 24px;
+}
+
+.app__modal {
+  width: 100%;
+  max-width: 420px;
+  background: rgba(18, 20, 28, 0.97);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #f6f6ff;
+  box-shadow: 0 24px 56px rgba(0, 0, 0, 0.48);
+}
+
+.app__modal h3 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.app__modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.app__modal-field label {
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.app__modal-field input,
+.app__modal-field select {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.app__modal-field input:focus,
+.app__modal-field select:focus {
+  outline: 1px solid rgba(92, 186, 255, 0.55);
+}
+
+.app__modal-static {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+}
+
+.app__modal-path {
+  font-size: 12px;
+  opacity: 0.75;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px dashed rgba(255, 255, 255, 0.12);
+}
+
+.app__modal-error {
+  font-size: 13px;
+  color: #ffb0b0;
+}
+
+.app__modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.app__modal-actions button {
+  padding: 8px 18px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.app__modal-actions button:hover {
+  border-color: rgba(92, 186, 255, 0.45);
+  background: rgba(92, 186, 255, 0.18);
+}
+
+.app__modal-actions button[type='button'] {
+  background: rgba(255, 255, 255, 0.04);
+}
+
