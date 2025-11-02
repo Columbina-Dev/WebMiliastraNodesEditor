@@ -1,4 +1,7 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="8" height="8" viewBox="0 0 8 8" fill="none">
-  <rect x="1.25" y="3.25" width="5.5" height="1.5" rx="0.75" fill="currentColor"/>
-  <rect x="3.25" y="1.25" width="1.5" height="5.5" rx="0.75" fill="currentColor"/>
+<svg width="512" height="512" viewBox="0 0 512 512" xmlns="http://www.w3.org/2000/svg">
+  <!-- Rectangle: 140 width x 465 height, centered vertically -->
+  <rect x="26" y="23.5" width="140" height="465" fill="white" stroke="none"/>
+  
+  <!-- Triangle: 320 width x 465 height, positioned right after rectangle -->
+  <polygon points="166,23.5 486,256 166,488.5" fill="white" stroke="none"/>
 </svg>

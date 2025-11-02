@@ -59,11 +59,6 @@
   transition: border 0.2s ease, background 0.2s ease;
 }
 
-.resource-explorer__sidebar-group img {
-  width: 16px;
-  height: 16px;
-}
-
 .resource-explorer__sidebar-group.is-active {
   border-color: rgba(255, 214, 153, 0.4);
   background: rgba(255, 214, 153, 0.12);
@@ -76,20 +71,17 @@
 .resource-explorer__sidebar-toggle {
   width: 16px;
   height: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  border-radius: 3px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   margin-right: 4px;
-  transition: border-color 0.2s ease;
 }
 
 .resource-explorer__sidebar-toggle-icon {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
   transition: transform 0.2s ease;
-  filter: invert(94%) sepia(9%) saturate(613%) hue-rotate(207deg) brightness(109%) contrast(96%);
+  color: white;
 }
 
 .resource-explorer__sidebar-toggle.is-expanded .resource-explorer__sidebar-toggle-icon {

@@ -50,6 +50,7 @@ const TUTORIAL_BASE_PATH = "/ys/ugc/tutorial";
 
 const ICON_BACK = new URL("./assets/icons/back.png", import.meta.url).href;
 const ICON_SAVE = new URL("./assets/icons/save.png", import.meta.url).href;
+const ICON_SAVEAS = new URL("./assets/icons/save-as.png", import.meta.url).href;
 const ICON_EXPORT = new URL("./assets/icons/export.png", import.meta.url).href;
 const ICON_UNDO = new URL("./assets/icons/undo.png", import.meta.url).href;
 const ICON_REDO = new URL("./assets/icons/redo.png", import.meta.url).href;
@@ -1396,10 +1397,7 @@ const App = () => {
                 onClick={handleSaveGraphAs}
                 title="另存为"
               >
-                <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                  <rect x="3" y="3" width="10" height="10" rx="2" ry="2" fill="none" stroke="currentColor" strokeWidth="1.4" />
-                  <path d="M8 5v6M5 8h6" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round" />
-                </svg>
+                <img src={ICON_SAVEAS} alt="" aria-hidden="true" className="action_dock__icon-img" />
                 <span className="sr-only">另存为</span>
               </button>
               <button
