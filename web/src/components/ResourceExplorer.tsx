@@ -25,8 +25,16 @@ import {
   createProjectId,
   resolveGraphLocation,
 } from '../utils/project';
+import serverNodeDefinitions from '../data/nodeDefinitions.server';
+import clientNodeDefinitions from '../data/nodeDefinitions.client';
+import { nodeDefinitions } from '../data/nodeDefinitions';
 import { graphDocumentSchema } from '../utils/validation';
-import { GRAPH_SCHEMA_VERSION, type GraphComment, type GraphDocument } from '../types/node';
+import {
+  GRAPH_SCHEMA_VERSION,
+  type GraphComment,
+  type GraphDocument,
+  type GraphEnvironment,
+} from '../types/node';
 import './ResourceExplorer.css';
 
 interface ResourceExplorerProps {
@@ -105,6 +113,57 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const categories = PROJECT_CATEGORIES_BY_TOP[topFolder];
 
+  const serverNodeSet = useMemo(() => {
+    const source = serverNodeDefinitions.length ? serverNodeDefinitions : nodeDefinitions;
+    return new Set(source.map((definition) => definition.id));
+  }, []);
+
+  const clientNodeSet = useMemo(() => {
+    const source = clientNodeDefinitions.length ? clientNodeDefinitions : nodeDefinitions;
+    return new Set(source.map((definition) => definition.id));
+  }, []);
+
+  const graphValidation = useMemo(() => {
+    if (!document) {
+      return new Map<string, { errors: string[]; environment: GraphEnvironment }>();
+    }
+    const map = new Map<string, { errors: string[]; environment: GraphEnvironment }>();
+    for (const entry of document.manifest.graphs) {
+      const resolved = resolveGraphLocation(entry.graphId, entry.path, {
+        groupNameHint: entry.groupName,
+      });
+      const expectedEnv: GraphEnvironment =
+        resolved.location.topFolder === 'client' ? 'client' : 'server';
+      const graph = document.graphs[entry.graphId];
+      if (!graph) continue;
+      const errors: string[] = [];
+      if (graph.environment && graph.environment !== expectedEnv) {
+        errors.push(
+          graph.environment === 'client'
+            ? '节点图标记为客户端，但当前位置为服务器节点图目录'
+            : '节点图标记为服务器，但当前位置为客户端节点图目录',
+        );
+      }
+      const allowedSet = expectedEnv === 'client' ? clientNodeSet : serverNodeSet;
+      const invalidTypes = Array.from(
+        new Set(
+          graph.nodes
+            .map((node) => node.type)
+            .filter((type) => type && !allowedSet.has(type)),
+        ),
+      );
+      if (invalidTypes.length) {
+        errors.push(
+          `以下节点类型不属于${expectedEnv === 'client' ? '客户端' : '服务器'}节点库：${invalidTypes.join(', ')}`,
+        );
+      }
+      if (errors.length) {
+        map.set(entry.graphId, { errors, environment: expectedEnv });
+      }
+    }
+    return map;
+  }, [clientNodeSet, document, serverNodeSet]);
+
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(() => categories[0]?.key ?? '');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(categories.map((category) => [category.key, true])),
@@ -134,6 +193,28 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       confirmLabel: '确定',
     });
   }, []);
+
+  const attemptOpenGraph = useCallback(
+    (graphId: string) => {
+      const issues = graphValidation.get(graphId);
+      if (issues && issues.errors.length) {
+        openInfoDialog(
+          '无法打开节点图',
+          <div className="resource-explorer__dialog-message">
+            <p>检测到以下问题，请导出 JSON 并手动修复后重新导入：</p>
+            <ul>
+              {issues.errors.map((error) => (
+                <li key={error}>{error}</li>
+              ))}
+            </ul>
+          </div>,
+        );
+        return;
+      }
+      onOpenGraph(graphId);
+    },
+    [graphValidation, onOpenGraph, openInfoDialog],
+  );
 
   useEffect(() => {
     const nextActive = categories[0]?.key ?? '';
@@ -684,6 +765,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       nodes: [],
       edges: [],
       comments: [],
+      environment: topFolder === 'client' ? 'client' : 'server',
     };
     updateDocument((draft) => {
       draft.graphs[graphId] = newGraph;
@@ -1062,8 +1144,13 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               });
             }
           }
+          const declaredEnvironment =
+            parsed.environment === 'client' ? 'client' : parsed.environment === 'server' ? 'server' : undefined;
+          const environment: GraphEnvironment =
+            declaredEnvironment ?? (topFolder === 'client' ? 'client' : 'server');
           const normalizedDocument: GraphDocument = {
             ...parsed,
+            environment,
             schemaVersion: GRAPH_SCHEMA_VERSION,
             name: graphName,
             createdAt: parsed.createdAt ?? timestamp,
@@ -1350,6 +1437,8 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         <div className="resource-explorer__empty">暂无节点图</div>
       ) : (
         visibleGraphs.map((descriptor, index) => {
+          const validation = graphValidation.get(descriptor.graphId);
+          const hasError = Boolean(validation && validation.errors.length);
           const isDirty = Boolean(dirtyGraphIds[descriptor.graphId]);
           const stripeClass = `resource-explorer__row--${index % 2 === 0 ? 'even' : 'odd'}`;
           const isRenaming =
@@ -1360,13 +1449,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               className={classNames('resource-explorer__row', stripeClass, {
                 'is-dirty': isDirty,
                 'is-editing': isRenaming,
+                'is-error': hasError,
               })}
               role="button"
               tabIndex={0}
-              onDoubleClick={() => onOpenGraph(descriptor.graphId)}
+              onDoubleClick={() => attemptOpenGraph(descriptor.graphId)}
               onKeyDown={(event) => {
                 if (event.key === 'Enter') {
-                  onOpenGraph(descriptor.graphId);
+                  attemptOpenGraph(descriptor.graphId);
                 }
               }}
               onContextMenu={(event) =>
@@ -1404,8 +1494,20 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                 {isDirty && <span className="resource-explorer__dirty-indicator">*</span>}
               </div>
               <div className="resource-explorer__cell resource-explorer__cell--type">节点图</div>
-              <div className="resource-explorer__cell resource-explorer__cell--meta">
-                {descriptor.graphId}
+              <div
+                className={classNames(
+                  'resource-explorer__cell',
+                  'resource-explorer__cell--meta',
+                  { 'is-error': hasError },
+                )}
+              >
+                {hasError ? (
+                  <span title={validation?.errors.join('\n') ?? ''}>
+                    {validation?.errors[0] ?? '节点图存在错误'}
+                  </span>
+                ) : (
+                  descriptor.graphId
+                )}
               </div>
             </div>
           );
@@ -1718,14 +1820,20 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                   (item) => item.graphId === contextMenu.graphId,
                 );
                 const graphName = graphDescriptor?.name ?? contextMenu.graphId;
+                const validation = graphValidation.get(contextMenu.graphId);
+                const hasError = Boolean(validation && validation.errors.length);
+                const errorTooltip = validation?.errors.join('；');
                 return (
                   <>
                     <button
                       type="button"
                       onClick={() => {
                         setContextMenu(null);
-                        onOpenGraph(contextMenu.graphId);
+                        attemptOpenGraph(contextMenu.graphId);
                       }}
+                      className={classNames({ 'is-disabled': hasError })}
+                      disabled={hasError}
+                      title={hasError ? errorTooltip : undefined}
                     >
                       打开
                     </button>

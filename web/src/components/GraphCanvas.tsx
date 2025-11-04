@@ -1,4 +1,4 @@
-import {
+﻿import {
   useCallback,
   useEffect,
   useLayoutEffect,
@@ -9,9 +9,10 @@ import {
 import type {
   DragEvent as ReactDragEvent,
   MouseEvent as ReactMouseEvent,
+  TouchEvent as ReactTouchEvent,
 } from 'react';
 import classNames from 'classnames';
-import ReactFlow, { Panel, ReactFlowProvider, SelectionMode, useReactFlow } from 'reactflow';
+import ReactFlow, { ReactFlowProvider, SelectionMode, useReactFlow } from 'reactflow';
 import type {
   Connection,
   Edge,
@@ -36,11 +37,16 @@ import GraphCommentsOverlay from './GraphCommentsOverlay';
 import {
   canConnectPorts,
   isDataPort,
+  isFlowPort,
 } from '../utils/graph';
+import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
 import './GraphCanvas.css';
 
 const nodeTypes = { miliastra: MiliastraNode } as const;
-const ICON_INFO = new URL('../assets/icons/info.png', import.meta.url).href;
+
+interface GraphCanvasProps {
+  isMobileMode?: boolean;
+}
 
 type ScreenPoint = { x: number; y: number };
 
@@ -72,6 +78,8 @@ type PositionedEdge = Edge & {
 
 const MIN_SELECTION_DISTANCE = 4;
 const INTERSECTION_EPSILON = 1e-4;
+const TWO_FINGER_TAP_DISTANCE = 18;
+const TWO_FINGER_TAP_DURATION = 400;
 
 const isPointInsideRect = (point: ScreenPoint, rect: FlowRect) =>
   point.x >= rect.minX &&
@@ -272,7 +280,7 @@ const extractEventPosition = (event: MouseEvent | TouchEvent): ScreenPoint => {
   };
 };
 
-const GraphCanvasInner = () => {
+const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
@@ -316,8 +324,7 @@ const GraphCanvasInner = () => {
   const [connectionValueTypeFilter, setConnectionValueTypeFilter] =
     useState<string>('all');
   const connectionSuccessRef = useRef(false);
-  const [tipsVisible, setTipsVisible] = useState(true);
-  const [tipsDismissed, setTipsDismissed] = useState(false);
+  const skipGlobalClickCloseRef = useRef(false);
   const [currentSelectionMode, setCurrentSelectionMode] = useState<SelectionMode>(SelectionMode.Full);
   const [isCrossSelection, setIsCrossSelection] = useState(false);
   const [connectionCursor, setConnectionCursor] = useState<'valid' | 'invalid' | null>(null);
@@ -334,11 +341,26 @@ const GraphCanvasInner = () => {
     moved: false,
     origin: { x: 0, y: 0 },
   });
+  const previousSelectedIdsRef = useRef<string[]>([]);
+  const libraryTouchDragRef = useRef<{ definitionId: string; screen: ScreenPoint } | null>(null);
+  const nodeLongPressRef = useRef<{ nodeId: string; timeoutId: number | null; triggered: boolean; screen: ScreenPoint } | null>(null);
+  const mobileContextTapRef = useRef<{
+    active: boolean;
+    startTouches: Array<{ id: number; x: number; y: number }>;
+    lastTouches: Array<{ id: number; x: number; y: number }>;
+    startTime: number;
+  } | null>(null);
 
   const [isRightPanning, setIsRightPanning] = useState(false);
 
   useEffect(() => {
-    const handleGlobalClick = () => setFloatingPanel(null);
+    const handleGlobalClick = () => {
+      if (skipGlobalClickCloseRef.current) {
+        skipGlobalClickCloseRef.current = false;
+        return;
+      }
+      setFloatingPanel(null);
+    };
     const handleEscape = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       setFloatingPanel(null);
@@ -362,6 +384,81 @@ const GraphCanvasInner = () => {
   }, [collapseUnpinnedComments, setCommentMode, setConnectionCursor, setSelectedComment]);
 
   useEffect(() => {
+    const selectedIds = reactFlow
+      .getNodes()
+      .filter((node) => node.selected)
+      .map((node) => node.id);
+    previousSelectedIdsRef.current = selectedIds;
+  });
+
+  useEffect(() => {
+    if (!isMobileMode) {
+      libraryTouchDragRef.current = null;
+      return;
+    }
+
+    const handleTouchDragEvent = (event: Event) => {
+      const custom = event as CustomEvent<NodeLibraryTouchDragDetail>;
+      const detail = custom.detail;
+      if (!detail || !nodeDefinitionsById[detail.definitionId]) return;
+      const screen = { x: detail.clientX, y: detail.clientY };
+
+      switch (detail.phase) {
+        case 'start':
+          libraryTouchDragRef.current = {
+            definitionId: detail.definitionId,
+            screen,
+          };
+          break;
+        case 'move':
+          if (libraryTouchDragRef.current) {
+            libraryTouchDragRef.current.screen = screen;
+          }
+          break;
+        case 'end': {
+          const state = libraryTouchDragRef.current;
+          libraryTouchDragRef.current = null;
+          if (!state) return;
+          const rect = wrapperRef.current?.getBoundingClientRect();
+          if (
+            !rect ||
+            screen.x < rect.left ||
+            screen.x > rect.right ||
+            screen.y < rect.top ||
+            screen.y > rect.bottom
+          ) {
+            return;
+          }
+          const flowPosition = reactFlow.screenToFlowPosition(screen);
+          const graphState = useGraphStore.getState();
+          graphState.addNode({
+            type: detail.definitionId,
+            position: flowPosition,
+            data: {},
+          });
+          setFloatingPanel(null);
+          break;
+        }
+        case 'cancel':
+          libraryTouchDragRef.current = null;
+          break;
+      }
+    };
+
+    window.addEventListener(
+      NODE_LIBRARY_TOUCH_DRAG_EVENT,
+      handleTouchDragEvent as EventListener
+    );
+    return () => {
+      window.removeEventListener(
+        NODE_LIBRARY_TOUCH_DRAG_EVENT,
+        handleTouchDragEvent as EventListener
+      );
+      libraryTouchDragRef.current = null;
+    };
+  }, [isMobileMode, reactFlow, setFloatingPanel]);
+
+  useEffect(() => {
     setZoomLevel(reactFlow.getZoom());
   }, [reactFlow, setZoomLevel]);
 
@@ -381,15 +478,6 @@ const GraphCanvasInner = () => {
       setConnectionCursor(null);
     }
   }, [activeConnection]);
-
-  useEffect(() => {
-    if (tipsDismissed) return;
-    const timer = window.setTimeout(() => {
-      setTipsVisible(false);
-      setTipsDismissed(true);
-    }, 20000);
-    return () => window.clearTimeout(timer);
-  }, [tipsDismissed]);
 
   useEffect(() => {
     selectionModeRef.current = currentSelectionMode;
@@ -613,6 +701,13 @@ const GraphCanvasInner = () => {
         (port) => port.id === connection.targetHandle
       );
       if (!sourcePort || !targetPort) return false;
+      if (
+        connection.source === connection.target &&
+        isFlowPort(sourcePort) &&
+        isFlowPort(targetPort)
+      ) {
+        return false;
+      }
       return canConnectPorts(sourcePort, targetPort);
     },
     [nodes]
@@ -697,6 +792,7 @@ const GraphCanvasInner = () => {
       if (!activeConnection) return;
       const targetPosition = extractEventPosition(event);
       if (!connectionSuccessRef.current) {
+        skipGlobalClickCloseRef.current = true;
         setFloatingPanel({
           type: 'connection',
           screen: targetPosition,
@@ -711,20 +807,166 @@ const GraphCanvasInner = () => {
     [activeConnection, reactFlow]
   );
 
+  const clearNodeLongPress = useCallback(() => {
+    const state = nodeLongPressRef.current;
+    if (state?.timeoutId) {
+      window.clearTimeout(state.timeoutId);
+    }
+    nodeLongPressRef.current = null;
+  }, []);
+
+  const scheduleNodeLongPress = useCallback(
+    (nodeId: string, screen: ScreenPoint) => {
+      if (!isMobileMode) return;
+      clearNodeLongPress();
+      const timeoutId = window.setTimeout(() => {
+        if (nodeLongPressRef.current && nodeLongPressRef.current.nodeId === nodeId) {
+          nodeLongPressRef.current.triggered = true;
+        }
+      }, 2000);
+      nodeLongPressRef.current = { nodeId, timeoutId, triggered: false, screen };
+    },
+    [clearNodeLongPress, isMobileMode],
+  );
+
+  const openNodeMenuAtScreen = useCallback(
+    (nodeId: string, screen: ScreenPoint) => {
+      const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
+      if (selectedNodes.length > 1 && selectedNodes.some((item) => item.id === nodeId)) {
+        setFloatingPanel({
+          type: 'selection',
+          nodeIds: selectedNodes.map((item) => item.id),
+          screen,
+        });
+        return;
+      }
+      setSelectedNode(nodeId);
+      setFloatingPanel({
+        type: 'node',
+        nodeId,
+        screen,
+      });
+    },
+    [reactFlow, setSelectedNode]
+  );
+
+
+  const handleNodeDragStart = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      if (!isMobileMode) {
+        clearNodeLongPress();
+        return;
+      }
+      scheduleNodeLongPress(node.id, { x: event.clientX, y: event.clientY });
+    },
+    [clearNodeLongPress, isMobileMode, scheduleNodeLongPress],
+  );
+
+  const finalizeNodeLongPress = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      if (!isMobileMode) {
+        clearNodeLongPress();
+        return;
+      }
+      const state = nodeLongPressRef.current;
+      if (!state || state.nodeId !== node.id) {
+        clearNodeLongPress();
+        return;
+      }
+      const screen = { x: event.clientX, y: event.clientY };
+      const shouldOpen = state.triggered;
+      clearNodeLongPress();
+      if (shouldOpen) {
+        skipGlobalClickCloseRef.current = true;
+        openNodeMenuAtScreen(node.id, screen);
+      }
+    },
+    [clearNodeLongPress, isMobileMode, openNodeMenuAtScreen, skipGlobalClickCloseRef],
+  );
+
+  const handleNodeDragMove = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      if (!isMobileMode) return;
+      const state = nodeLongPressRef.current;
+      if (state && state.nodeId === node.id) {
+        state.screen = { x: event.clientX, y: event.clientY };
+      }
+    },
+    [isMobileMode],
+  );
+
+  const handleNodeDragStop = useCallback(
+    (event: ReactMouseEvent, node: Node) => {
+      if (!isMobileMode) {
+        clearNodeLongPress();
+        return;
+      }
+      finalizeNodeLongPress(event, node);
+    },
+    [clearNodeLongPress, finalizeNodeLongPress, isMobileMode],
+  );
 
   const handleNodeClick = useCallback(
-    (_: unknown, node: Node) => {
-      setSelectedNode(node.id);
-      setHasPartialSelection(false);
+    (event: ReactMouseEvent, node: Node) => {
       if (commentMode === 'selecting') {
+        setSelectedNode(node.id);
+        setHasPartialSelection(false);
         const commentId = addComment(node.id);
         setSelectedComment(commentId);
         collapseUnpinnedComments(node.id);
         return;
       }
-      collapseUnpinnedComments(node.id);
+
+      const previouslySelected = previousSelectedIdsRef.current;
+      const alreadySelected = previouslySelected.includes(node.id);
+      const otherSelected = previouslySelected.filter((id) => id !== node.id);
+      const isToggleModifier = event.ctrlKey || event.metaKey;
+      const isAddModifier = event.shiftKey;
+      const multiSelect = isToggleModifier || isAddModifier;
+      const shouldSelect = multiSelect ? (isToggleModifier ? !alreadySelected : true) : true;
+
+      reactFlow.setNodes((nodes) =>
+        nodes.map((item) => {
+          if (item.id === node.id) {
+            if (item.selected === shouldSelect) return item;
+            return { ...item, selected: shouldSelect };
+          }
+          if (!multiSelect && item.selected) {
+            return { ...item, selected: false };
+          }
+          return item;
+        })
+      );
+
+      const nextSelectedIds = shouldSelect
+        ? Array.from(new Set([...otherSelected, node.id]))
+        : otherSelected;
+      previousSelectedIdsRef.current = nextSelectedIds;
+
+      if (shouldSelect) {
+        setSelectedNode(node.id);
+      } else if (nextSelectedIds.length) {
+        setSelectedNode(nextSelectedIds[nextSelectedIds.length - 1]);
+      } else {
+        setSelectedNode(undefined);
+      }
+
+      setHasPartialSelection(false);
+      const anchorId = shouldSelect
+        ? node.id
+        : nextSelectedIds[nextSelectedIds.length - 1];
+      collapseUnpinnedComments(anchorId);
     },
-    [addComment, collapseUnpinnedComments, commentMode, setHasPartialSelection, setSelectedComment, setSelectedNode]
+    [
+      addComment,
+      collapseUnpinnedComments,
+      commentMode,
+      previousSelectedIdsRef,
+      reactFlow,
+      setHasPartialSelection,
+      setSelectedComment,
+      setSelectedNode,
+    ]
   );
 
   const handlePaneClick = useCallback(
@@ -934,23 +1176,9 @@ const GraphCanvasInner = () => {
     (event: ReactMouseEvent, nodeId: string) => {
       event.preventDefault();
       event.stopPropagation();
-      const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
-      if (selectedNodes.length > 1 && selectedNodes.some((item) => item.id === nodeId)) {
-        setFloatingPanel({
-          type: 'selection',
-          nodeIds: selectedNodes.map((item) => item.id),
-          screen: { x: event.clientX, y: event.clientY },
-        });
-        return;
-      }
-      setSelectedNode(nodeId);
-      setFloatingPanel({
-        type: 'node',
-        nodeId,
-        screen: { x: event.clientX, y: event.clientY },
-      });
+      openNodeMenuAtScreen(nodeId, { x: event.clientX, y: event.clientY });
     },
-    [reactFlow, setSelectedNode]
+    [openNodeMenuAtScreen]
   );
 
   const openEdgeMenu = useCallback((event: ReactMouseEvent, edgeId: string) => {
@@ -963,17 +1191,8 @@ const GraphCanvasInner = () => {
     });
   }, []);
 
-  const openCanvasMenu = useCallback(
-    (event: ReactMouseEvent<Element> | MouseEvent) => {
-      event.preventDefault();
-      if (rightButtonStateRef.current.moved) {
-        rightButtonStateRef.current.moved = false;
-        rightButtonStateRef.current.active = false;
-        return;
-      }
-      const clientX = 'clientX' in event ? event.clientX : 0;
-      const clientY = 'clientY' in event ? event.clientY : 0;
-      const screen = { x: clientX, y: clientY };
+  const openCanvasMenuAtScreen = useCallback(
+    (screen: ScreenPoint) => {
       const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
       const selectedEdges = reactFlow.getEdges().filter((edge) => edge.selected);
       const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
@@ -1020,6 +1239,21 @@ const GraphCanvasInner = () => {
     [clearSelectionState, isPointInsideSelection, reactFlow, setSelectedNode]
   );
 
+  const openCanvasMenu = useCallback(
+    (event: ReactMouseEvent<Element> | MouseEvent) => {
+      event.preventDefault();
+      if (rightButtonStateRef.current.moved) {
+        rightButtonStateRef.current.moved = false;
+        rightButtonStateRef.current.active = false;
+        return;
+      }
+      const clientX = 'clientX' in event ? event.clientX : 0;
+      const clientY = 'clientY' in event ? event.clientY : 0;
+      openCanvasMenuAtScreen({ x: clientX, y: clientY });
+    },
+    [openCanvasMenuAtScreen]
+  );
+
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
       removeNode(nodeId);
@@ -1062,16 +1296,6 @@ const GraphCanvasInner = () => {
     },
     [setSelectedNode]
   );
-
-  const toggleTips = useCallback(() => {
-    setTipsVisible((visible) => !visible);
-    setTipsDismissed(true);
-  }, []);
-
-  const closeTips = useCallback(() => {
-    setTipsVisible(false);
-    setTipsDismissed(true);
-  }, []);
 
   const handleInsertNodeForConnection = useCallback(
     (definitionId: string, panel: Extract<FloatingPanelState, { type: 'connection' }>) => {
@@ -1182,8 +1406,8 @@ const GraphCanvasInner = () => {
     const { connection } = floatingPanel;
     const targetLabel = connection.port.label ?? connection.port.id;
     return connection.handleType === 'source'
-      ? `筛选 - 可连接到「${targetLabel}」的节点`
-      : `筛选 - 可驱动「${targetLabel}」的节点`;
+      ? `筛选 · 可连接从「${targetLabel}」输出的节点`
+      : `筛选 · 可输入到「${targetLabel}」的节点`;
   }, [floatingPanel]);
 
   const handleWrapperMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
@@ -1293,6 +1517,99 @@ const GraphCanvasInner = () => {
       setConnectionCursor(null);
     }
   }, [connectionCursor]);
+
+  const handleWrapperTouchStart = useCallback(
+    (event: ReactTouchEvent<HTMLDivElement>) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+      if (!isMobileMode) return;
+      if (event.touches.length !== 1) {
+        clearNodeLongPress();
+      }
+      if (event.touches.length === 2) {
+        const touches = Array.from(event.touches).map((touch) => ({
+          id: touch.identifier,
+          x: touch.clientX,
+          y: touch.clientY,
+        }));
+        mobileContextTapRef.current = {
+          active: true,
+          startTouches: touches,
+          lastTouches: touches,
+          startTime: performance.now(),
+        };
+      } else {
+        mobileContextTapRef.current = null;
+      }
+    },
+    [clearNodeLongPress, isMobileMode]
+  );
+
+  const handleWrapperTouchMove = useCallback(
+    (event: ReactTouchEvent<HTMLDivElement>) => {
+      if (event.touches.length > 1) {
+        event.preventDefault();
+      }
+      const context = mobileContextTapRef.current;
+      if (!context || !context.active) return;
+      if (event.touches.length !== 2) {
+        context.active = false;
+        return;
+      }
+      const touches = Array.from(event.touches).map((touch) => ({
+        id: touch.identifier,
+        x: touch.clientX,
+        y: touch.clientY,
+      }));
+      context.lastTouches = touches;
+      const movedTooFar = touches.some((touch) => {
+        const start = context.startTouches.find((item) => item.id === touch.id);
+        return (
+          !!start &&
+          Math.hypot(touch.x - start.x, touch.y - start.y) > TWO_FINGER_TAP_DISTANCE
+        );
+      });
+      if (movedTooFar) {
+        context.active = false;
+      }
+    },
+    []
+  );
+
+  const handleWrapperTouchEnd = useCallback(
+    (event: ReactTouchEvent<HTMLDivElement>) => {
+      const context = mobileContextTapRef.current;
+      if (!context) return;
+      if (!context.active) {
+        mobileContextTapRef.current = null;
+        return;
+      }
+      if (event.touches.length > 0) {
+        return;
+      }
+      const duration = performance.now() - context.startTime;
+      if (duration > TWO_FINGER_TAP_DURATION || context.lastTouches.length === 0) {
+        mobileContextTapRef.current = null;
+        return;
+      }
+      event.preventDefault();
+      const avgX =
+        context.lastTouches.reduce((sum, touch) => sum + touch.x, 0) /
+        context.lastTouches.length;
+      const avgY =
+        context.lastTouches.reduce((sum, touch) => sum + touch.y, 0) /
+        context.lastTouches.length;
+      openCanvasMenuAtScreen({ x: avgX, y: avgY });
+      mobileContextTapRef.current = null;
+    },
+    [openCanvasMenuAtScreen]
+  );
+
+  const handleWrapperTouchCancel = useCallback(() => {
+    mobileContextTapRef.current = null;
+    clearNodeLongPress();
+  }, [clearNodeLongPress]);
 
   const duplicateSelection = useCallback(
     (explicitIds?: string[]) => {
@@ -1431,6 +1748,10 @@ const GraphCanvasInner = () => {
       onMouseUp={handleWrapperMouseUp}
       onMouseLeave={handleWrapperMouseLeave}
       onContextMenu={(event) => event.preventDefault()}
+      onTouchStart={isMobileMode ? handleWrapperTouchStart : undefined}
+      onTouchMove={isMobileMode ? handleWrapperTouchMove : undefined}
+      onTouchEnd={isMobileMode ? handleWrapperTouchEnd : undefined}
+      onTouchCancel={isMobileMode ? handleWrapperTouchCancel : undefined}
     >
       <div className="graph-canvas-grid" aria-hidden="true" />
       <div className="graph-canvas-watermark" aria-hidden="true">
@@ -1443,19 +1764,23 @@ const GraphCanvasInner = () => {
         defaultEdgeOptions={defaultEdgeOptions}
         minZoom={0.25}
         maxZoom={1.5}
-        selectionOnDrag
+        selectionOnDrag={!isMobileMode}
         selectionMode={currentSelectionMode}
-        panOnDrag={[2]}
+        panOnDrag={isMobileMode ? [1, 2] : [2]}
+        zoomOnDoubleClick={!isMobileMode}
         deleteKeyCode={['Delete']}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
         onConnectStart={handleConnectStart}
         onConnectEnd={handleConnectEnd}
+        onNodeDragStart={handleNodeDragStart}
         onSelectionStart={handleSelectionStart}
         onSelectionEnd={handleSelectionEnd}
         onNodeClick={handleNodeClick}
         onNodeContextMenu={(event, node) => openNodeMenu(event, node.id)}
+        onNodeDrag={handleNodeDragMove}
+        onNodeDragStop={handleNodeDragStop}
         onEdgeContextMenu={(event, edge) => openEdgeMenu(event, edge.id)}
         onPaneClick={handlePaneClick}
         onPaneContextMenu={openCanvasMenu}
@@ -1465,48 +1790,7 @@ const GraphCanvasInner = () => {
         onDragOver={handleDragOver}
         onMoveEnd={(_, viewport) => setZoomLevel(viewport.zoom)}
         fitView
-      >
-        <Panel
-          position="top-left"
-          className="graph-info-trigger"
-          style={{ marginTop: 8, marginLeft: 8 }}
-        >
-          <button
-            type="button"
-            className={classNames('graph-info-trigger__button', {
-              'is-active': tipsVisible,
-            })}
-            onClick={toggleTips}
-            aria-label="显示/隐藏提示"
-          >
-            <img src={ICON_INFO} alt="" aria-hidden="true" className="graph-info-trigger__icon" />
-          </button>
-        </Panel>
-        <Panel
-          position="top-left"
-          className={classNames('graph-panel', {
-            'graph-panel--hidden': !tipsVisible,
-            'graph-panel--visible': tipsVisible,
-          })}
-          style={{ marginTop: 8, marginLeft: 52 }}
-        >
-          <div className="graph-panel__content">
-            <button
-              type="button"
-              className="graph-panel__close"
-              onClick={closeTips}
-              aria-label="关闭提示"
-            >
-              Ⓧ
-            </button>
-            <div className="graph-panel__text">
-              右键拖拽以平移视图，鼠标滚轮缩放视图<br />
-              左键可多选节点，向左移动为接触选择<br />
-              向右移动为框选选择，Del键删除选中节点<br />
-            </div>
-          </div>
-        </Panel>
-      </ReactFlow>
+      />
       <GraphCommentsOverlay selectionLocked={isSelectionActive} />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
@@ -1521,6 +1805,7 @@ const GraphCanvasInner = () => {
             definitions={nodeDefinitions}
             filter={connectionFilter}
             variant="floating"
+            isTouchEnvironment={isMobileMode}
             onSelect={(definition) => {
               if (floatingPanel.type === 'canvas') {
                 handleCreateNode(definition.id, floatingPanel.flowPosition);
@@ -1636,10 +1921,13 @@ const GraphCanvasInner = () => {
   );
 };
 
-const GraphCanvas = () => (
+const GraphCanvas = ({ isMobileMode = false }: GraphCanvasProps) => (
   <ReactFlowProvider>
-    <GraphCanvasInner />
+    <GraphCanvasInner isMobileMode={isMobileMode} />
   </ReactFlowProvider>
 );
 
 export default GraphCanvas;
+
+
+

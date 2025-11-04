@@ -6,6 +6,7 @@ import type {
   GraphEdge,
   GraphNode,
   GraphNodeData,
+  GraphEnvironment,
 } from '../types/node';
 
 const HISTORY_LIMIT = 50;
@@ -30,6 +31,7 @@ interface GraphSnapshot {
   comments: GraphCommentState[];
   selectedNodeId?: string;
   zoomLevel: number;
+  environment: GraphEnvironment;
 }
 
 interface GraphState {
@@ -38,6 +40,7 @@ interface GraphState {
   nodes: GraphNode[];
   edges: GraphEdge[];
   comments: GraphCommentState[];
+  environment: GraphEnvironment;
   commentMode: CommentMode;
   selectedCommentId?: string;
   selectedNodeId?: string;
@@ -116,6 +119,7 @@ const createSnapshot = (state: GraphState): GraphSnapshot => ({
   comments: cloneComments(state.comments),
   selectedNodeId: state.selectedNodeId,
   zoomLevel: state.zoomLevel,
+  environment: state.environment,
 });
 
 const applySnapshot = (snapshot: GraphSnapshot) => ({
@@ -126,6 +130,7 @@ const applySnapshot = (snapshot: GraphSnapshot) => ({
   comments: cloneComments(snapshot.comments),
   selectedNodeId: snapshot.selectedNodeId,
   zoomLevel: snapshot.zoomLevel,
+  environment: snapshot.environment,
 });
 
 const createDefaultState = (graphId?: string) => {
@@ -140,6 +145,7 @@ const createDefaultState = (graphId?: string) => {
     graphId: id,
     zoomLevel: 1,
     requestedZoom: null,
+    environment: 'server' as GraphEnvironment,
   };
 };
 
@@ -479,6 +485,7 @@ export const useGraphStore = create<GraphState>((set, get) => {
           });
         }
       }
+      const environment = doc.environment ?? (options?.graphId ? get().environment : 'server');
       set(() => ({
         name: doc.name,
         nodes: cloneNodes(doc.nodes),
@@ -490,6 +497,7 @@ export const useGraphStore = create<GraphState>((set, get) => {
         selectedNodeId: undefined,
         zoomLevel: 1,
         requestedZoom: null,
+        environment,
       }));
     },
     exportGraph: () => {
@@ -500,6 +508,7 @@ export const useGraphStore = create<GraphState>((set, get) => {
         nodes: cloneNodes(state.nodes),
         edges: cloneEdges(state.edges),
         comments: cloneComments(state.comments),
+        environment: state.environment,
       } satisfies GraphDocument;
     },
     reset: (options) => {

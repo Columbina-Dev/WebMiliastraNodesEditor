@@ -368,6 +368,10 @@
   background: rgba(255, 176, 176, 0.1);
 }
 
+.resource-explorer__row.is-error {
+  background: rgba(255, 138, 138, 0.12);
+}
+
 .resource-explorer__tbody.is-drop-target {
   background: #2d2d32;
 }
@@ -416,6 +420,11 @@
 .resource-explorer__cell--meta {
   font-family: 'DreamHanSans';
   font-size: 12px;
+}
+
+.resource-explorer__cell--meta.is-error {
+  color: #ff8a8a;
+  font-weight: 600;
 }
 
 .resource-explorer__rename-input {

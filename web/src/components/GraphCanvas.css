@@ -5,6 +5,7 @@
   overflow: hidden;
   background: #323237;
   cursor: var(--cursor-default);
+  touch-action: none;
 }
 
 .graph-canvas-grid {
@@ -141,38 +142,6 @@
 
 .graph-node-browser .node-library {
   border-radius: 18px;
-}
-
-.graph-info-trigger {
-  pointer-events: none;
-}
-
-.graph-info-trigger__button {
-  pointer-events: auto;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 1px solid rgba(255, 255, 255, 0.18);
-  background: rgba(12, 12, 20, 0.85);
-  color: rgba(255, 255, 255, 0.8);
-  cursor: var(--cursor-pointer);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 16px;
-  transition: background 0.2s ease, color 0.2s ease, border 0.2s ease;
-}
-
-.graph-info-trigger__icon {
-  width: 16px;
-  height: 16px;
-}
-
-.graph-info-trigger__button:hover,
-.graph-info-trigger__button.is-active {
-  border-color: rgba(92, 186, 255, 0.5);
-  color: rgba(255, 255, 255, 0.95);
-  background: rgba(92, 186, 255, 0.18);
 }
 
 .react-flow__edge-path {

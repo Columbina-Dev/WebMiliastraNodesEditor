@@ -1,6 +1,12 @@
 import JSZip from 'jszip';
 import { nanoid } from 'nanoid/non-secure';
-import type { GraphComment, GraphDocument, GraphEdge, GraphNode } from '../types/node';
+import type {
+  GraphComment,
+  GraphDocument,
+  GraphEdge,
+  GraphNode,
+  GraphEnvironment,
+} from '../types/node';
 import { GRAPH_SCHEMA_VERSION } from '../types/node';
 import {
   DEFAULT_GROUP_NAME,
@@ -11,6 +17,7 @@ import {
   type ProjectManifest,
   type ProjectManifestGraph,
   type ProjectManifestGroup,
+  type ProjectTopFolder,
 } from '../types/project';
 import {
   buildGraphPath,
@@ -60,6 +67,7 @@ const cloneGraphDocument = (doc: GraphDocument): GraphDocument => ({
         collapsed: Boolean(comment.collapsed),
       }))
     : undefined,
+  environment: doc.environment,
 });
 
 const sanitizeManifestGraph = (
@@ -224,6 +232,8 @@ export const loadProjectFromZip = async (
     try {
       const content = await zipObject.async('string');
       const parsed = graphDocumentSchema.parse(JSON.parse(content));
+      const declaredEnvironment =
+        parsed.environment === 'client' ? 'client' : parsed.environment === 'server' ? 'server' : undefined;
       const normalizedComments: GraphComment[] = [];
       if (Array.isArray(parsed.comments)) {
         for (const comment of parsed.comments) {
@@ -240,23 +250,16 @@ export const loadProjectFromZip = async (
           });
         }
       }
-      const graphDocument: GraphDocument = {
-        schemaVersion: GRAPH_SCHEMA_VERSION,
-        name: parsed.name,
-        createdAt: parsed.createdAt,
-        updatedAt: parsed.updatedAt,
-        nodes: parsed.nodes.map(cloneNode),
-        edges: parsed.edges.map(cloneEdge),
-        comments: normalizedComments,
-      };
       const parsedPath = parseGraphPath(normalizedPath);
       let graphId: string;
       let locationPath: string;
       let groupName = DEFAULT_GROUP_NAME;
+      let effectiveTopFolder: ProjectTopFolder = 'server';
       if (parsedPath) {
         graphId = parsedPath.fileStem;
         groupName = parsedPath.location.groupName;
         locationPath = buildGraphPath(parsedPath.location, graphId);
+        effectiveTopFolder = parsedPath.location.topFolder;
         upsertManifestGroup(document.manifest, {
           topFolder: parsedPath.location.topFolder,
           categoryKey: parsedPath.location.categoryKey,
@@ -267,8 +270,23 @@ export const loadProjectFromZip = async (
         graphId = createProjectId();
         const fallbackLocation = resolveGraphLocation(graphId, undefined);
         locationPath = fallbackLocation.normalizedPath;
+        effectiveTopFolder = fallbackLocation.location.topFolder;
+        groupName = fallbackLocation.location.groupName;
         warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallbackLocation.normalizedPath}`);
       }
+      const effectiveEnvironment: GraphEnvironment =
+        declaredEnvironment ?? (effectiveTopFolder === 'client' ? 'client' : 'server');
+      const graphDocument: GraphDocument = {
+        schemaVersion: GRAPH_SCHEMA_VERSION,
+        name: parsed.name,
+        createdAt: parsed.createdAt,
+        updatedAt: parsed.updatedAt,
+        nodes: parsed.nodes.map(cloneNode),
+        edges: parsed.edges.map(cloneEdge),
+        comments: normalizedComments,
+        environment: effectiveEnvironment,
+      };
+
       availableGraphFiles.set(graphId, {
         path: normalizedPath,
         locationPath,

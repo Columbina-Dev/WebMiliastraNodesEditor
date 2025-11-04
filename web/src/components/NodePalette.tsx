@@ -6,9 +6,10 @@ import './NodePalette.css';
 interface NodePaletteProps {
   collapsed: boolean;
   onToggle: () => void;
+  isTouchEnvironment?: boolean;
 }
 
-const NodePalette = ({ collapsed, onToggle }: NodePaletteProps) => {
+const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePaletteProps) => {
   return (
     <aside
       className={classNames('palette', { 'palette--collapsed': collapsed })}
@@ -24,7 +25,12 @@ const NodePalette = ({ collapsed, onToggle }: NodePaletteProps) => {
         {collapsed ? '⇥' : '⇤'}
       </button>
       <div className="palette__content" aria-hidden={collapsed}>
-        <NodeLibrary variant="sidebar" definitions={nodeDefinitions} onSelect={() => {}} />
+        <NodeLibrary
+          variant="sidebar"
+          definitions={nodeDefinitions}
+          onSelect={() => {}}
+          isTouchEnvironment={isTouchEnvironment}
+        />
       </div>
     </aside>
   );

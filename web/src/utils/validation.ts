@@ -25,6 +25,7 @@ export const graphDocumentSchema = z.object({
   name: z.string(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
+  environment: z.enum(['server', 'client']).optional(),
   nodes: z
     .array(
       z.object({

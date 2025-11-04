@@ -15,6 +15,7 @@ interface HomePageProps {
   onSaveAll: () => void;
   githubUrl: string;
   onOpenTutorial: () => void;
+  onOpenEffects: () => void;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -32,6 +33,7 @@ const formatTimestamp = (iso?: string) => {
 
 const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
 const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).href;
+const ICON_EFFECTS = new URL('../assets/icons/effects.svg', import.meta.url).href;
 
 const DEFAULT_PROJECT_NAME = '未命名项目';
 
@@ -46,6 +48,7 @@ const HomePage = ({
   onSaveAll,
   githubUrl,
   onOpenTutorial,
+  onOpenEffects,
 }: HomePageProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
@@ -163,6 +166,9 @@ const HomePage = ({
         </a>
         <button type="button" className="home__tutorial" onClick={onOpenTutorial} aria-label="Tutorial">
           <img src={ICON_TUTORIAL} alt="" aria-hidden="true" width="32" height="32" />
+        </button>
+        <button type="button" className="home__effects" onClick={onOpenEffects} aria-label="特效库">
+          <img src={ICON_EFFECTS} alt="" aria-hidden="true" width="32" height="32" />
         </button>
       </div>
       {pendingDelete && (

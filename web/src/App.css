@@ -1,4 +1,4 @@
-:root {
+﻿:root {
   --cursor-default: url('./assets/cursor/Default-60.png') 7 5, auto;
   --cursor-pointer: url('./assets/cursor/Default-60.png') 7 5, pointer;
   --cursor-text: url('./assets/cursor/Text-60.png') 9 10, text;
@@ -90,8 +90,6 @@ option {
   overflow: hidden;
   user-select: none;
 }
-
-
 
 .action_dock {
   position: fixed;
@@ -260,52 +258,6 @@ option {
   width: 100%;
   overflow: hidden;
 }
-
-.graph-panel {
-  padding: 10px 14px;
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.55);
-  color: rgba(255, 255, 255, 0.82);
-  font-size: 12px;
-  max-width: 320px;
-  opacity: 1;
-  transform: translateY(0);
-  transition: opacity 0.5s ease, transform 0.5s ease;
-  pointer-events: auto;
-}
-
-.graph-panel.graph-panel--hidden {
-  opacity: 0;
-  transform: translateY(-10px);
-  pointer-events: none;
-}
-
-.graph-panel__content {
-  display: flex;
-  align-items: flex-start;
-  gap: 12px;
-}
-
-.graph-panel__text {
-  flex: 1;
-  line-height: 1.5;
-}
-
-.graph-panel__close {
-  position: relative;
-  top: -2px;
-  border: none;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.7);
-  font-size: 14px;
-  cursor: var(--cursor-pointer);
-  transition: color 0.2s ease;
-}
-
-.graph-panel__close:hover {
-  color: rgba(255, 255, 255, 0.95);
-}
-
 .app__save-toast {
   position: fixed;
   top: 24px;
@@ -674,4 +626,5 @@ option {
 .app__modal-actions button[type='button'] {
   background: rgba(255, 255, 255, 0.04);
 }
+
 

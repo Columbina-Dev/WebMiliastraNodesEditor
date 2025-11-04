@@ -6,18 +6,20 @@ import GraphCanvas from "./components/GraphCanvas";
 import HomePage from "./components/HomePage";
 import ResourceExplorer from "./components/ResourceExplorer";
 import TutorialPage, { type TutorialRoute } from "./components/TutorialPage";
+import EffectsPage from "./components/EffectsPage";
 import NodeInspector from "./components/NodeInspector";
 import NodePalette from "./components/NodePalette";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
-import type { GraphDocument } from "./types/node";
+import type { GraphDocument, GraphEnvironment } from "./types/node";
 import { GRAPH_SCHEMA_VERSION } from "./types/node";
 import { DEFAULT_GROUP_NAME, DEFAULT_GROUP_SLUG, PROJECT_CATEGORIES_BY_TOP, type ProjectDocument, type ProjectTopFolder } from "./types/project";
 import {
+  buildGraphPath,
   createEmptyProjectDocument,
   createProjectId,
   resolveGraphLocation,
-  buildGraphPath,
+  sanitizeName,
 } from "./utils/project";
 import {
   loadProjectFromZip,
@@ -55,6 +57,8 @@ const ICON_EXPORT = new URL("./assets/icons/export.png", import.meta.url).href;
 const ICON_UNDO = new URL("./assets/icons/undo.png", import.meta.url).href;
 const ICON_REDO = new URL("./assets/icons/redo.png", import.meta.url).href;
 const ICON_TUTORIAL = new URL("./assets/icons/tutorial.png", import.meta.url).href;
+const ICON_EFFECTS = new URL("./assets/icons/effects.svg", import.meta.url).href;
+const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
@@ -98,6 +102,9 @@ const isTutorialPath = (path: string) =>
   path.startsWith(`${TUTORIAL_BASE_PATH}/`) ||
   path.startsWith(`${TUTORIAL_BASE_PATH}//`);
 
+const isEffectsPath = (path: string) =>
+  path === "/effects" || path.startsWith("/effects/");
+
 const buildTutorialPath = (path: string) => {
   const trimmed = path.replace(/^\/+/, "");
   if (!trimmed) {
@@ -133,12 +140,15 @@ const parseTutorialRouteFromPath = (pathname: string): TutorialRoute => {
   return { kind, entryId };
 };
 
-type ViewMode = "home" | "editor" | "tutorial" | "notFound";
+type ViewMode = "home" | "editor" | "tutorial" | "effects" | "notFound";
 
 const resolveViewFromPath = (relativePath: string) => {
   const normalized = relativePath.replace(/\/+$/, "") || "/";
   if (normalized === "/") {
     return { view: "home" } as const;
+  }
+  if (isEffectsPath(normalized)) {
+    return { view: "effects" } as const;
   }
   if (isTutorialPath(normalized)) {
     return { view: "tutorial", tutorialRoute: parseTutorialRouteFromPath(normalized) } as const;
@@ -153,6 +163,7 @@ const fingerprintGraphDocument = (doc: GraphDocument) =>
     nodes: doc.nodes,
     edges: doc.edges,
     comments: doc.comments ?? [],
+    environment: doc.environment ?? null,
   });
 
 const fingerprintProjectDocument = (document: ProjectDocument) => {
@@ -163,10 +174,24 @@ const fingerprintProjectDocument = (document: ProjectDocument) => {
   return JSON.stringify({ manifest: manifestFingerprint, graphs: graphFingerprints });
 };
 
+const detectMobileMode = () => {
+  if (typeof window === "undefined" || typeof navigator === "undefined") {
+    return false;
+  }
+  const ua = navigator.userAgent.toLowerCase();
+  const isMobileUA = /android|iphone|ipad|ipod|mobile/.test(ua);
+  const touchPoints = navigator.maxTouchPoints ?? 0;
+  const coarsePointer =
+    typeof window.matchMedia === "function" && window.matchMedia("(pointer: coarse)").matches;
+  const smallViewport = window.innerWidth <= 900 || window.innerHeight <= 700;
+  return (isMobileUA && touchPoints > 0) || coarsePointer || (touchPoints > 1 && smallViewport);
+};
+
 const DEFAULT_PROJECT_NAME = "未命名项目";
 const App = () => {
   const projectDocument = useProjectStore((state) => state.document);
   const projectId = useProjectStore((state) => state.projectId);
+  const projectName = useProjectStore((state) => state.projectName);
   const openTabs = useProjectStore((state) => state.openTabs);
   const activeTabId = useProjectStore((state) => state.activeTabId);
   const activeGraphId = useProjectStore((state) => state.activeGraphId);
@@ -180,6 +205,7 @@ const App = () => {
   const activateTab = useProjectStore((state) => state.activateTab);
   const resetProjectStore = useProjectStore((state) => state.reset);
   const setGraphDocument = useProjectStore((state) => state.setGraphDocument);
+  const setProjectName = useProjectStore((state) => state.setProjectName);
   const setManifestEntry = useProjectStore((state) => state.setManifestEntry);
   const markGraphDirty = useProjectStore((state) => state.markGraphDirty);
   const createGroup = useProjectStore((state) => state.createGroup);
@@ -201,9 +227,10 @@ const App = () => {
 
   const [view, setView] = useState<ViewMode>(() => {
     if (initialRouteState.view === "tutorial") return "tutorial";
+    if (initialRouteState.view === "effects") return "effects";
     if (initialRouteState.view === "notFound") return "notFound";
     return "home";
-  });
+});
   const [tutorialRoute, setTutorialRoute] = useState<TutorialRoute>(() =>
     initialRouteState.view === "tutorial" ? initialRouteState.tutorialRoute : { kind: "landing" },
   );
@@ -211,8 +238,12 @@ const App = () => {
     initialRouteState.view === "notFound" ? initialRouteState.path : null,
   );
   const skipInitialRecoveryRef = useRef(
-    initialRouteState.view === "tutorial" || initialRouteState.view === "notFound",
+    initialRouteState.view === "tutorial" ||
+      initialRouteState.view === "effects" ||
+      initialRouteState.view === "notFound",
   );
+
+  const [isMobileMode, setIsMobileMode] = useState(() => detectMobileMode());
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
@@ -227,6 +258,7 @@ const App = () => {
     groupSlug: string;
     name: string;
   } | null>(null);
+  const [projectInfoDialog, setProjectInfoDialog] = useState<{ name: string; error: string | null } | null>(null);
   const [saveAsNewFolderName, setSaveAsNewFolderName] = useState('');
   const [saveAsError, setSaveAsError] = useState<string | null>(null);
   const commentMode = useGraphStore((state) => state.commentMode);
@@ -272,6 +304,17 @@ const App = () => {
     };
     window.addEventListener('contextmenu', handleContextMenu, { capture: true });
     return () => window.removeEventListener('contextmenu', handleContextMenu, { capture: true });
+  }, []);
+
+  useEffect(() => {
+    const updateMobileMode = () => setIsMobileMode(detectMobileMode());
+    updateMobileMode();
+    window.addEventListener('resize', updateMobileMode);
+    window.addEventListener('orientationchange', updateMobileMode);
+    return () => {
+      window.removeEventListener('resize', updateMobileMode);
+      window.removeEventListener('orientationchange', updateMobileMode);
+    };
   }, []);
 
   const showSaveToast = useCallback((message: string) => {
@@ -366,6 +409,79 @@ const App = () => {
     window.open(targetUrl, '_blank', 'noopener');
   }, []);
 
+  const handleOpenEffects = useCallback(() => {
+    if (typeof window === 'undefined') return;
+    const targetPath = buildAppPath('/effects');
+    const targetUrl = new URL(targetPath, window.location.origin).toString();
+    window.open(targetUrl, '_blank', 'noopener');
+  }, []);
+
+  const handleOpenProjectInfo = useCallback(() => {
+    setOpenMenu(null);
+    if (!projectDocument || !projectId) {
+      window.alert('当前没有打开的项目。');
+      return;
+    }
+    setProjectInfoDialog({
+      name: projectDocument.manifest.project.name || projectName || DEFAULT_PROJECT_NAME,
+      error: null,
+    });
+  }, [projectDocument, projectId, projectName]);
+
+  const handleProjectInfoNameChange = useCallback((value: string) => {
+    setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
+  }, []);
+
+  const handleProjectInfoCancel = useCallback(() => {
+    setProjectInfoDialog(null);
+  }, []);
+
+  const handleProjectInfoConfirm = useCallback(() => {
+    if (!projectInfoDialog) return;
+    if (!projectDocument || !projectId) {
+      window.alert('当前没有打开的项目。');
+      setProjectInfoDialog(null);
+      return;
+    }
+    const trimmed = projectInfoDialog.name.trim();
+    if (!trimmed) {
+      setProjectInfoDialog((prev) => (prev ? { ...prev, error: '项目名称不能为空' } : prev));
+      return;
+    }
+    const sanitized = sanitizeName(trimmed, DEFAULT_PROJECT_NAME);
+    if (sanitized === projectDocument.manifest.project.name) {
+      setProjectInfoDialog(null);
+      return;
+    }
+    setProjectName(sanitized);
+    const store = useProjectStore.getState();
+    const updatedDocument = store.document;
+    if (updatedDocument) {
+      const { document: normalized } = normalizeProjectDocument(updatedDocument);
+      const existing = history.find((item) => item.id === store.projectId);
+      const savedAt = existing?.savedAt ?? new Date().toISOString();
+      const record: StoredProject = {
+        id: normalized.manifest.project.id,
+        name: normalized.manifest.project.name,
+        savedAt,
+        document: normalized,
+      };
+      upsertProjectRecord(record);
+      refreshHistory();
+      autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
+      showSaveToast('已更新项目名称');
+    }
+    setProjectInfoDialog(null);
+  }, [
+    history,
+    projectDocument,
+    projectId,
+    projectInfoDialog,
+    refreshHistory,
+    setProjectName,
+    showSaveToast,
+  ]);
+
   const ensurePrimaryGraph = useCallback((document: ProjectDocument) => {
     if (document.manifest.graphs.length > 0) {
       const firstGraphId = document.manifest.graphs[0]?.graphId ?? null;
@@ -381,6 +497,7 @@ const App = () => {
       updatedAt: timestamp,
       nodes: [],
       edges: [],
+      environment: resolved.location.topFolder === 'client' ? 'client' : 'server',
     };
     const nextDocument: ProjectDocument = {
       manifest: {
@@ -614,9 +731,19 @@ const App = () => {
     const manifestEntry = projectDocument?.manifest.graphs.find(
       (entry) => entry.graphId === activeGraphId,
     );
+    const resolvedLocation = resolveGraphLocation(activeGraphId, manifestEntry?.path, {
+      groupNameHint: manifestEntry?.groupName,
+    });
+    const environment: GraphEnvironment =
+      exportedGraph.environment ?? (resolvedLocation.location.topFolder === 'client' ? 'client' : 'server');
+    const exportPayload: GraphDocument = {
+      ...exportedGraph,
+      environment,
+    };
     const baseName = manifestEntry?.name ?? exportedGraph.name ?? "graph";
-    const fileName = `${sanitizeFileName(baseName)}-${activeGraphId}.json`;
-    const blob = new Blob([JSON.stringify(exportedGraph, null, 2)], {
+    const extension = environment === 'client' ? 'client.json' : 'server.json';
+    const fileName = `${sanitizeFileName(baseName)}-${activeGraphId}.${extension}`;
+    const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
       type: "application/json",
     });
     const link = window.document.createElement("a");
@@ -713,6 +840,9 @@ const App = () => {
       name: trimmedName,
       createdAt: saveAsDialog.graph.createdAt ?? timestamp,
       updatedAt: timestamp,
+      environment:
+        saveAsDialog.graph.environment ??
+        (saveAsDialog.topFolder === 'client' ? 'client' : 'server'),
     };
     const location = {
       topFolder: saveAsDialog.topFolder,
@@ -866,6 +996,13 @@ const App = () => {
         updateSessionState((prev) => ({ ...prev, lastVisitedView: 'tutorial' }));
         return;
       }
+      if (routeState.view === 'effects') {
+        setTutorialRoute({ kind: 'landing' });
+        setView('effects');
+        setNotFoundPath(null);
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'effects' }));
+        return;
+      }
       if (routeState.view === 'home') {
         setTutorialRoute({ kind: 'landing' });
         setView('home');
@@ -880,6 +1017,12 @@ const App = () => {
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
   }, []);
+
+  useEffect(() => {
+    if (view === 'effects') {
+      updateSessionState((prev) => ({ ...prev, lastVisitedView: 'effects' }));
+    }
+  }, [view]);
 
   useEffect(() => {
     if (!openMenu) return;
@@ -905,6 +1048,17 @@ const App = () => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [handleSaveAsCancel, saveAsDialog]);
+
+  useEffect(() => {
+    if (!projectInfoDialog) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleProjectInfoCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleProjectInfoCancel, projectInfoDialog]);
 
   useEffect(() => {
     if (!saveAsDialog || !projectDocument) return;
@@ -1241,6 +1395,10 @@ const App = () => {
                     <img src={ICON_SAVE} alt="" aria-hidden="true" />
                     保存项目
                   </button>
+                  <button type="button" onClick={handleOpenProjectInfo}>
+                    <img src={ICON_PROJECT} alt="" aria-hidden="true" />
+                    编辑项目信息
+                  </button>
                   <button type="button" onClick={handleExportProject}>
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
                     导出项目
@@ -1273,14 +1431,26 @@ const App = () => {
           >
             <img src={ICON_TUTORIAL} alt="" aria-hidden="true" />
           </button>
+          <button
+            type="button"
+            className="app__editor-icon-button"
+            onClick={handleOpenEffects}
+            aria-label="特效库"
+          >
+            <img src={ICON_EFFECTS} alt="" aria-hidden="true" />
+          </button>
         </div>
       </header>
       {renderTabs()}
       <div className={isGraphTab ? 'app__body' : 'app__body app__body--explorer'} style={bodyStyle}>
         {isGraphTab ? (
           <>
-            <NodePalette collapsed={paletteCollapsed} onToggle={togglePalette} />
-            <GraphCanvas />
+            <NodePalette
+              collapsed={paletteCollapsed}
+              onToggle={togglePalette}
+              isTouchEnvironment={isMobileMode}
+            />
+            <GraphCanvas isMobileMode={isMobileMode} />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
           </>
         ) : (
@@ -1413,6 +1583,46 @@ const App = () => {
           )}
         </div>
       )}
+      {projectInfoDialog && (
+        <div
+          className="app__modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={handleProjectInfoCancel}
+        >
+          <form
+            className="app__modal"
+            role="document"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleProjectInfoConfirm();
+            }}
+          >
+            <h3>编辑项目信息</h3>
+            <div className="app__modal-field">
+              <label htmlFor="project-info-name">项目名称</label>
+              <input
+                id="project-info-name"
+                value={projectInfoDialog.name}
+                onChange={(event) => handleProjectInfoNameChange(event.target.value)}
+                placeholder="输入项目名称"
+              />
+            </div>
+            {projectInfoDialog.error && (
+              <div className="app__modal-error" role="status">
+                {projectInfoDialog.error}
+              </div>
+            )}
+            <div className="app__modal-actions">
+              <button type="submit">保存</button>
+              <button type="button" onClick={handleProjectInfoCancel}>
+                取消
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
       {saveAsDialog && (
         <div
           className="app__modal-backdrop"
@@ -1490,6 +1700,10 @@ const App = () => {
     );
   };
 
+  const renderEffects = () => (
+    <EffectsPage version={VERSION_INFO.effects} onBack={handleGoHome} />
+  );
+
   const renderHome = () => (
     <>
       <HomePage
@@ -1499,13 +1713,14 @@ const App = () => {
         onImportClick={() => projectFileInputRef.current?.click()}
         onDropFiles={handleProjectFiles}
         onOpenProject={handleOpenProject}
-        onDeleteProject={handleDeleteProject}
-        onSaveAll={handleSaveAll}
-        githubUrl={GITHUB_PLACEHOLDER_URL}
-        onOpenTutorial={handleOpenTutorial}
-      />
-    </>
-  );
+      onDeleteProject={handleDeleteProject}
+      onSaveAll={handleSaveAll}
+      githubUrl={GITHUB_PLACEHOLDER_URL}
+      onOpenTutorial={handleOpenTutorial}
+      onOpenEffects={handleOpenEffects}
+    />
+  </>
+);
 
   const renderTutorial = () => (
     <TutorialPage route={tutorialRoute} onNavigate={handleTutorialNavigate} onClose={handleGoHome} />
@@ -1521,18 +1736,26 @@ const App = () => {
     </div>
   );
 
+  const isScrollableView = view === 'home' || view === 'effects';
+
   return (
-    <div className="app" onClick={() => setOpenMenu(null)}>
+    <div
+      className={`app${isScrollableView ? ' app--scrollable' : ''}`}
+      onClick={() => setOpenMenu(null)}
+    >
       {view === 'home' && <div className="app__version-info">{VERSION_INFO.homepage}</div>}
       {view === 'tutorial' && <div className="app__version-info">{VERSION_INFO.tutorial}</div>}
+      {view === 'effects' && <div className="app__version-info">{VERSION_INFO.effects}</div>}
       {view === 'editor' && <div className="app__version-info app__version-info--hidden" />}
       {view === 'editor'
         ? renderEditor()
         : view === 'tutorial'
           ? renderTutorial()
-          : view === 'notFound'
-            ? renderNotFound()
-            : renderHome()}
+          : view === 'effects'
+            ? renderEffects()
+            : view === 'notFound'
+              ? renderNotFound()
+              : renderHome()}
       <input
         type="file"
         accept=".zip,application/zip"
@@ -1546,6 +1769,5 @@ const App = () => {
 };
 
 export default App;
-
 
 

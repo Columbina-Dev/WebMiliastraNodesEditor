@@ -117,6 +117,8 @@ export interface GraphComment {
 
 export type GraphSchemaVersion = 1 | 2;
 
+export type GraphEnvironment = 'server' | 'client';
+
 export interface GraphDocument {
   schemaVersion: GraphSchemaVersion;
   name: string;
@@ -125,6 +127,7 @@ export interface GraphDocument {
   nodes: GraphNode[];
   edges: GraphEdge[];
   comments?: GraphComment[];
+  environment?: GraphEnvironment;
 }
 
 export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;

@@ -433,7 +433,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
           <section className="tutorial__landing-title">
             <h1>综合指南</h1>
             <p>
-              运行在本地的官方综合指南，灵感来源于{' '}
+              运行在本地的官方综合指南镜像版，灵感来源于{' '}
               <a href="https://milidocs.tiiny.site/" target="_blank" rel="noopener noreferrer">
                 https://milidocs.tiiny.site/
               </a>

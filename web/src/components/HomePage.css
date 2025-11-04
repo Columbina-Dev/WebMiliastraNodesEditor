@@ -1,4 +1,4 @@
-.home {
+﻿.home {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -260,26 +260,30 @@
 }
 
 .home__github,
-.home__tutorial {
+.home__tutorial,
+.home__effects {
   color: rgba(255, 255, 255, 0.7);
   transition: color 0.2s ease, opacity 0.2s ease;
   display: flex;
 }
 
-.home__tutorial {
+.home__tutorial,
+.home__effects {
   border: none;
   background: transparent;
   padding: 0;
   cursor: var(--cursor-pointer);
 }
 
-.home__tutorial:focus-visible {
+.home__tutorial:focus-visible,
+.home__effects:focus-visible {
   outline: 2px solid rgba(92, 186, 255, 0.7);
   outline-offset: 4px;
 }
 
 .home__github:hover,
-.home__tutorial:hover {
+.home__tutorial:hover,
+.home__effects:hover {
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
 }
@@ -301,3 +305,5 @@
     min-width: 180px;
   }
 }
+
+
