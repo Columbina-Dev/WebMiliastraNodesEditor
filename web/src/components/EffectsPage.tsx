@@ -385,7 +385,7 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
             onClick={(event) => event.stopPropagation()}
           >
             <button type="button" className="effects-page__modal-close" onClick={closeModal}>
-              脳
+              关闭
             </button>
             <div className="effects-page__modal-body">
               <img

@@ -188,7 +188,6 @@
 
 .effects-page__card:hover {
   border-color: rgba(92, 186, 255, 0.4);
-  transform: translateY(-2px);
   box-shadow: 0 14px 32px rgba(0, 0, 0, 0.35);
 }
 
