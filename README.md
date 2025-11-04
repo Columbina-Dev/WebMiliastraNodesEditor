@@ -233,13 +233,9 @@ interface DataPortDefinition {
 
 ### 定义文件划分
 
+> [!IMPORTANT]  
+> 注意：`web/src/data/nodeDefinitions.ts`文件中**所有**节点的定义均由AI根据官方节点图编辑器截图推断，可能存在错误或不完整之处，如有任何问题，请在Issue中提出
+
 - 服务器节点：建议写入 `web/src/data/nodeDefinitions.server.ts`。  
 - 客户端节点：建议写入 `web/src/data/nodeDefinitions.client.ts`。  
 - 两个文件若暂时为空，系统会回退到 `nodeDefinitions.ts` 中的默认集合，但不利于环境区分。
-
-添加节点后请确认：
-
-1. `id` 不与现有节点重复。  
-2. 端口 `id` 与节点图 JSON 中使用的端口完全一致。  
-3. 若为枚举端口，请提供 `enumValues` 以便检查面板渲染下拉选项。  
-4. 如需自定义控件（输入框、开关、下拉），需同步更新 `NodeControlDefinition`。
