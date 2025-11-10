@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1024" height="1024" viewBox="0 0 1024 1024"
+     version="1.1" preserveAspectRatio="xMidYMid meet" fill-rule="evenodd">
+
+  <!-- center 1024×768 art in a 1024×1024 canvas -->
+  <g transform="translate(0,128)">
+
+    <!-- Cursor-like shape: two straight edges + RIGHT-bulging closing arc -->
+    <path d="
+      M668.854,583.248
+      L1013.96,384
+      L668.854,184.752
+      A327.043,327.043 0 0 1 668.854,583.248
+      Z" fill="#ffffff"/>
+
+    <!-- Circles converted to paths and filled white -->
+    <!-- circle at (429.285,244.645) r=119.784 -->
+    <path d="
+      M549.069,244.645
+      A119.784,119.784 0 1 0 309.501,244.645
+      A119.784,119.784 0 1 0 549.069,244.645
+      Z" fill="#ffffff"/>
+
+    <!-- circle at (129.824,244.645) r=119.784 -->
+    <path d="
+      M249.608,244.645
+      A119.784,119.784 0 1 0 10.040,244.645
+      A119.784,119.784 0 1 0 249.608,244.645
+      Z" fill="#ffffff"/>
+
+    <!-- circle at (429.285,523.355) r=119.784 -->
+    <path d="
+      M549.069,523.355
+      A119.784,119.784 0 1 0 309.501,523.355
+      A119.784,119.784 0 1 0 549.069,523.355
+      Z" fill="#ffffff"/>
+
+    <!-- circle at (129.824,523.355) r=119.784 -->
+    <path d="
+      M249.608,523.355
+      A119.784,119.784 0 1 0 10.040,523.355
+      A119.784,119.784 0 1 0 249.608,523.355
+      Z" fill="#ffffff"/>
+
+  </g>
+</svg>

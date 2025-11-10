@@ -42,6 +42,7 @@ interface NodeLibraryProps {
   variant?: NodeLibraryVariant;
   valueTypeFilter?: ValueTypeFilterProps;
   isTouchEnvironment?: boolean;
+  autoFocusSearch?: boolean;
 }
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
@@ -128,11 +129,13 @@ const NodeLibrary = ({
   filter,
   variant = 'sidebar',
   isTouchEnvironment = false,
+  autoFocusSearch = false,
 }: NodeLibraryProps) => {
   const [search, setSearch] = useState('');
   // start collapsed by default
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const prevVariantRef = useRef<NodeLibraryVariant>(variant);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
   const touchDragStateRef = useRef<{
     identifier: number;
     definitionId: string;
@@ -280,6 +283,14 @@ const NodeLibrary = ({
     }
     prevVariantRef.current = variant;
   }, [tree, variant]);
+  useEffect(() => {
+    if (variant !== 'floating' || !autoFocusSearch) return;
+    const raf = window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [autoFocusSearch, variant]);
 
   const handleSelect = (definition: NodeDefinition) => {
     onSelect(definition);
@@ -372,6 +383,7 @@ const NodeLibrary = ({
       <div className="node-library__search">
         <img src={ICON_SEARCH} className="node-library__search-icon" alt="" aria-hidden="true" />
         <input
+          ref={searchInputRef}
           value={search}
           placeholder="搜索节点或分类"
           onChange={(event) => setSearch(event.target.value)}
@@ -389,10 +401,6 @@ const NodeLibrary = ({
 };
 
 export default NodeLibrary;
-
-
-
-
 
 
 

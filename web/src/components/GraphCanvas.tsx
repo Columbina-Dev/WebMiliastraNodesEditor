@@ -1866,6 +1866,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
             filter={connectionFilter}
             variant="floating"
             isTouchEnvironment={isMobileMode}
+            autoFocusSearch
             onSelect={(definition) => {
               if (floatingPanel.type === 'canvas') {
                 handleCreateNode(definition.id, floatingPanel.flowPosition);

@@ -64,6 +64,8 @@ const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
 const ICON_TAB_GRAPH = new URL("./assets/icons/graph.svg", import.meta.url).href;
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
+const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
+const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
 
@@ -401,7 +403,7 @@ const App = () => {
           left: rect.left + rect.width / 2,
           top: rect.bottom + 8,
         });
-      }, 1000);
+      }, 500);
     },
     [clearTabTooltipTimer, graphPathMap],
   );
@@ -1593,13 +1595,19 @@ const App = () => {
             title={dockCollapsed ? '展开操作栏' : '折叠操作栏'}
           >
             {dockCollapsed ? (
-              <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M4 9l4-4 4 4H4z" fill="currentColor" />
-              </svg>
+              <img
+                src={ICON_DOCK_EXPAND}
+                alt=""
+                aria-hidden="true"
+                className="action_dock__icon-img"
+              />
             ) : (
-              <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M12 7l-4 4-4-4h8z" fill="currentColor" />
-              </svg>
+              <img
+                src={ICON_DOCK_COLLAPSE}
+                alt=""
+                aria-hidden="true"
+                className="action_dock__icon-img"
+              />
             )}
             <span className="sr-only">{dockCollapsed ? '展开操作栏' : '折叠操作栏'}</span>
           </button>

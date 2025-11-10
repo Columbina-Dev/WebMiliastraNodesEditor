@@ -1,6 +1,8 @@
+import { useMemo } from 'react';
 import classNames from 'classnames';
 import NodeLibrary from './NodeLibrary';
 import { nodeDefinitions } from '../data/nodeDefinitions';
+import { CLIENT_GRAPH_START_NODE_ID } from '../types/node';
 import './NodePalette.css';
 
 interface NodePaletteProps {
@@ -10,6 +12,11 @@ interface NodePaletteProps {
 }
 
 const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePaletteProps) => {
+  const filteredDefinitions = useMemo(
+    () => nodeDefinitions.filter((definition) => definition.id !== CLIENT_GRAPH_START_NODE_ID),
+    []
+  );
+
   return (
     <aside
       className={classNames('palette', { 'palette--collapsed': collapsed })}
@@ -27,7 +34,7 @@ const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePa
       <div className="palette__content" aria-hidden={collapsed}>
         <NodeLibrary
           variant="sidebar"
-          definitions={nodeDefinitions}
+          definitions={filteredDefinitions}
           onSelect={() => {}}
           isTouchEnvironment={isTouchEnvironment}
         />
