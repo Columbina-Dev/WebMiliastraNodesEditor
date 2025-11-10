@@ -174,6 +174,46 @@ const fingerprintProjectDocument = (document: ProjectDocument) => {
   return JSON.stringify({ manifest: manifestFingerprint, graphs: graphFingerprints });
 };
 
+const resolveGraphEnvironment = (
+  graphId: string,
+  graph: GraphDocument,
+  manifest: ProjectDocument['manifest'],
+): GraphEnvironment => {
+  if (graph.environment === 'client' || graph.environment === 'server') {
+    return graph.environment;
+  }
+  const entry = manifest.graphs.find((item) => item.graphId === graphId);
+  if (entry) {
+    const resolved = resolveGraphLocation(graphId, entry.path, {
+      groupNameHint: entry.groupName,
+    });
+    return resolved.location.topFolder === 'client' ? 'client' : 'server';
+  }
+  return 'server';
+};
+
+const withGraphEnvironment = (
+  graphId: string,
+  graph: GraphDocument,
+  manifest: ProjectDocument['manifest'],
+): GraphDocument => {
+  const environment = resolveGraphEnvironment(graphId, graph, manifest);
+  return graph.environment === environment ? graph : { ...graph, environment };
+};
+
+const normalizeGraphDocuments = (document: ProjectDocument): ProjectDocument => {
+  let changed = false;
+  const nextGraphs: ProjectDocument['graphs'] = {};
+  Object.entries(document.graphs).forEach(([graphId, graphDoc]) => {
+    const normalized = withGraphEnvironment(graphId, graphDoc, document.manifest);
+    nextGraphs[graphId] = normalized;
+    if (normalized !== graphDoc) {
+      changed = true;
+    }
+  });
+  return changed ? { ...document, graphs: nextGraphs } : document;
+};
+
 const detectMobileMode = () => {
   if (typeof window === "undefined" || typeof navigator === "undefined") {
     return false;
@@ -261,6 +301,7 @@ const App = () => {
   const [projectInfoDialog, setProjectInfoDialog] = useState<{ name: string; error: string | null } | null>(null);
   const [saveAsNewFolderName, setSaveAsNewFolderName] = useState('');
   const [saveAsError, setSaveAsError] = useState<string | null>(null);
+  const [tabTooltip, setTabTooltip] = useState<{ tabId: TabId; path: string; left: number; top: number } | null>(null);
   const commentMode = useGraphStore((state) => state.commentMode);
   const setCommentMode = useGraphStore((state) => state.setCommentMode);
   const setSelectedComment = useGraphStore((state) => state.setSelectedComment);
@@ -272,6 +313,7 @@ const App = () => {
 
   const projectFileInputRef = useRef<HTMLInputElement>(null);
   const saveToastTimerRef = useRef<number | null>(null);
+  const tabTooltipTimerRef = useRef<number | null>(null);
   const autoSaveFingerprintRef = useRef<string | null>(null);
   const graphFingerprintRef = useRef<Map<string, string>>(new Map());
   const previousProjectIdRef = useRef<string | undefined>(projectId ?? undefined);
@@ -284,6 +326,17 @@ const App = () => {
       }) as CSSProperties,
     [paletteCollapsed, inspectorCollapsed],
   );
+  const graphPathMap = useMemo(() => {
+    if (!projectDocument) return new Map<string, string>();
+    const map = new Map<string, string>();
+    projectDocument.manifest.graphs.forEach((entry) => {
+      const resolved = resolveGraphLocation(entry.graphId, entry.path, {
+        groupNameHint: entry.groupName,
+      });
+      map.set(entry.graphId, resolved.normalizedPath);
+    });
+    return map;
+  }, [projectDocument]);
   const pushAppHistory = useCallback((path: string, replace = false) => {
     if (typeof window === "undefined") return;
     const target = buildAppPath(path);
@@ -328,6 +381,54 @@ const App = () => {
       saveToastTimerRef.current = null;
     }, 2200);
   }, []);
+  const clearTabTooltipTimer = useCallback(() => {
+    if (tabTooltipTimerRef.current) {
+      window.clearTimeout(tabTooltipTimerRef.current);
+      tabTooltipTimerRef.current = null;
+    }
+  }, []);
+  const handleTabHoverStart = useCallback(
+    (tab: ProjectTab, target: HTMLButtonElement | null) => {
+      if (!target || tab.type !== 'graph') return;
+      const path = graphPathMap.get(tab.graphId);
+      if (!path) return;
+      clearTabTooltipTimer();
+      tabTooltipTimerRef.current = window.setTimeout(() => {
+        const rect = target.getBoundingClientRect();
+        setTabTooltip({
+          tabId: tab.id,
+          path,
+          left: rect.left + rect.width / 2,
+          top: rect.bottom + 8,
+        });
+      }, 1000);
+    },
+    [clearTabTooltipTimer, graphPathMap],
+  );
+  const handleTabHoverEnd = useCallback(() => {
+    clearTabTooltipTimer();
+    setTabTooltip(null);
+  }, [clearTabTooltipTimer]);
+  useEffect(() => {
+    return () => {
+      clearTabTooltipTimer();
+    };
+  }, [clearTabTooltipTimer]);
+  useEffect(() => {
+    if (!tabTooltip) return;
+    const hide = () => setTabTooltip(null);
+    window.addEventListener('scroll', hide, true);
+    window.addEventListener('resize', hide);
+    return () => {
+      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('resize', hide);
+    };
+  }, [tabTooltip]);
+  useEffect(() => {
+    if (!tabTooltip) return;
+    if (openTabs.some((tab) => tab.id === tabTooltip.tabId)) return;
+    setTabTooltip(null);
+  }, [openTabs, tabTooltip]);
 
   const handleDockCollapseToggle = useCallback(() => {
     setDockCollapsed((prev) => {
@@ -542,15 +643,16 @@ const App = () => {
 
   const applyProjectDocument = useCallback(
     (document: ProjectDocument, primaryGraphId: string | null) => {
-      setDocument(document);
+      const normalizedDocument = normalizeGraphDocuments(document);
+      setDocument(normalizedDocument);
       graphFingerprintRef.current.clear();
-      Object.entries(document.graphs).forEach(([graphDocId, graphDoc]) => {
+      Object.entries(normalizedDocument.graphs).forEach(([graphDocId, graphDoc]) => {
         graphFingerprintRef.current.set(graphDocId, fingerprintGraphDocument(graphDoc));
       });
-      autoSaveFingerprintRef.current = fingerprintProjectDocument(document);
+      autoSaveFingerprintRef.current = fingerprintProjectDocument(normalizedDocument);
 
       if (primaryGraphId) {
-        const targetGraph = document.graphs[primaryGraphId];
+        const targetGraph = normalizedDocument.graphs[primaryGraphId];
         if (targetGraph) {
           resetGraphStore({ graphId: primaryGraphId });
           importGraph(targetGraph, { graphId: primaryGraphId, recordHistory: false });
@@ -565,7 +667,7 @@ const App = () => {
         openExplorer('server');
       }
 
-      switchToEditor(document.manifest.project.id);
+      switchToEditor(normalizedDocument.manifest.project.id);
     },
     [importGraph, openExplorer, openGraphTab, resetGraphStore, setDocument, setGraphName, switchToEditor],
   );
@@ -1136,12 +1238,17 @@ const App = () => {
     if (!activeGraphId) return;
     const target = projectDocument.graphs[activeGraphId];
     if (!target) return;
+    const normalizedTarget = withGraphEnvironment(
+      activeGraphId,
+      target,
+      projectDocument.manifest,
+    );
     const current = useGraphStore.getState();
     const currentFingerprint = fingerprintGraphDocument(current.exportGraph());
-    const targetFingerprint = fingerprintGraphDocument(target);
+    const targetFingerprint = fingerprintGraphDocument(normalizedTarget);
     if (current.graphId !== activeGraphId || currentFingerprint !== targetFingerprint) {
-      importGraph(target, { graphId: activeGraphId, recordHistory: false });
-      setGraphName(target.name);
+      importGraph(normalizedTarget, { graphId: activeGraphId, recordHistory: false });
+      setGraphName(normalizedTarget.name);
       graphFingerprintRef.current.set(activeGraphId, targetFingerprint);
     }
   }, [activeGraphId, importGraph, projectDocument, setGraphName]);
@@ -1287,6 +1394,10 @@ const App = () => {
             type="button"
             className={`app__tab ${isActive ? 'is-active' : ''}`}
             onClick={() => handleTabSelect(tab.id)}
+            onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
+            onMouseLeave={handleTabHoverEnd}
+            onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
+            onBlur={handleTabHoverEnd}
           >
             <span className="app__tab-label">
               <img src={iconSrc} alt="" aria-hidden="true" />
@@ -1309,6 +1420,14 @@ const App = () => {
           </button>
         );
       })}
+      {tabTooltip && (
+        <div
+          className="app__tab-tooltip"
+          style={{ left: tabTooltip.left, top: tabTooltip.top }}
+        >
+          {tabTooltip.path}
+        </div>
+      )}
     </div>
   );
 

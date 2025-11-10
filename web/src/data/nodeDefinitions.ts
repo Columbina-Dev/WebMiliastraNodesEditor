@@ -5335,6 +5335,18 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
+  // ───────────────────────────── -1-客户端事件节点 ─────────────────────────────
+  // 事件节点/节点图开始
+  {
+    id: "event.graphStart",
+    displayName: "节点图开始",
+    category: "事件节点/基础",
+    kind: "event",
+    headerColor: EVENT_HEADER,
+    ports: [
+      { id: "flowOut", label: "事件", kind: "flow-out" },
+    ],
+  },
   // ───────────────────────────── 00-自定义变量 ─────────────────────────────
   // 事件节点/自定义变量
   {
@@ -5454,7 +5466,6 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "newValue", label: "变化后值", kind: "data-out", valueType: "int" },
     ],
   },
-
   // ───────────────────────────── 02-实体相关 ─────────────────────────────
   // 事件节点/实体相关
   {

@@ -131,6 +131,7 @@ export interface GraphDocument {
 }
 
 export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
+export const CLIENT_GRAPH_START_NODE_ID = 'event.graphStart';
 
 export interface ConnectionPreview {
   handleType: 'source' | 'target';

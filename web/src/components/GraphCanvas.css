@@ -157,6 +157,10 @@
 .react-flow__edge.selected .react-flow__edge-path {
   stroke: #ffd36b;
 }
+.react-flow__edge.graph-edge--data {
+  --edge-stroke-width: 2px;
+  --edge-stroke-color: #8BC1FE;
+}
 
 .react-flow__selection rect {
   fill: rgba(92, 186, 255, 0.16);
@@ -223,4 +227,12 @@
 
 .miliastra-handle.is-previewing.is-disabled {
   cursor: var(--cursor-conn-invalid);
+}
+
+.react-flow__edge,
+.react-flow__edge-path,
+.react-flow__edge-text,
+.miliastra-handle,
+.react-flow__handle {
+  cursor: var(--cursor-pointer) !important;
 }

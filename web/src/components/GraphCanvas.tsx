@@ -31,7 +31,7 @@ import {
 } from '../data/nodeDefinitions';
 import { useGraphStore } from '../state/graphStore';
 import MiliastraNode from './MiliastraNode';
-import type { ConnectionPreview } from '../types/node';
+import { CLIENT_GRAPH_START_NODE_ID, type ConnectionPreview, type PortDefinition } from '../types/node';
 import NodeLibrary from './NodeLibrary';
 import GraphCommentsOverlay from './GraphCommentsOverlay';
 import {
@@ -122,6 +122,7 @@ const lineIntersectsRect = (start: ScreenPoint, end: ScreenPoint, rect: FlowRect
   const topRight = { x: rect.maxX, y: rect.minY };
   const bottomLeft = { x: rect.minX, y: rect.maxY };
   const bottomRight = { x: rect.maxX, y: rect.maxY };
+
 
   return (
     segmentsIntersect(start, end, topLeft, topRight) ||
@@ -284,6 +285,20 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
+  const availableDefinitions = useMemo(
+    () => nodeDefinitions.filter((definition) => definition.id !== CLIENT_GRAPH_START_NODE_ID),
+    []
+  );
+  const protectedNodeIds = useMemo(
+    () =>
+      new Set(
+        nodes
+          .filter((node) => node.type === CLIENT_GRAPH_START_NODE_ID)
+          .map((node) => node.id)
+      ),
+    [nodes]
+  );
+  const environment = useGraphStore((state) => state.environment);
   const comments = useGraphStore((state) => state.comments);
   const updateNode = useGraphStore((state) => state.updateNode);
   const removeNode = useGraphStore((state) => state.removeNode);
@@ -343,6 +358,13 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   });
   const previousSelectedIdsRef = useRef<string[]>([]);
   const libraryTouchDragRef = useRef<{ definitionId: string; screen: ScreenPoint } | null>(null);
+  const watermarkText = environment === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
+  const selectionHasProtectedNode =
+    floatingPanel?.type === 'selection'
+      ? floatingPanel.nodeIds.some((nodeId) => protectedNodeIds.has(nodeId))
+      : false;
+  const singleNodeIsProtected =
+    floatingPanel?.type === 'node' ? protectedNodeIds.has(floatingPanel.nodeId) : false;
   const nodeLongPressRef = useRef<{ nodeId: string; timeoutId: number | null; triggered: boolean; screen: ScreenPoint } | null>(null);
   const mobileContextTapRef = useRef<{
     active: boolean;
@@ -605,24 +627,44 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       return [rfNode];
     });
   }, [nodes, activeConnection]);
+  const portKindMap = useMemo(() => {
+    const map = new Map<string, PortDefinition['kind']>();
+    nodes.forEach((node) => {
+      const definition = nodeDefinitionsById[node.type];
+      if (!definition) return;
+      definition.ports.forEach((port) => {
+        map.set(`${node.id}:${port.id}`, port.kind);
+      });
+    });
+    return map;
+  }, [nodes]);
 
   const defaultEdgeOptions = useMemo(
     () => ({
-      style: { strokeWidth: 2.5, stroke: '#8cc2ff' },
+      style: { strokeWidth: 3, stroke: '#ffffff' },
     }),
     []
   );
 
   const rfEdges: Edge[] = useMemo(
     () =>
-      edges.map((edge) => ({
-        id: edge.id,
-        source: edge.source.nodeId,
-        sourceHandle: edge.source.portId,
-        target: edge.target.nodeId,
-        targetHandle: edge.target.portId,
-      })),
-    [edges]
+      edges.map((edge) => {
+        const sourceKey = `${edge.source.nodeId}:${edge.source.portId}`;
+        const targetKey = `${edge.target.nodeId}:${edge.target.portId}`;
+        const sourceKind = portKindMap.get(sourceKey);
+        const targetKind = portKindMap.get(targetKey);
+        const isDataEdge =
+          sourceKind?.startsWith('data') && targetKind?.startsWith('data');
+        return {
+          id: edge.id,
+          source: edge.source.nodeId,
+          sourceHandle: edge.source.portId,
+          target: edge.target.nodeId,
+          targetHandle: edge.target.portId,
+          className: isDataEdge ? 'graph-edge--data' : undefined,
+        };
+      }),
+    [edges, portKindMap]
   );
 
   const draggingNodesRef = useRef(new Set<string>());
@@ -1256,20 +1298,30 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
+      if (protectedNodeIds.has(nodeId)) {
+        setFloatingPanel(null);
+        setHasPartialSelection(false);
+        return;
+      }
       removeNode(nodeId);
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [removeNode]
+    [protectedNodeIds, removeNode, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDuplicateNode = useCallback(
     (nodeId: string) => {
+      if (protectedNodeIds.has(nodeId)) {
+        setFloatingPanel(null);
+        setHasPartialSelection(false);
+        return;
+      }
       duplicateNode(nodeId);
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [duplicateNode]
+    [duplicateNode, protectedNodeIds, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDeleteEdge = useCallback(
@@ -1620,7 +1672,9 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
             .filter((node) => node.selected)
             .map((node) => node.id);
       if (!ids.length) return;
-      const createdIds = duplicateNodesBatch(ids);
+      const allowedIds = ids.filter((id) => !protectedNodeIds.has(id));
+      if (!allowedIds.length) return;
+      const createdIds = duplicateNodesBatch(allowedIds);
       if (!createdIds.length) return;
       requestAnimationFrame(() => {
         const createdSet = new Set(createdIds);
@@ -1632,7 +1686,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         );
       });
     },
-    [duplicateNodesBatch, reactFlow]
+    [duplicateNodesBatch, protectedNodeIds, reactFlow]
   );
 
   const handleDuplicateSelection = useCallback(
@@ -1646,13 +1700,19 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const handleDeleteSelection = useCallback(
     (nodeIds: string[]) => {
       if (!nodeIds.length) return;
+      const allowedIds = nodeIds.filter((id) => !protectedNodeIds.has(id));
+      if (!allowedIds.length) {
+        setFloatingPanel(null);
+        setHasPartialSelection(false);
+        return;
+      }
       skipEdgeHistoryRef.current = true;
-      removeNodesBatch(nodeIds);
+      removeNodesBatch(allowedIds);
       skipEdgeHistoryRef.current = false;
       setFloatingPanel(null);
       setHasPartialSelection(false);
       requestAnimationFrame(() => {
-        const removedSet = new Set(nodeIds);
+        const removedSet = new Set(allowedIds);
         reactFlow.setNodes((nodes) =>
           nodes.map((node) => ({
             ...node,
@@ -1661,7 +1721,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         );
       });
     },
-    [reactFlow, removeNodesBatch]
+    [protectedNodeIds, reactFlow, removeNodesBatch, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDisconnectNodes = useCallback(
@@ -1755,7 +1815,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     >
       <div className="graph-canvas-grid" aria-hidden="true" />
       <div className="graph-canvas-watermark" aria-hidden="true">
-        服务器节点图编辑
+        {watermarkText}
       </div>
       <ReactFlow
         style={{ width: '100%', height: '100%' }}
@@ -1802,7 +1862,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
           <NodeLibrary
             title="节点库"
             subtitle={connectionSubtitle}
-            definitions={nodeDefinitions}
+            definitions={availableDefinitions}
             filter={connectionFilter}
             variant="floating"
             isTouchEnvironment={isMobileMode}
@@ -1833,6 +1893,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
             <button
               type="button"
               className={classNames('graph-context-menu__item', 'is-danger')}
+              disabled={selectionHasProtectedNode}
               onClick={() => handleDeleteSelection(floatingPanel.nodeIds)}
             >
               <span className="graph-context-menu__label">删除</span>
@@ -1841,6 +1902,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
             <button
               type="button"
               className="graph-context-menu__item"
+              disabled={selectionHasProtectedNode}
               onClick={() => handleDuplicateSelection(floatingPanel.nodeIds)}
             >
               <span className="graph-context-menu__label">复制</span>
@@ -1873,7 +1935,8 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               <button
                 type="button"
                 className={classNames('graph-context-menu__item', 'is-danger')}
-                onClick={() => handleDeleteNode(floatingPanel.nodeId)}
+                disabled={singleNodeIsProtected}
+              onClick={() => handleDeleteNode(floatingPanel.nodeId)}
               >
                 <span className="graph-context-menu__label">删除</span>
                 <span className="graph-context-menu__shortcut">Delete</span>
@@ -1881,7 +1944,8 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               <button
                 type="button"
                 className="graph-context-menu__item"
-                onClick={() => handleDuplicateNode(floatingPanel.nodeId)}
+                disabled={singleNodeIsProtected}
+              onClick={() => handleDuplicateNode(floatingPanel.nodeId)}
               >
                 <span className="graph-context-menu__label">复制</span>
                 <span className="graph-context-menu__shortcut">Ctrl+C</span>
@@ -1928,6 +1992,16 @@ const GraphCanvas = ({ isMobileMode = false }: GraphCanvasProps) => (
 );
 
 export default GraphCanvas;
+
+
+
+
+
+
+
+
+
+
 
 
 

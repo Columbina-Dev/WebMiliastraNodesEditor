@@ -1,6 +1,6 @@
 ﻿import { create } from 'zustand';
 import { nanoid } from 'nanoid/non-secure';
-import { GRAPH_SCHEMA_VERSION } from '../types/node';
+import { CLIENT_GRAPH_START_NODE_ID, GRAPH_SCHEMA_VERSION } from '../types/node';
 import type {
   GraphDocument,
   GraphEdge,
@@ -10,6 +10,74 @@ import type {
 } from '../types/node';
 
 const HISTORY_LIMIT = 50;
+const CLIENT_START_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
+
+const isClientStartNode = (node: { type: string }) => node.type === CLIENT_GRAPH_START_NODE_ID;
+
+const computeClientStartNodePosition = (nodes: GraphNode[]) => {
+  const candidates = nodes.filter((node) => !isClientStartNode(node));
+  if (!candidates.length) {
+    return { ...CLIENT_START_NODE_DEFAULT_POSITION };
+  }
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  candidates.forEach((node) => {
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+  });
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+    return { ...CLIENT_START_NODE_DEFAULT_POSITION };
+  }
+  return {
+    x: minX - 200,
+    y: minY - 60,
+  };
+};
+
+const reconcileClientStartNodes = (
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+  environment: GraphEnvironment,
+) => {
+  if (environment === 'client') {
+    const startNodes = nodes.filter(isClientStartNode);
+    if (!startNodes.length) {
+      const startNode: GraphNode = {
+        id: nanoid(),
+        type: CLIENT_GRAPH_START_NODE_ID,
+        position: computeClientStartNodePosition(nodes),
+      };
+      return {
+        nodes: [...nodes, startNode],
+        edges,
+      };
+    }
+    if (startNodes.length > 1) {
+      const [, ...redundant] = startNodes;
+      if (redundant.length) {
+        const redundantIds = new Set(redundant.map((node) => node.id));
+        return {
+          nodes: nodes.filter((node) => !redundantIds.has(node.id)),
+          edges: edges.filter(
+            (edge) =>
+              !redundantIds.has(edge.source.nodeId) && !redundantIds.has(edge.target.nodeId),
+          ),
+        };
+      }
+    }
+    return { nodes, edges };
+  }
+  if (!nodes.some(isClientStartNode)) {
+    return { nodes, edges };
+  }
+  const startIds = new Set(nodes.filter(isClientStartNode).map((node) => node.id));
+  return {
+    nodes: nodes.filter((node) => !startIds.has(node.id)),
+    edges: edges.filter(
+      (edge) => !startIds.has(edge.source.nodeId) && !startIds.has(edge.target.nodeId),
+    ),
+  };
+};
 
 
 interface GraphCommentState {
@@ -84,6 +152,19 @@ interface GraphState {
   setZoomLevel: (zoom: number) => void;
   setRequestedZoom: (zoom: number | null) => void;
 }
+
+const getProtectedNodeIds = (state: GraphState) =>
+  new Set(state.nodes.filter(isClientStartNode).map((node) => node.id));
+
+const filterRemovableNodeIds = (state: GraphState, nodeIds: string[]) => {
+  if (!nodeIds.length) return [];
+  const protectedIds = getProtectedNodeIds(state);
+  if (!protectedIds.size) return nodeIds;
+  return nodeIds.filter((id) => !protectedIds.has(id));
+};
+
+const findClientStartNodeId = (state: GraphState) =>
+  state.nodes.find(isClientStartNode)?.id;
 
 const cloneNode = (node: GraphNode): GraphNode => {
   const data = node.data
@@ -181,6 +262,13 @@ export const useGraphStore = create<GraphState>((set, get) => {
       set(() => ({ name }));
     },
     addNode: (node) => {
+      if (isClientStartNode(node)) {
+        const state = get();
+        const existingId = findClientStartNodeId(state);
+        if (state.environment !== 'client' || existingId) {
+          return existingId ?? '';
+        }
+      }
       captureSnapshot();
       const id = node.id ?? nanoid();
       set((state) => ({
@@ -200,10 +288,12 @@ export const useGraphStore = create<GraphState>((set, get) => {
       let createdIds: string[] = [];
       set((state) => {
         const selected = state.nodes.filter((node) => uniqueIds.includes(node.id));
-        if (!selected.length) return {};
+        const duplicable = selected.filter((node) => !isClientStartNode(node));
+        if (!duplicable.length) return {};
 
         const idMap = new Map<string, string>();
-        const newNodes = selected.map((node) => {
+        const duplicableIdSet = new Set(duplicable.map((node) => node.id));
+        const newNodes = duplicable.map((node) => {
           const cloned = cloneNode(node);
           const id = nanoid();
           idMap.set(node.id, id);
@@ -218,8 +308,8 @@ export const useGraphStore = create<GraphState>((set, get) => {
         const newEdges = state.edges
           .filter(
             (edge) =>
-              uniqueIds.includes(edge.source.nodeId) &&
-              uniqueIds.includes(edge.target.nodeId)
+              duplicableIdSet.has(edge.source.nodeId) &&
+              duplicableIdSet.has(edge.target.nodeId)
           )
           .map((edge) => {
             const cloned = cloneEdge(edge);
@@ -254,10 +344,12 @@ export const useGraphStore = create<GraphState>((set, get) => {
     removeNodes: (nodeIds, options) => {
       const uniqueIds = Array.from(new Set(nodeIds));
       if (!uniqueIds.length) return;
+      const removableIds = filterRemovableNodeIds(get(), uniqueIds);
+      if (!removableIds.length) return;
       if (options?.recordHistory !== false) {
         captureSnapshot();
       }
-      const idSet = new Set(uniqueIds);
+      const idSet = new Set(removableIds);
       set((state) => {
         const remainingComments = state.comments.filter(
           (comment) => !comment.nodeId || !idSet.has(comment.nodeId)
@@ -486,10 +578,17 @@ export const useGraphStore = create<GraphState>((set, get) => {
         }
       }
       const environment = doc.environment ?? (options?.graphId ? get().environment : 'server');
+      const clonedNodes = cloneNodes(doc.nodes);
+      const clonedEdges = cloneEdges(doc.edges);
+      const { nodes: normalizedNodes, edges: normalizedEdges } = reconcileClientStartNodes(
+        clonedNodes,
+        clonedEdges,
+        environment,
+      );
       set(() => ({
         name: doc.name,
-        nodes: cloneNodes(doc.nodes),
-        edges: cloneEdges(doc.edges),
+        nodes: normalizedNodes,
+        edges: normalizedEdges,
         comments: normalizedComments,
         commentMode: 'inactive',
         selectedCommentId: undefined,
