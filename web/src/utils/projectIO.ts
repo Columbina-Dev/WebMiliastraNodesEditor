@@ -17,7 +17,6 @@ import {
   type ProjectManifest,
   type ProjectManifestGraph,
   type ProjectManifestGroup,
-  type ProjectTopFolder,
 } from '../types/project';
 import {
   buildGraphPath,
@@ -32,6 +31,15 @@ import {
   upsertManifestGroup,
 } from './project';
 import { graphDocumentSchema } from './validation';
+import {
+  clientKindFromEnvironment,
+  getDefaultExecutionInterval,
+  getEnvironmentTopFolder,
+  isGraphEnvironmentValue,
+  normalizeGraphEnvironment,
+  resolveEnvironmentFromLocation,
+  sanitizeExecutionInterval,
+} from '../utils/graphEnvironment';
 
 const cloneNode = (node: GraphNode): GraphNode => ({
   ...node,
@@ -68,6 +76,7 @@ const cloneGraphDocument = (doc: GraphDocument): GraphDocument => ({
       }))
     : undefined,
   environment: doc.environment,
+  executionIntervalSeconds: doc.executionIntervalSeconds,
 });
 
 const sanitizeManifestGraph = (
@@ -232,8 +241,9 @@ export const loadProjectFromZip = async (
     try {
       const content = await zipObject.async('string');
       const parsed = graphDocumentSchema.parse(JSON.parse(content));
-      const declaredEnvironment =
-        parsed.environment === 'client' ? 'client' : parsed.environment === 'server' ? 'server' : undefined;
+      const declaredEnvironment = isGraphEnvironmentValue(parsed.environment)
+        ? normalizeGraphEnvironment(parsed.environment)
+        : undefined;
       const normalizedComments: GraphComment[] = [];
       if (Array.isArray(parsed.comments)) {
         for (const comment of parsed.comments) {
@@ -254,12 +264,12 @@ export const loadProjectFromZip = async (
       let graphId: string;
       let locationPath: string;
       let groupName = DEFAULT_GROUP_NAME;
-      let effectiveTopFolder: ProjectTopFolder = 'server';
+      let location: ReturnType<typeof resolveGraphLocation>['location'];
       if (parsedPath) {
         graphId = parsedPath.fileStem;
         groupName = parsedPath.location.groupName;
         locationPath = buildGraphPath(parsedPath.location, graphId);
-        effectiveTopFolder = parsedPath.location.topFolder;
+        location = parsedPath.location;
         upsertManifestGroup(document.manifest, {
           topFolder: parsedPath.location.topFolder,
           categoryKey: parsedPath.location.categoryKey,
@@ -270,12 +280,26 @@ export const loadProjectFromZip = async (
         graphId = createProjectId();
         const fallbackLocation = resolveGraphLocation(graphId, undefined);
         locationPath = fallbackLocation.normalizedPath;
-        effectiveTopFolder = fallbackLocation.location.topFolder;
         groupName = fallbackLocation.location.groupName;
+        location = fallbackLocation.location;
         warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallbackLocation.normalizedPath}`);
       }
+      const environmentFromLocation = resolveEnvironmentFromLocation(location);
+      const fallbackKind = clientKindFromEnvironment(environmentFromLocation) ?? undefined;
+      const normalizedDeclared =
+        declaredEnvironment && getEnvironmentTopFolder(declaredEnvironment) === location.topFolder
+          ? normalizeGraphEnvironment(declaredEnvironment, { fallbackClientKind: fallbackKind })
+          : null;
       const effectiveEnvironment: GraphEnvironment =
-        declaredEnvironment ?? (effectiveTopFolder === 'client' ? 'client' : 'server');
+        normalizedDeclared ?? environmentFromLocation;
+      const defaultInterval = getDefaultExecutionInterval(effectiveEnvironment);
+      const executionIntervalSeconds =
+        defaultInterval !== undefined
+          ? sanitizeExecutionInterval(
+              parsed.executionIntervalSeconds ?? defaultInterval,
+              defaultInterval,
+            )
+          : 0;
       const graphDocument: GraphDocument = {
         schemaVersion: GRAPH_SCHEMA_VERSION,
         name: parsed.name,
@@ -285,6 +309,7 @@ export const loadProjectFromZip = async (
         edges: parsed.edges.map(cloneEdge),
         comments: normalizedComments,
         environment: effectiveEnvironment,
+        executionIntervalSeconds,
       };
 
       availableGraphFiles.set(graphId, {

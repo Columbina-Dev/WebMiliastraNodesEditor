@@ -31,7 +31,11 @@ import {
 } from '../data/nodeDefinitions';
 import { useGraphStore } from '../state/graphStore';
 import MiliastraNode from './MiliastraNode';
-import { CLIENT_GRAPH_START_NODE_ID, type ConnectionPreview, type PortDefinition } from '../types/node';
+import {
+  GRAPH_SYSTEM_NODE_IDS,
+  type ConnectionPreview,
+  type PortDefinition,
+} from '../types/node';
 import NodeLibrary from './NodeLibrary';
 import GraphCommentsOverlay from './GraphCommentsOverlay';
 import {
@@ -39,6 +43,7 @@ import {
   isDataPort,
   isFlowPort,
 } from '../utils/graph';
+import { getEnvironmentTopFolder } from '../utils/graphEnvironment';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
 import './GraphCanvas.css';
 
@@ -281,19 +286,21 @@ const extractEventPosition = (event: MouseEvent | TouchEvent): ScreenPoint => {
   };
 };
 
+const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
+
 const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
   const availableDefinitions = useMemo(
-    () => nodeDefinitions.filter((definition) => definition.id !== CLIENT_GRAPH_START_NODE_ID),
+    () => nodeDefinitions.filter((definition) => !SYSTEM_NODE_ID_SET.has(definition.id)),
     []
   );
   const protectedNodeIds = useMemo(
     () =>
       new Set(
         nodes
-          .filter((node) => node.type === CLIENT_GRAPH_START_NODE_ID)
+          .filter((node) => SYSTEM_NODE_ID_SET.has(node.type))
           .map((node) => node.id)
       ),
     [nodes]
@@ -358,7 +365,8 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   });
   const previousSelectedIdsRef = useRef<string[]>([]);
   const libraryTouchDragRef = useRef<{ definitionId: string; screen: ScreenPoint } | null>(null);
-  const watermarkText = environment === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
+  const watermarkText =
+    getEnvironmentTopFolder(environment) === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
   const selectionHasProtectedNode =
     floatingPanel?.type === 'selection'
       ? floatingPanel.nodeIds.some((nodeId) => protectedNodeIds.has(nodeId))

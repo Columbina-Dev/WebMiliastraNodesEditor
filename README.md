@@ -236,6 +236,15 @@ interface DataPortDefinition {
 > [!IMPORTANT]  
 > 注意：`web/src/data/nodeDefinitions.ts`文件中**所有**节点的定义均由AI根据官方节点图编辑器截图推断，可能存在错误或不完整之处，如有任何问题，请在Issue中提出
 
-- 服务器节点：建议写入 `web/src/data/nodeDefinitions.server.ts`。  
-- 客户端节点：建议写入 `web/src/data/nodeDefinitions.client.ts`。  
-- 两个文件若暂时为空，系统会回退到 `nodeDefinitions.ts` 中的默认集合，但不利于环境区分。
+- 需将服务器节点图和客户端节点图可使用的所有节点列表分别写入 `web/src/data/nodeDefinitions.server.ts` 和 `web/src/data/nodeDefinitions.client.ts`。
+- 两个文件若暂时为空，两种节点图均可使用 `nodeDefinitions.ts` 中所有已定义的节点。
+
+列表例子：
+
+```ts
+export const serverNodeList = [
+  "action.printString", 
+  "action.setLocalVariable",
+  // ...
+] as const;
+```

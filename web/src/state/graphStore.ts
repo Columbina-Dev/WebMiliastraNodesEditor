@@ -1,6 +1,12 @@
 ﻿import { create } from 'zustand';
 import { nanoid } from 'nanoid/non-secure';
-import { CLIENT_GRAPH_START_NODE_ID, GRAPH_SCHEMA_VERSION } from '../types/node';
+import {
+  CLIENT_BOOLEAN_RESULT_NODE_ID,
+  CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_INTEGER_RESULT_NODE_ID,
+  GRAPH_SCHEMA_VERSION,
+  GRAPH_SYSTEM_NODE_IDS,
+} from '../types/node';
 import type {
   GraphDocument,
   GraphEdge,
@@ -8,11 +14,23 @@ import type {
   GraphNodeData,
   GraphEnvironment,
 } from '../types/node';
+import {
+  clientKindFromEnvironment,
+  getDefaultExecutionInterval,
+  normalizeGraphEnvironment,
+  sanitizeExecutionInterval,
+} from '../utils/graphEnvironment';
 
 const HISTORY_LIMIT = 50;
 const CLIENT_START_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
+const CLIENT_RESULT_NODE_DEFAULT_POSITION = { x: 240, y: -120 };
+
+type SystemNodeType = (typeof GRAPH_SYSTEM_NODE_IDS)[number];
+
+const GRAPH_SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS);
 
 const isClientStartNode = (node: { type: string }) => node.type === CLIENT_GRAPH_START_NODE_ID;
+const isSystemNode = (node: { type: string }) => GRAPH_SYSTEM_NODE_ID_SET.has(node.type);
 
 const computeClientStartNodePosition = (nodes: GraphNode[]) => {
   const candidates = nodes.filter((node) => !isClientStartNode(node));
@@ -34,49 +52,95 @@ const computeClientStartNodePosition = (nodes: GraphNode[]) => {
   };
 };
 
-const reconcileClientStartNodes = (
+const computeResultNodePosition = (nodes: GraphNode[], targetType: SystemNodeType) => {
+  const candidates = nodes.filter(
+    (node) => !isSystemNode(node) || node.type !== targetType,
+  );
+  if (!candidates.length) {
+    return { ...CLIENT_RESULT_NODE_DEFAULT_POSITION };
+  }
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  candidates.forEach((node) => {
+    maxX = Math.max(maxX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+  });
+  if (!Number.isFinite(maxX) || !Number.isFinite(minY)) {
+    return { ...CLIENT_RESULT_NODE_DEFAULT_POSITION };
+  }
+  return {
+    x: maxX + 200,
+    y: minY,
+  };
+};
+
+const getRequiredSystemNodeTypes = (environment: GraphEnvironment): SystemNodeType[] => {
+  const kind = clientKindFromEnvironment(environment);
+  if (!kind) return [];
+  if (kind === 'skill') return [CLIENT_GRAPH_START_NODE_ID];
+  if (kind === 'boolean') return [CLIENT_BOOLEAN_RESULT_NODE_ID];
+  if (kind === 'integer') return [CLIENT_INTEGER_RESULT_NODE_ID];
+  return [];
+};
+
+const createSystemNode = (type: SystemNodeType, nodes: GraphNode[]): GraphNode => {
+  const position =
+    type === CLIENT_GRAPH_START_NODE_ID
+      ? computeClientStartNodePosition(nodes)
+      : computeResultNodePosition(nodes, type);
+  return {
+    id: nanoid(),
+    type,
+    position,
+  };
+};
+
+const reconcileSystemNodes = (
   nodes: GraphNode[],
   edges: GraphEdge[],
   environment: GraphEnvironment,
 ) => {
-  if (environment === 'client') {
-    const startNodes = nodes.filter(isClientStartNode);
-    if (!startNodes.length) {
-      const startNode: GraphNode = {
-        id: nanoid(),
-        type: CLIENT_GRAPH_START_NODE_ID,
-        position: computeClientStartNodePosition(nodes),
-      };
-      return {
-        nodes: [...nodes, startNode],
-        edges,
-      };
+  const requiredTypes = new Set(getRequiredSystemNodeTypes(environment));
+  const nodesByType = new Map<SystemNodeType, GraphNode[]>();
+  nodes.forEach((node) => {
+    if (isSystemNode(node)) {
+      const list = nodesByType.get(node.type as SystemNodeType) ?? [];
+      list.push(node);
+      nodesByType.set(node.type as SystemNodeType, list);
     }
-    if (startNodes.length > 1) {
-      const [, ...redundant] = startNodes;
-      if (redundant.length) {
-        const redundantIds = new Set(redundant.map((node) => node.id));
-        return {
-          nodes: nodes.filter((node) => !redundantIds.has(node.id)),
-          edges: edges.filter(
-            (edge) =>
-              !redundantIds.has(edge.source.nodeId) && !redundantIds.has(edge.target.nodeId),
-          ),
-        };
-      }
+  });
+
+  const nodesToRemove = new Set<string>();
+  nodesByType.forEach((list, type) => {
+    if (!requiredTypes.has(type)) {
+      list.forEach((node) => nodesToRemove.add(node.id));
+    } else if (list.length > 1) {
+      list
+        .slice(1)
+        .forEach((node) => nodesToRemove.add(node.id));
     }
+  });
+
+  const filteredNodes = nodes.filter((node) => !nodesToRemove.has(node.id));
+  const nodesToAdd: GraphNode[] = [];
+
+  requiredTypes.forEach((type) => {
+    const existing = filteredNodes.find((node) => node.type === type);
+    if (!existing) {
+      nodesToAdd.push(createSystemNode(type, filteredNodes));
+    }
+  });
+
+  if (!nodesToAdd.length && !nodesToRemove.size) {
     return { nodes, edges };
   }
-  if (!nodes.some(isClientStartNode)) {
-    return { nodes, edges };
-  }
-  const startIds = new Set(nodes.filter(isClientStartNode).map((node) => node.id));
-  return {
-    nodes: nodes.filter((node) => !startIds.has(node.id)),
-    edges: edges.filter(
-      (edge) => !startIds.has(edge.source.nodeId) && !startIds.has(edge.target.nodeId),
-    ),
-  };
+
+  const nextNodes = [...filteredNodes, ...nodesToAdd];
+  const removedIds = nodesToRemove;
+  const nextEdges = edges.filter(
+    (edge) => !removedIds.has(edge.source.nodeId) && !removedIds.has(edge.target.nodeId),
+  );
+  return { nodes: nextNodes, edges: nextEdges };
 };
 
 
@@ -100,6 +164,7 @@ interface GraphSnapshot {
   selectedNodeId?: string;
   zoomLevel: number;
   environment: GraphEnvironment;
+  executionIntervalSeconds: number;
 }
 
 interface GraphState {
@@ -109,6 +174,7 @@ interface GraphState {
   edges: GraphEdge[];
   comments: GraphCommentState[];
   environment: GraphEnvironment;
+  executionIntervalSeconds: number;
   commentMode: CommentMode;
   selectedCommentId?: string;
   selectedNodeId?: string;
@@ -144,6 +210,7 @@ interface GraphState {
     options?: { graphId?: string; recordHistory?: boolean },
   ) => void;
   exportGraph: () => GraphDocument;
+  setExecutionIntervalSeconds: (value: number) => void;
   reset: (options?: { graphId?: string }) => void;
   undo: () => void;
   redo: () => void;
@@ -154,7 +221,7 @@ interface GraphState {
 }
 
 const getProtectedNodeIds = (state: GraphState) =>
-  new Set(state.nodes.filter(isClientStartNode).map((node) => node.id));
+  new Set(state.nodes.filter(isSystemNode).map((node) => node.id));
 
 const filterRemovableNodeIds = (state: GraphState, nodeIds: string[]) => {
   if (!nodeIds.length) return [];
@@ -163,8 +230,8 @@ const filterRemovableNodeIds = (state: GraphState, nodeIds: string[]) => {
   return nodeIds.filter((id) => !protectedIds.has(id));
 };
 
-const findClientStartNodeId = (state: GraphState) =>
-  state.nodes.find(isClientStartNode)?.id;
+const findSystemManagedNodeId = (state: GraphState, type: SystemNodeType) =>
+  state.nodes.find((node) => node.type === type)?.id;
 
 const cloneNode = (node: GraphNode): GraphNode => {
   const data = node.data
@@ -201,6 +268,7 @@ const createSnapshot = (state: GraphState): GraphSnapshot => ({
   selectedNodeId: state.selectedNodeId,
   zoomLevel: state.zoomLevel,
   environment: state.environment,
+  executionIntervalSeconds: state.executionIntervalSeconds,
 });
 
 const applySnapshot = (snapshot: GraphSnapshot) => ({
@@ -212,6 +280,7 @@ const applySnapshot = (snapshot: GraphSnapshot) => ({
   selectedNodeId: snapshot.selectedNodeId,
   zoomLevel: snapshot.zoomLevel,
   environment: snapshot.environment,
+  executionIntervalSeconds: snapshot.executionIntervalSeconds,
 });
 
 const createDefaultState = (graphId?: string) => {
@@ -227,6 +296,7 @@ const createDefaultState = (graphId?: string) => {
     zoomLevel: 1,
     requestedZoom: null,
     environment: 'server' as GraphEnvironment,
+    executionIntervalSeconds: 0,
   };
 };
 
@@ -261,12 +331,30 @@ export const useGraphStore = create<GraphState>((set, get) => {
       captureSnapshot();
       set(() => ({ name }));
     },
+    setExecutionIntervalSeconds: (value) => {
+      const state = get();
+      const defaultInterval = getDefaultExecutionInterval(state.environment);
+      if (defaultInterval === undefined) {
+        return;
+      }
+      const sanitized = sanitizeExecutionInterval(value, defaultInterval);
+      if (sanitized === state.executionIntervalSeconds) {
+        return;
+      }
+      captureSnapshot();
+      set(() => ({ executionIntervalSeconds: sanitized }));
+    },
     addNode: (node) => {
-      if (isClientStartNode(node)) {
+      if (isSystemNode(node)) {
         const state = get();
-        const existingId = findClientStartNodeId(state);
-        if (state.environment !== 'client' || existingId) {
-          return existingId ?? '';
+        const requiredTypes = new Set(getRequiredSystemNodeTypes(state.environment));
+        const type = node.type as SystemNodeType;
+        if (!requiredTypes.has(type)) {
+          return '';
+        }
+        const existingId = findSystemManagedNodeId(state, type);
+        if (existingId) {
+          return existingId;
         }
       }
       captureSnapshot();
@@ -288,7 +376,7 @@ export const useGraphStore = create<GraphState>((set, get) => {
       let createdIds: string[] = [];
       set((state) => {
         const selected = state.nodes.filter((node) => uniqueIds.includes(node.id));
-        const duplicable = selected.filter((node) => !isClientStartNode(node));
+        const duplicable = selected.filter((node) => !isSystemNode(node));
         if (!duplicable.length) return {};
 
         const idMap = new Map<string, string>();
@@ -577,10 +665,24 @@ export const useGraphStore = create<GraphState>((set, get) => {
           });
         }
       }
-      const environment = doc.environment ?? (options?.graphId ? get().environment : 'server');
+      const fallbackEnvironment: GraphEnvironment = options?.graphId
+        ? get().environment
+        : 'server';
+      const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
+      const environment = normalizeGraphEnvironment(doc.environment ?? fallbackEnvironment, {
+        fallbackClientKind: fallbackKind,
+      });
+      const defaultInterval = getDefaultExecutionInterval(environment);
+      const executionIntervalSeconds =
+        defaultInterval !== undefined
+          ? sanitizeExecutionInterval(
+              doc.executionIntervalSeconds ?? defaultInterval,
+              defaultInterval,
+            )
+          : 0;
       const clonedNodes = cloneNodes(doc.nodes);
       const clonedEdges = cloneEdges(doc.edges);
-      const { nodes: normalizedNodes, edges: normalizedEdges } = reconcileClientStartNodes(
+      const { nodes: normalizedNodes, edges: normalizedEdges } = reconcileSystemNodes(
         clonedNodes,
         clonedEdges,
         environment,
@@ -597,17 +699,21 @@ export const useGraphStore = create<GraphState>((set, get) => {
         zoomLevel: 1,
         requestedZoom: null,
         environment,
+        executionIntervalSeconds,
       }));
     },
     exportGraph: () => {
       const state = get();
+      const environment = state.environment;
+      const intervalApplicable = getDefaultExecutionInterval(environment) !== undefined;
       return {
         schemaVersion: GRAPH_SCHEMA_VERSION,
         name: state.name,
         nodes: cloneNodes(state.nodes),
         edges: cloneEdges(state.edges),
         comments: cloneComments(state.comments),
-        environment: state.environment,
+        environment,
+        executionIntervalSeconds: intervalApplicable ? state.executionIntervalSeconds : undefined,
       } satisfies GraphDocument;
     },
     reset: (options) => {

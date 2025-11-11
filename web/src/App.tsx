@@ -22,6 +22,13 @@ import {
   sanitizeName,
 } from "./utils/project";
 import {
+  clientKindFromEnvironment,
+  getEnvironmentTopFolder,
+  getDefaultExecutionInterval,
+  normalizeGraphEnvironment,
+  resolveEnvironmentFromLocation,
+} from "./utils/graphEnvironment";
+import {
   loadProjectFromZip,
   normalizeProjectDocument,
   saveProjectToZip,
@@ -66,6 +73,7 @@ const ICON_TAB_GRAPH = new URL("./assets/icons/graph.svg", import.meta.url).href
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
+const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
 
@@ -75,6 +83,14 @@ const sanitizeFileName = (name: string) => {
     .map((char) => (INVALID_FILENAME_CHARS.has(char) ? "_" : char))
     .join("");
   return safe.length ? safe : "project";
+};
+
+const formatExecutionInterval = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return '';
+  }
+  const rounded = Number(value.toFixed(3));
+  return rounded.toString();
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -166,6 +182,8 @@ const fingerprintGraphDocument = (doc: GraphDocument) =>
     edges: doc.edges,
     comments: doc.comments ?? [],
     environment: doc.environment ?? null,
+    executionIntervalSeconds:
+      typeof doc.executionIntervalSeconds === 'number' ? doc.executionIntervalSeconds : null,
   });
 
 const fingerprintProjectDocument = (document: ProjectDocument) => {
@@ -181,15 +199,15 @@ const resolveGraphEnvironment = (
   graph: GraphDocument,
   manifest: ProjectDocument['manifest'],
 ): GraphEnvironment => {
-  if (graph.environment === 'client' || graph.environment === 'server') {
-    return graph.environment;
-  }
   const entry = manifest.graphs.find((item) => item.graphId === graphId);
   if (entry) {
     const resolved = resolveGraphLocation(graphId, entry.path, {
       groupNameHint: entry.groupName,
     });
-    return resolved.location.topFolder === 'client' ? 'client' : 'server';
+    return resolveEnvironmentFromLocation(resolved.location);
+  }
+  if (graph.environment) {
+    return normalizeGraphEnvironment(graph.environment);
   }
   return 'server';
 };
@@ -260,6 +278,14 @@ const App = () => {
   const canRedo = useGraphStore((state) => state.future.length > 0);
   const importGraph = useGraphStore((state) => state.importGraph);
   const resetGraphStore = useGraphStore((state) => state.reset);
+  const environment = useGraphStore((state) => state.environment);
+  const executionIntervalSeconds = useGraphStore((state) => state.executionIntervalSeconds);
+  const setExecutionIntervalSeconds = useGraphStore((state) => state.setExecutionIntervalSeconds);
+  const shouldShowExecutionInterval = useMemo(() => {
+    const kind = clientKindFromEnvironment(environment);
+    return kind === 'boolean' || kind === 'integer';
+  }, [environment]);
+  const [executionIntervalInput, setExecutionIntervalInput] = useState('');
   const initialRelativePath =
     typeof window !== "undefined" ? stripAppBase(window.location.pathname) : "/";
   const initialRouteState = useMemo(
@@ -339,6 +365,14 @@ const App = () => {
     });
     return map;
   }, [projectDocument]);
+
+  useEffect(() => {
+    if (shouldShowExecutionInterval && typeof executionIntervalSeconds === 'number') {
+      setExecutionIntervalInput(formatExecutionInterval(executionIntervalSeconds));
+    } else {
+      setExecutionIntervalInput('');
+    }
+  }, [executionIntervalSeconds, shouldShowExecutionInterval]);
   const pushAppHistory = useCallback((path: string, replace = false) => {
     if (typeof window === "undefined") return;
     const target = buildAppPath(path);
@@ -371,6 +405,38 @@ const App = () => {
       window.removeEventListener('orientationchange', updateMobileMode);
     };
   }, []);
+
+  const handleExecutionIntervalInputChange = useCallback((value: string) => {
+    setExecutionIntervalInput(value);
+  }, []);
+
+  const restoreExecutionIntervalInput = useCallback(() => {
+    if (shouldShowExecutionInterval && typeof executionIntervalSeconds === 'number') {
+      setExecutionIntervalInput(formatExecutionInterval(executionIntervalSeconds));
+    } else {
+      setExecutionIntervalInput('');
+    }
+  }, [executionIntervalSeconds, shouldShowExecutionInterval]);
+
+  const commitExecutionInterval = useCallback(() => {
+    if (!shouldShowExecutionInterval) return;
+    const trimmed = executionIntervalInput.trim();
+    if (!trimmed.length) {
+      restoreExecutionIntervalInput();
+      return;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      restoreExecutionIntervalInput();
+      return;
+    }
+    setExecutionIntervalSeconds(parsed);
+  }, [
+    executionIntervalInput,
+    restoreExecutionIntervalInput,
+    setExecutionIntervalSeconds,
+    shouldShowExecutionInterval,
+  ]);
 
   const showSaveToast = useCallback((message: string) => {
     if (saveToastTimerRef.current) {
@@ -586,22 +652,25 @@ const App = () => {
   ]);
 
   const ensurePrimaryGraph = useCallback((document: ProjectDocument) => {
-    if (document.manifest.graphs.length > 0) {
-      const firstGraphId = document.manifest.graphs[0]?.graphId ?? null;
-      return { document, primaryGraphId: firstGraphId };
-    }
-    const timestamp = new Date().toISOString();
-    const newGraphId = createProjectId();
-    const resolved = resolveGraphLocation(newGraphId, undefined);
-    const graphDoc: GraphDocument = {
-      schemaVersion: GRAPH_SCHEMA_VERSION,
-      name: "新建节点图",
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      nodes: [],
-      edges: [],
-      environment: resolved.location.topFolder === 'client' ? 'client' : 'server',
-    };
+  if (document.manifest.graphs.length > 0) {
+    const firstGraphId = document.manifest.graphs[0]?.graphId ?? null;
+    return { document, primaryGraphId: firstGraphId };
+  }
+  const timestamp = new Date().toISOString();
+  const newGraphId = createProjectId();
+  const resolved = resolveGraphLocation(newGraphId, undefined);
+  const environment = resolveEnvironmentFromLocation(resolved.location);
+  const defaultInterval = getDefaultExecutionInterval(environment);
+  const graphDoc: GraphDocument = {
+    schemaVersion: GRAPH_SCHEMA_VERSION,
+    name: "新建节点图",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    nodes: [],
+    edges: [],
+    environment,
+    executionIntervalSeconds: defaultInterval ?? undefined,
+  };
     const nextDocument: ProjectDocument = {
       manifest: {
         ...document.manifest,
@@ -839,13 +908,14 @@ const App = () => {
       groupNameHint: manifestEntry?.groupName,
     });
     const environment: GraphEnvironment =
-      exportedGraph.environment ?? (resolvedLocation.location.topFolder === 'client' ? 'client' : 'server');
+      exportedGraph.environment ?? resolveEnvironmentFromLocation(resolvedLocation.location);
     const exportPayload: GraphDocument = {
       ...exportedGraph,
       environment,
     };
     const baseName = manifestEntry?.name ?? exportedGraph.name ?? "graph";
-    const extension = environment === 'client' ? 'client.json' : 'server.json';
+    const extension =
+      getEnvironmentTopFolder(environment) === 'client' ? 'client.json' : 'server.json';
     const fileName = `${sanitizeFileName(baseName)}-${activeGraphId}.${extension}`;
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
       type: "application/json",
@@ -937,6 +1007,20 @@ const App = () => {
       targetGroupSlug = existingGroup.groupSlug;
       targetGroupName = existingGroup.groupName;
     }
+    const location = {
+      topFolder: saveAsDialog.topFolder,
+      categoryKey: category.key,
+      categoryDirectory: category.directory,
+      groupSlug: targetGroupSlug,
+      groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
+    };
+    const environment = resolveEnvironmentFromLocation(location);
+    const defaultInterval = getDefaultExecutionInterval(environment);
+    const preservedInterval = saveAsDialog.graph.executionIntervalSeconds;
+    const executionIntervalSeconds =
+      defaultInterval !== undefined
+        ? preservedInterval ?? defaultInterval
+        : preservedInterval;
     const newGraphId = createProjectId();
     const timestamp = new Date().toISOString();
     const duplicatedGraph: GraphDocument = {
@@ -944,16 +1028,8 @@ const App = () => {
       name: trimmedName,
       createdAt: saveAsDialog.graph.createdAt ?? timestamp,
       updatedAt: timestamp,
-      environment:
-        saveAsDialog.graph.environment ??
-        (saveAsDialog.topFolder === 'client' ? 'client' : 'server'),
-    };
-    const location = {
-      topFolder: saveAsDialog.topFolder,
-      categoryKey: category.key,
-      categoryDirectory: category.directory,
-      groupSlug: targetGroupSlug,
-      groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
+      environment,
+      executionIntervalSeconds,
     };
     const path = buildGraphPath(location, newGraphId);
     setGraphDocument(newGraphId, duplicatedGraph);
@@ -1596,14 +1672,14 @@ const App = () => {
           >
             {dockCollapsed ? (
               <img
-                src={ICON_DOCK_EXPAND}
+                src={ICON_DOCK_COLLAPSE}
                 alt=""
                 aria-hidden="true"
                 className="action_dock__icon-img"
               />
             ) : (
               <img
-                src={ICON_DOCK_COLLAPSE}
+                src={ICON_DOCK_EXPAND}
                 alt=""
                 aria-hidden="true"
                 className="action_dock__icon-img"
@@ -1626,6 +1702,37 @@ const App = () => {
                 <span className="sr-only">注释模式</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
+              {shouldShowExecutionInterval && (
+                <>
+                  <div className="action_dock__interval" title="执行时间间隔">
+                    <img
+                      src={ICON_INTERVAL}
+                      alt=""
+                      aria-hidden="true"
+                      className="action_dock__interval-icon"
+                    />
+                    <input
+                      className="action_dock__interval-input"
+                      value={executionIntervalInput}
+                      onChange={(event) => handleExecutionIntervalInputChange(event.target.value)}
+                      onBlur={commitExecutionInterval}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          commitExecutionInterval();
+                        } else if (event.key === 'Escape') {
+                          event.preventDefault();
+                          restoreExecutionIntervalInput();
+                        }
+                      }}
+                      placeholder="0.3"
+                      aria-label="执行时间间隔"
+                      inputMode="decimal"
+                    />
+                    <span className="action_dock__interval-unit">秒</span>
+                  </div>
+                  <div className="action_dock__separator" aria-hidden="true" />
+                </>
+              )}
               <input
                 className="action_dock__name"
                 value={graphName}

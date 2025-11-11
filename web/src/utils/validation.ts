@@ -25,7 +25,7 @@ export const graphDocumentSchema = z.object({
   name: z.string(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
-  environment: z.enum(['server', 'client']).optional(),
+  environment: z.enum(['server', 'client', 'client:boolean', 'client:integer', 'client:skill']).optional(),
   nodes: z
     .array(
       z.object({
@@ -52,6 +52,7 @@ export const graphDocumentSchema = z.object({
     )
     .default([]),
   comments: z.array(graphCommentSchema).optional().default([]),
+  executionIntervalSeconds: z.number().optional(),
 });
 
 export type ParsedGraphDocument = z.infer<typeof graphDocumentSchema>;

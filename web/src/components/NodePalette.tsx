@@ -2,7 +2,7 @@ import { useMemo } from 'react';
 import classNames from 'classnames';
 import NodeLibrary from './NodeLibrary';
 import { nodeDefinitions } from '../data/nodeDefinitions';
-import { CLIENT_GRAPH_START_NODE_ID } from '../types/node';
+import { GRAPH_SYSTEM_NODE_IDS } from '../types/node';
 import './NodePalette.css';
 
 interface NodePaletteProps {
@@ -11,9 +11,11 @@ interface NodePaletteProps {
   isTouchEnvironment?: boolean;
 }
 
+const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
+
 const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePaletteProps) => {
   const filteredDefinitions = useMemo(
-    () => nodeDefinitions.filter((definition) => definition.id !== CLIENT_GRAPH_START_NODE_ID),
+    () => nodeDefinitions.filter((definition) => !SYSTEM_NODE_ID_SET.has(definition.id)),
     []
   );
 

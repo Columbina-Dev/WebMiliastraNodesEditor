@@ -9,6 +9,12 @@ import {
   type ProjectTopFolder,
 } from '../types/project';
 import { buildGraphPath, createEmptyProjectDocument } from './project';
+import {
+  clientKindFromEnvironment,
+  getDefaultExecutionInterval,
+  normalizeGraphEnvironment,
+  sanitizeExecutionInterval,
+} from './graphEnvironment';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
@@ -127,8 +133,19 @@ const convertLegacyGraphToProjectDocument = (
   savedAt: string,
   topFolder: ProjectTopFolder = LEGACY_TOP_FOLDER,
 ): ProjectDocument => {
-  const environment: GraphEnvironment =
-    graph.environment ?? (topFolder === 'client' ? 'client' : 'server');
+  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:skill' : 'server';
+  const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
+  const environment: GraphEnvironment = graph.environment
+    ? normalizeGraphEnvironment(graph.environment, { fallbackClientKind: fallbackKind })
+    : fallbackEnvironment;
+  const defaultInterval = getDefaultExecutionInterval(environment);
+  const executionIntervalSeconds =
+    defaultInterval !== undefined
+      ? sanitizeExecutionInterval(
+          graph.executionIntervalSeconds ?? defaultInterval,
+          defaultInterval,
+        )
+      : graph.executionIntervalSeconds;
   const base = createEmptyProjectDocument({
     projectId,
     name: projectName,
@@ -141,6 +158,8 @@ const convertLegacyGraphToProjectDocument = (
     ...graph,
     schemaVersion: graph.schemaVersion ?? GRAPH_SCHEMA_VERSION,
     environment,
+    executionIntervalSeconds:
+      defaultInterval !== undefined ? executionIntervalSeconds : graph.executionIntervalSeconds,
   };
   base.graphs[graphId] = normalizedGraph;
   base.manifest.graphs.push({
