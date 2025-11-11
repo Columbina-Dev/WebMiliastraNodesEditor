@@ -75,14 +75,14 @@ npm run dev
 ## 额外页面
 
 ### UGC教程相关
-此项目也可查看保存在本地的官方综合指南，点击主页底部的 ![Tutorial](web/src/assets/icons/tutorial.png) 图标，或在节点图编辑页面点击右上角的教程按钮即可打开教程页面。
+此项目也可查看保存在本地的官方综合指南，点击主页底部的 <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" />  图标，或在节点图编辑页面点击右上角的教程按钮即可打开教程页面。
 
 灵感来源于 [https://milidocs.tiiny.site/](https://milidocs.tiiny.site/) 。
 
 所有指南均从本地加载，因此可能需要[更新](#通过官方源更新教程)。
 
 ### 特效预览
-此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 ![Effects](web/src/assets/icons/effects.png) 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
+此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
 
 此特效预览原作者为[B站：Ayaya小王](https://space.bilibili.com/2448140)。修改了部分css以保证网站的整体风格统一。
 
