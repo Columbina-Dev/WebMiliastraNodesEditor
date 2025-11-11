@@ -22,8 +22,9 @@ import {
 } from '../utils/graphEnvironment';
 
 const HISTORY_LIMIT = 50;
-const CLIENT_START_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
-const CLIENT_RESULT_NODE_DEFAULT_POSITION = { x: 240, y: -120 };
+const CLIENT_SYSTEM_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
+const CLIENT_START_NODE_DEFAULT_POSITION = { ...CLIENT_SYSTEM_NODE_DEFAULT_POSITION };
+const CLIENT_RESULT_NODE_DEFAULT_POSITION = { ...CLIENT_SYSTEM_NODE_DEFAULT_POSITION };
 
 type SystemNodeType = (typeof GRAPH_SYSTEM_NODE_IDS)[number];
 
@@ -52,10 +53,8 @@ const computeClientStartNodePosition = (nodes: GraphNode[]) => {
   };
 };
 
-const computeResultNodePosition = (nodes: GraphNode[], targetType: SystemNodeType) => {
-  const candidates = nodes.filter(
-    (node) => !isSystemNode(node) || node.type !== targetType,
-  );
+const computeResultNodePosition = (nodes: GraphNode[]) => {
+  const candidates = nodes.filter((node) => !isSystemNode(node));
   if (!candidates.length) {
     return { ...CLIENT_RESULT_NODE_DEFAULT_POSITION };
   }
@@ -70,7 +69,7 @@ const computeResultNodePosition = (nodes: GraphNode[], targetType: SystemNodeTyp
   }
   return {
     x: maxX + 200,
-    y: minY,
+    y: minY - 60,
   };
 };
 
@@ -87,7 +86,7 @@ const createSystemNode = (type: SystemNodeType, nodes: GraphNode[]): GraphNode =
   const position =
     type === CLIENT_GRAPH_START_NODE_ID
       ? computeClientStartNodePosition(nodes)
-      : computeResultNodePosition(nodes, type);
+      : computeResultNodePosition(nodes);
   return {
     id: nanoid(),
     type,

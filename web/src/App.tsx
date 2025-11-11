@@ -1712,7 +1712,8 @@ const App = () => {
                       className="action_dock__interval-icon"
                     />
                     <input
-                      className="action_dock__interval-input"
+                      className="action_dock__name action_dock__name--interval"
+                      type="text"
                       value={executionIntervalInput}
                       onChange={(event) => handleExecutionIntervalInputChange(event.target.value)}
                       onBlur={commitExecutionInterval}
@@ -1727,6 +1728,7 @@ const App = () => {
                       placeholder="0.3"
                       aria-label="执行时间间隔"
                       inputMode="decimal"
+                      autoComplete="off"
                     />
                     <span className="action_dock__interval-unit">秒</span>
                   </div>

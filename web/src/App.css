@@ -196,21 +196,11 @@ option {
   opacity: 0.85;
 }
 
-.action_dock__interval-input {
-  width: 60px;
-  border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.08);
-  color: #fff;
+.action_dock__name--interval {
+  min-width: 90px;
+  width: 90px;
+  padding: 6px 12px;
   text-align: center;
-  padding: 4px;
-  font-size: 14px;
-}
-
-.action_dock__interval-input:focus {
-  outline: none;
-  border-color: rgba(255, 255, 255, 0.95);
-  background: rgba(255, 255, 255, 0.18);
 }
 
 .action_dock__interval-unit {

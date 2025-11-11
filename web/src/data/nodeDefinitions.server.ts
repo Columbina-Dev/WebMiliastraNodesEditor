@@ -1,5 +1,4 @@
-﻿// THIS LIST IS MAINTAINED MANUALLY. DO NOT DERIVE PROGRAMMATICALLY.
-export const serverNodeList = [
+﻿export const serverNodeList = [
   "action.printString",
   "action.setLocalVariable",
   "action.loopFinite",
