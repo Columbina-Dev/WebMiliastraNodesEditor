@@ -22,6 +22,13 @@ import {
   sanitizeName,
 } from "./utils/project";
 import {
+  clientKindFromEnvironment,
+  getEnvironmentTopFolder,
+  getDefaultExecutionInterval,
+  normalizeGraphEnvironment,
+  resolveEnvironmentFromLocation,
+} from "./utils/graphEnvironment";
+import {
   loadProjectFromZip,
   normalizeProjectDocument,
   saveProjectToZip,
@@ -64,6 +71,9 @@ const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
 const ICON_TAB_GRAPH = new URL("./assets/icons/graph.svg", import.meta.url).href;
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
+const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
+const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
+const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
 
@@ -73,6 +83,14 @@ const sanitizeFileName = (name: string) => {
     .map((char) => (INVALID_FILENAME_CHARS.has(char) ? "_" : char))
     .join("");
   return safe.length ? safe : "project";
+};
+
+const formatExecutionInterval = (value: number) => {
+  if (!Number.isFinite(value)) {
+    return '';
+  }
+  const rounded = Number(value.toFixed(3));
+  return rounded.toString();
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -164,6 +182,8 @@ const fingerprintGraphDocument = (doc: GraphDocument) =>
     edges: doc.edges,
     comments: doc.comments ?? [],
     environment: doc.environment ?? null,
+    executionIntervalSeconds:
+      typeof doc.executionIntervalSeconds === 'number' ? doc.executionIntervalSeconds : null,
   });
 
 const fingerprintProjectDocument = (document: ProjectDocument) => {
@@ -172,6 +192,46 @@ const fingerprintProjectDocument = (document: ProjectDocument) => {
     .map(([graphId, graphDoc]) => [graphId, fingerprintGraphDocument(graphDoc)] as const)
     .sort((a, b) => a[0].localeCompare(b[0]));
   return JSON.stringify({ manifest: manifestFingerprint, graphs: graphFingerprints });
+};
+
+const resolveGraphEnvironment = (
+  graphId: string,
+  graph: GraphDocument,
+  manifest: ProjectDocument['manifest'],
+): GraphEnvironment => {
+  const entry = manifest.graphs.find((item) => item.graphId === graphId);
+  if (entry) {
+    const resolved = resolveGraphLocation(graphId, entry.path, {
+      groupNameHint: entry.groupName,
+    });
+    return resolveEnvironmentFromLocation(resolved.location);
+  }
+  if (graph.environment) {
+    return normalizeGraphEnvironment(graph.environment);
+  }
+  return 'server';
+};
+
+const withGraphEnvironment = (
+  graphId: string,
+  graph: GraphDocument,
+  manifest: ProjectDocument['manifest'],
+): GraphDocument => {
+  const environment = resolveGraphEnvironment(graphId, graph, manifest);
+  return graph.environment === environment ? graph : { ...graph, environment };
+};
+
+const normalizeGraphDocuments = (document: ProjectDocument): ProjectDocument => {
+  let changed = false;
+  const nextGraphs: ProjectDocument['graphs'] = {};
+  Object.entries(document.graphs).forEach(([graphId, graphDoc]) => {
+    const normalized = withGraphEnvironment(graphId, graphDoc, document.manifest);
+    nextGraphs[graphId] = normalized;
+    if (normalized !== graphDoc) {
+      changed = true;
+    }
+  });
+  return changed ? { ...document, graphs: nextGraphs } : document;
 };
 
 const detectMobileMode = () => {
@@ -218,6 +278,14 @@ const App = () => {
   const canRedo = useGraphStore((state) => state.future.length > 0);
   const importGraph = useGraphStore((state) => state.importGraph);
   const resetGraphStore = useGraphStore((state) => state.reset);
+  const environment = useGraphStore((state) => state.environment);
+  const executionIntervalSeconds = useGraphStore((state) => state.executionIntervalSeconds);
+  const setExecutionIntervalSeconds = useGraphStore((state) => state.setExecutionIntervalSeconds);
+  const shouldShowExecutionInterval = useMemo(() => {
+    const kind = clientKindFromEnvironment(environment);
+    return kind === 'boolean' || kind === 'integer';
+  }, [environment]);
+  const [executionIntervalInput, setExecutionIntervalInput] = useState('');
   const initialRelativePath =
     typeof window !== "undefined" ? stripAppBase(window.location.pathname) : "/";
   const initialRouteState = useMemo(
@@ -261,6 +329,7 @@ const App = () => {
   const [projectInfoDialog, setProjectInfoDialog] = useState<{ name: string; error: string | null } | null>(null);
   const [saveAsNewFolderName, setSaveAsNewFolderName] = useState('');
   const [saveAsError, setSaveAsError] = useState<string | null>(null);
+  const [tabTooltip, setTabTooltip] = useState<{ tabId: TabId; path: string; left: number; top: number } | null>(null);
   const commentMode = useGraphStore((state) => state.commentMode);
   const setCommentMode = useGraphStore((state) => state.setCommentMode);
   const setSelectedComment = useGraphStore((state) => state.setSelectedComment);
@@ -272,6 +341,7 @@ const App = () => {
 
   const projectFileInputRef = useRef<HTMLInputElement>(null);
   const saveToastTimerRef = useRef<number | null>(null);
+  const tabTooltipTimerRef = useRef<number | null>(null);
   const autoSaveFingerprintRef = useRef<string | null>(null);
   const graphFingerprintRef = useRef<Map<string, string>>(new Map());
   const previousProjectIdRef = useRef<string | undefined>(projectId ?? undefined);
@@ -284,6 +354,25 @@ const App = () => {
       }) as CSSProperties,
     [paletteCollapsed, inspectorCollapsed],
   );
+  const graphPathMap = useMemo(() => {
+    if (!projectDocument) return new Map<string, string>();
+    const map = new Map<string, string>();
+    projectDocument.manifest.graphs.forEach((entry) => {
+      const resolved = resolveGraphLocation(entry.graphId, entry.path, {
+        groupNameHint: entry.groupName,
+      });
+      map.set(entry.graphId, resolved.normalizedPath);
+    });
+    return map;
+  }, [projectDocument]);
+
+  useEffect(() => {
+    if (shouldShowExecutionInterval && typeof executionIntervalSeconds === 'number') {
+      setExecutionIntervalInput(formatExecutionInterval(executionIntervalSeconds));
+    } else {
+      setExecutionIntervalInput('');
+    }
+  }, [executionIntervalSeconds, shouldShowExecutionInterval]);
   const pushAppHistory = useCallback((path: string, replace = false) => {
     if (typeof window === "undefined") return;
     const target = buildAppPath(path);
@@ -317,6 +406,38 @@ const App = () => {
     };
   }, []);
 
+  const handleExecutionIntervalInputChange = useCallback((value: string) => {
+    setExecutionIntervalInput(value);
+  }, []);
+
+  const restoreExecutionIntervalInput = useCallback(() => {
+    if (shouldShowExecutionInterval && typeof executionIntervalSeconds === 'number') {
+      setExecutionIntervalInput(formatExecutionInterval(executionIntervalSeconds));
+    } else {
+      setExecutionIntervalInput('');
+    }
+  }, [executionIntervalSeconds, shouldShowExecutionInterval]);
+
+  const commitExecutionInterval = useCallback(() => {
+    if (!shouldShowExecutionInterval) return;
+    const trimmed = executionIntervalInput.trim();
+    if (!trimmed.length) {
+      restoreExecutionIntervalInput();
+      return;
+    }
+    const parsed = Number(trimmed);
+    if (!Number.isFinite(parsed)) {
+      restoreExecutionIntervalInput();
+      return;
+    }
+    setExecutionIntervalSeconds(parsed);
+  }, [
+    executionIntervalInput,
+    restoreExecutionIntervalInput,
+    setExecutionIntervalSeconds,
+    shouldShowExecutionInterval,
+  ]);
+
   const showSaveToast = useCallback((message: string) => {
     if (saveToastTimerRef.current) {
       window.clearTimeout(saveToastTimerRef.current);
@@ -328,6 +449,54 @@ const App = () => {
       saveToastTimerRef.current = null;
     }, 2200);
   }, []);
+  const clearTabTooltipTimer = useCallback(() => {
+    if (tabTooltipTimerRef.current) {
+      window.clearTimeout(tabTooltipTimerRef.current);
+      tabTooltipTimerRef.current = null;
+    }
+  }, []);
+  const handleTabHoverStart = useCallback(
+    (tab: ProjectTab, target: HTMLButtonElement | null) => {
+      if (!target || tab.type !== 'graph') return;
+      const path = graphPathMap.get(tab.graphId);
+      if (!path) return;
+      clearTabTooltipTimer();
+      tabTooltipTimerRef.current = window.setTimeout(() => {
+        const rect = target.getBoundingClientRect();
+        setTabTooltip({
+          tabId: tab.id,
+          path,
+          left: rect.left + rect.width / 2,
+          top: rect.bottom + 8,
+        });
+      }, 500);
+    },
+    [clearTabTooltipTimer, graphPathMap],
+  );
+  const handleTabHoverEnd = useCallback(() => {
+    clearTabTooltipTimer();
+    setTabTooltip(null);
+  }, [clearTabTooltipTimer]);
+  useEffect(() => {
+    return () => {
+      clearTabTooltipTimer();
+    };
+  }, [clearTabTooltipTimer]);
+  useEffect(() => {
+    if (!tabTooltip) return;
+    const hide = () => setTabTooltip(null);
+    window.addEventListener('scroll', hide, true);
+    window.addEventListener('resize', hide);
+    return () => {
+      window.removeEventListener('scroll', hide, true);
+      window.removeEventListener('resize', hide);
+    };
+  }, [tabTooltip]);
+  useEffect(() => {
+    if (!tabTooltip) return;
+    if (openTabs.some((tab) => tab.id === tabTooltip.tabId)) return;
+    setTabTooltip(null);
+  }, [openTabs, tabTooltip]);
 
   const handleDockCollapseToggle = useCallback(() => {
     setDockCollapsed((prev) => {
@@ -483,22 +652,25 @@ const App = () => {
   ]);
 
   const ensurePrimaryGraph = useCallback((document: ProjectDocument) => {
-    if (document.manifest.graphs.length > 0) {
-      const firstGraphId = document.manifest.graphs[0]?.graphId ?? null;
-      return { document, primaryGraphId: firstGraphId };
-    }
-    const timestamp = new Date().toISOString();
-    const newGraphId = createProjectId();
-    const resolved = resolveGraphLocation(newGraphId, undefined);
-    const graphDoc: GraphDocument = {
-      schemaVersion: GRAPH_SCHEMA_VERSION,
-      name: "新建节点图",
-      createdAt: timestamp,
-      updatedAt: timestamp,
-      nodes: [],
-      edges: [],
-      environment: resolved.location.topFolder === 'client' ? 'client' : 'server',
-    };
+  if (document.manifest.graphs.length > 0) {
+    const firstGraphId = document.manifest.graphs[0]?.graphId ?? null;
+    return { document, primaryGraphId: firstGraphId };
+  }
+  const timestamp = new Date().toISOString();
+  const newGraphId = createProjectId();
+  const resolved = resolveGraphLocation(newGraphId, undefined);
+  const environment = resolveEnvironmentFromLocation(resolved.location);
+  const defaultInterval = getDefaultExecutionInterval(environment);
+  const graphDoc: GraphDocument = {
+    schemaVersion: GRAPH_SCHEMA_VERSION,
+    name: "新建节点图",
+    createdAt: timestamp,
+    updatedAt: timestamp,
+    nodes: [],
+    edges: [],
+    environment,
+    executionIntervalSeconds: defaultInterval ?? undefined,
+  };
     const nextDocument: ProjectDocument = {
       manifest: {
         ...document.manifest,
@@ -542,15 +714,16 @@ const App = () => {
 
   const applyProjectDocument = useCallback(
     (document: ProjectDocument, primaryGraphId: string | null) => {
-      setDocument(document);
+      const normalizedDocument = normalizeGraphDocuments(document);
+      setDocument(normalizedDocument);
       graphFingerprintRef.current.clear();
-      Object.entries(document.graphs).forEach(([graphDocId, graphDoc]) => {
+      Object.entries(normalizedDocument.graphs).forEach(([graphDocId, graphDoc]) => {
         graphFingerprintRef.current.set(graphDocId, fingerprintGraphDocument(graphDoc));
       });
-      autoSaveFingerprintRef.current = fingerprintProjectDocument(document);
+      autoSaveFingerprintRef.current = fingerprintProjectDocument(normalizedDocument);
 
       if (primaryGraphId) {
-        const targetGraph = document.graphs[primaryGraphId];
+        const targetGraph = normalizedDocument.graphs[primaryGraphId];
         if (targetGraph) {
           resetGraphStore({ graphId: primaryGraphId });
           importGraph(targetGraph, { graphId: primaryGraphId, recordHistory: false });
@@ -565,7 +738,7 @@ const App = () => {
         openExplorer('server');
       }
 
-      switchToEditor(document.manifest.project.id);
+      switchToEditor(normalizedDocument.manifest.project.id);
     },
     [importGraph, openExplorer, openGraphTab, resetGraphStore, setDocument, setGraphName, switchToEditor],
   );
@@ -735,13 +908,14 @@ const App = () => {
       groupNameHint: manifestEntry?.groupName,
     });
     const environment: GraphEnvironment =
-      exportedGraph.environment ?? (resolvedLocation.location.topFolder === 'client' ? 'client' : 'server');
+      exportedGraph.environment ?? resolveEnvironmentFromLocation(resolvedLocation.location);
     const exportPayload: GraphDocument = {
       ...exportedGraph,
       environment,
     };
     const baseName = manifestEntry?.name ?? exportedGraph.name ?? "graph";
-    const extension = environment === 'client' ? 'client.json' : 'server.json';
+    const extension =
+      getEnvironmentTopFolder(environment) === 'client' ? 'client.json' : 'server.json';
     const fileName = `${sanitizeFileName(baseName)}-${activeGraphId}.${extension}`;
     const blob = new Blob([JSON.stringify(exportPayload, null, 2)], {
       type: "application/json",
@@ -833,6 +1007,20 @@ const App = () => {
       targetGroupSlug = existingGroup.groupSlug;
       targetGroupName = existingGroup.groupName;
     }
+    const location = {
+      topFolder: saveAsDialog.topFolder,
+      categoryKey: category.key,
+      categoryDirectory: category.directory,
+      groupSlug: targetGroupSlug,
+      groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
+    };
+    const environment = resolveEnvironmentFromLocation(location);
+    const defaultInterval = getDefaultExecutionInterval(environment);
+    const preservedInterval = saveAsDialog.graph.executionIntervalSeconds;
+    const executionIntervalSeconds =
+      defaultInterval !== undefined
+        ? preservedInterval ?? defaultInterval
+        : preservedInterval;
     const newGraphId = createProjectId();
     const timestamp = new Date().toISOString();
     const duplicatedGraph: GraphDocument = {
@@ -840,16 +1028,8 @@ const App = () => {
       name: trimmedName,
       createdAt: saveAsDialog.graph.createdAt ?? timestamp,
       updatedAt: timestamp,
-      environment:
-        saveAsDialog.graph.environment ??
-        (saveAsDialog.topFolder === 'client' ? 'client' : 'server'),
-    };
-    const location = {
-      topFolder: saveAsDialog.topFolder,
-      categoryKey: category.key,
-      categoryDirectory: category.directory,
-      groupSlug: targetGroupSlug,
-      groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
+      environment,
+      executionIntervalSeconds,
     };
     const path = buildGraphPath(location, newGraphId);
     setGraphDocument(newGraphId, duplicatedGraph);
@@ -1136,12 +1316,17 @@ const App = () => {
     if (!activeGraphId) return;
     const target = projectDocument.graphs[activeGraphId];
     if (!target) return;
+    const normalizedTarget = withGraphEnvironment(
+      activeGraphId,
+      target,
+      projectDocument.manifest,
+    );
     const current = useGraphStore.getState();
     const currentFingerprint = fingerprintGraphDocument(current.exportGraph());
-    const targetFingerprint = fingerprintGraphDocument(target);
+    const targetFingerprint = fingerprintGraphDocument(normalizedTarget);
     if (current.graphId !== activeGraphId || currentFingerprint !== targetFingerprint) {
-      importGraph(target, { graphId: activeGraphId, recordHistory: false });
-      setGraphName(target.name);
+      importGraph(normalizedTarget, { graphId: activeGraphId, recordHistory: false });
+      setGraphName(normalizedTarget.name);
       graphFingerprintRef.current.set(activeGraphId, targetFingerprint);
     }
   }, [activeGraphId, importGraph, projectDocument, setGraphName]);
@@ -1287,6 +1472,10 @@ const App = () => {
             type="button"
             className={`app__tab ${isActive ? 'is-active' : ''}`}
             onClick={() => handleTabSelect(tab.id)}
+            onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
+            onMouseLeave={handleTabHoverEnd}
+            onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
+            onBlur={handleTabHoverEnd}
           >
             <span className="app__tab-label">
               <img src={iconSrc} alt="" aria-hidden="true" />
@@ -1309,6 +1498,14 @@ const App = () => {
           </button>
         );
       })}
+      {tabTooltip && (
+        <div
+          className="app__tab-tooltip"
+          style={{ left: tabTooltip.left, top: tabTooltip.top }}
+        >
+          {tabTooltip.path}
+        </div>
+      )}
     </div>
   );
 
@@ -1474,13 +1671,19 @@ const App = () => {
             title={dockCollapsed ? '展开操作栏' : '折叠操作栏'}
           >
             {dockCollapsed ? (
-              <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M4 9l4-4 4 4H4z" fill="currentColor" />
-              </svg>
+              <img
+                src={ICON_DOCK_COLLAPSE}
+                alt=""
+                aria-hidden="true"
+                className="action_dock__icon-img"
+              />
             ) : (
-              <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                <path d="M12 7l-4 4-4-4h8z" fill="currentColor" />
-              </svg>
+              <img
+                src={ICON_DOCK_EXPAND}
+                alt=""
+                aria-hidden="true"
+                className="action_dock__icon-img"
+              />
             )}
             <span className="sr-only">{dockCollapsed ? '展开操作栏' : '折叠操作栏'}</span>
           </button>
@@ -1499,6 +1702,39 @@ const App = () => {
                 <span className="sr-only">注释模式</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
+              {shouldShowExecutionInterval && (
+                <>
+                  <div className="action_dock__interval" title="执行时间间隔">
+                    <img
+                      src={ICON_INTERVAL}
+                      alt=""
+                      aria-hidden="true"
+                      className="action_dock__interval-icon"
+                    />
+                    <input
+                      className="action_dock__name action_dock__name--interval"
+                      type="text"
+                      value={executionIntervalInput}
+                      onChange={(event) => handleExecutionIntervalInputChange(event.target.value)}
+                      onBlur={commitExecutionInterval}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          commitExecutionInterval();
+                        } else if (event.key === 'Escape') {
+                          event.preventDefault();
+                          restoreExecutionIntervalInput();
+                        }
+                      }}
+                      placeholder="0.3"
+                      aria-label="执行时间间隔"
+                      inputMode="decimal"
+                      autoComplete="off"
+                    />
+                    <span className="action_dock__interval-unit">秒</span>
+                  </div>
+                  <div className="action_dock__separator" aria-hidden="true" />
+                </>
+              )}
               <input
                 className="action_dock__name"
                 value={graphName}

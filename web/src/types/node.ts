@@ -117,7 +117,11 @@ export interface GraphComment {
 
 export type GraphSchemaVersion = 1 | 2;
 
-export type GraphEnvironment = 'server' | 'client';
+export const CLIENT_GRAPH_TYPES = ['boolean', 'integer', 'skill'] as const;
+export type ClientGraphType = (typeof CLIENT_GRAPH_TYPES)[number];
+export type ClientGraphEnvironment = `client:${ClientGraphType}`;
+
+export type GraphEnvironment = 'server' | 'client' | ClientGraphEnvironment;
 
 export interface GraphDocument {
   schemaVersion: GraphSchemaVersion;
@@ -128,9 +132,18 @@ export interface GraphDocument {
   edges: GraphEdge[];
   comments?: GraphComment[];
   environment?: GraphEnvironment;
+  executionIntervalSeconds?: number;
 }
 
 export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
+export const CLIENT_GRAPH_START_NODE_ID = 'event.graphStart';
+export const CLIENT_BOOLEAN_RESULT_NODE_ID = 'flow.graphEndBoolean';
+export const CLIENT_INTEGER_RESULT_NODE_ID = 'flow.graphEndInteger';
+export const GRAPH_SYSTEM_NODE_IDS = [
+  CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_BOOLEAN_RESULT_NODE_ID,
+  CLIENT_INTEGER_RESULT_NODE_ID,
+] as const;
 
 export interface ConnectionPreview {
   handleType: 'source' | 'target';

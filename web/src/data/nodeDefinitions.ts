@@ -5335,6 +5335,18 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
+  // ───────────────────────────── -1-客户端事件节点 ─────────────────────────────
+  // 事件节点//<隐藏>客户端节点自带
+  {
+    id: "event.graphStart",
+    displayName: "节点图开始",
+    category: "事件节点/<隐藏>客户端节点自带",
+    kind: "event",
+    headerColor: EVENT_HEADER,
+    ports: [
+      { id: "flowOut", label: "事件", kind: "flow-out" },
+    ],
+  },
   // ───────────────────────────── 00-自定义变量 ─────────────────────────────
   // 事件节点/自定义变量
   {
@@ -5454,7 +5466,6 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "newValue", label: "变化后值", kind: "data-out", valueType: "int" },
     ],
   },
-
   // ───────────────────────────── 02-实体相关 ─────────────────────────────
   // 事件节点/实体相关
   {
@@ -7387,7 +7398,38 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-
+  // ───────────────────────────── -1-客户端流程控制节点 ─────────────────────────────
+  // 流程控制节点/<隐藏>客户端节点自带
+  {
+    id: "flow.graphEndBoolean",
+    displayName: "节点图结束（布尔型）",
+    category: "流程控制节点/<隐藏>客户端节点自带",
+    kind: "flow-control",
+    headerColor: FLOW_HEADER,
+    ports: [
+      {
+        id: "result",
+        label: "输出结果（布尔型）",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "flow.graphEndInteger",
+    displayName: "节点图结束（整数）",
+    category: "流程控制节点/<隐藏>客户端节点自带",
+    kind: "flow-control",
+    headerColor: FLOW_HEADER,
+    ports: [
+      {
+        id: "result",
+        label: "输出结果（整数）",
+        kind: "data-in",
+        valueType: "int",
+      },
+    ],
+  },
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 流程控制节点/通用
   {

@@ -1,12 +1,11 @@
-import type { NodeDefinition } from '../types/node';
+import type { ClientGraphType } from '../types/node';
 
-/**
- * TODO 添加客户端节点图可用的节点定义。
- * 客户端节点定义将在未来版本补充。
- */
-export const clientNodeDefinitions: NodeDefinition[] = [
-  // TODO: 在此处添加客户端节点定义
-];
+export type ClientNodeAvailability = Record<ClientGraphType, string[]>;
 
-export default clientNodeDefinitions;
+export const clientNodeAvailability: ClientNodeAvailability = {
+  boolean: [],
+  integer: [],
+  skill: [],
+};
 
+export default clientNodeAvailability;

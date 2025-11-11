@@ -25,16 +25,26 @@ import {
   createProjectId,
   resolveGraphLocation,
 } from '../utils/project';
-import serverNodeDefinitions from '../data/nodeDefinitions.server';
-import clientNodeDefinitions from '../data/nodeDefinitions.client';
+import serverNodeList from '../data/nodeDefinitions.server';
+import clientNodeAvailability from '../data/nodeDefinitions.client';
 import { nodeDefinitions } from '../data/nodeDefinitions';
 import { graphDocumentSchema } from '../utils/validation';
 import {
   GRAPH_SCHEMA_VERSION,
+  GRAPH_SYSTEM_NODE_IDS,
   type GraphComment,
   type GraphDocument,
   type GraphEnvironment,
 } from '../types/node';
+import {
+  clientKindFromEnvironment,
+  getDefaultExecutionInterval,
+  getEnvironmentTopFolder,
+  isGraphEnvironmentValue,
+  normalizeGraphEnvironment,
+  resolveEnvironmentFromLocation,
+  sanitizeExecutionInterval,
+} from '../utils/graphEnvironment';
 import './ResourceExplorer.css';
 
 interface ResourceExplorerProps {
@@ -43,6 +53,11 @@ interface ResourceExplorerProps {
   dirtyGraphIds: Record<string, true>;
   onOpenGraph: (graphId: string) => void;
 }
+
+const describeEnvironmentLabel = (environment: GraphEnvironment) => {
+  const kind = clientKindFromEnvironment(environment);
+  return kind ? `client-${kind}` : 'server';
+};
 
 type HistoryEntry = string | null;
 
@@ -113,15 +128,31 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const categories = PROJECT_CATEGORIES_BY_TOP[topFolder];
 
-  const serverNodeSet = useMemo(() => {
-    const source = serverNodeDefinitions.length ? serverNodeDefinitions : nodeDefinitions;
-    return new Set(source.map((definition) => definition.id));
-  }, []);
+  const systemNodeIdSet = useMemo(
+    () => new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]),
+    [],
+  );
+  const fallbackNodeIds = useMemo(
+    () => nodeDefinitions.map((definition) => definition.id).filter((id) => !systemNodeIdSet.has(id)),
+    [systemNodeIdSet],
+  );
 
-  const clientNodeSet = useMemo(() => {
-    const source = clientNodeDefinitions.length ? clientNodeDefinitions : nodeDefinitions;
-    return new Set(source.map((definition) => definition.id));
-  }, []);
+  const serverNodeSet = useMemo(() => {
+    const ids = serverNodeList.length ? serverNodeList : fallbackNodeIds;
+    return new Set(ids.filter((id) => !systemNodeIdSet.has(id)));
+  }, [fallbackNodeIds, systemNodeIdSet]);
+
+  const clientNodeSets = useMemo(() => {
+    const buildSet = (ids: string[]) => {
+      const source = ids.length ? ids : fallbackNodeIds;
+      return new Set(source.filter((id) => !systemNodeIdSet.has(id)));
+    };
+    return {
+      boolean: buildSet(clientNodeAvailability.boolean),
+      integer: buildSet(clientNodeAvailability.integer),
+      skill: buildSet(clientNodeAvailability.skill),
+    };
+  }, [fallbackNodeIds, systemNodeIdSet]);
 
   const graphValidation = useMemo(() => {
     if (!document) {
@@ -132,29 +163,51 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       const resolved = resolveGraphLocation(entry.graphId, entry.path, {
         groupNameHint: entry.groupName,
       });
-      const expectedEnv: GraphEnvironment =
-        resolved.location.topFolder === 'client' ? 'client' : 'server';
+      const expectedEnv = resolveEnvironmentFromLocation(resolved.location);
       const graph = document.graphs[entry.graphId];
       if (!graph) continue;
       const errors: string[] = [];
-      if (graph.environment && graph.environment !== expectedEnv) {
-        errors.push(
-          graph.environment === 'client'
-            ? '节点图标记为客户端，但当前位置为服务器节点图目录'
-            : '节点图标记为服务器，但当前位置为客户端节点图目录',
-        );
+      const declaredEnv = graph.environment
+        ? normalizeGraphEnvironment(graph.environment)
+        : undefined;
+      if (declaredEnv) {
+        const declaredTop = getEnvironmentTopFolder(declaredEnv);
+        const expectedTop = getEnvironmentTopFolder(expectedEnv);
+        if (declaredTop !== expectedTop) {
+          errors.push(
+            declaredTop === 'client'
+              ? '节点图标记为客户端，但当前位置为服务器节点图目录'
+              : '节点图标记为服务器，但当前位置为客户端节点图目录',
+          );
+        } else {
+          const declaredKind = clientKindFromEnvironment(declaredEnv);
+          const expectedKind = clientKindFromEnvironment(expectedEnv);
+          if (declaredKind && expectedKind && declaredKind !== expectedKind) {
+            errors.push(
+              `Graph type mismatch: expected ${describeEnvironmentLabel(
+                expectedEnv,
+              )}, found ${describeEnvironmentLabel(declaredEnv)}.`,
+            );
+          }
+        }
       }
-      const allowedSet = expectedEnv === 'client' ? clientNodeSet : serverNodeSet;
+      const expectedKind = clientKindFromEnvironment(expectedEnv);
+      const allowedSet = expectedKind ? clientNodeSets[expectedKind] : serverNodeSet;
       const invalidTypes = Array.from(
         new Set(
           graph.nodes
             .map((node) => node.type)
-            .filter((type) => type && !allowedSet.has(type)),
+            .filter(
+              (type) =>
+                type &&
+                !systemNodeIdSet.has(type) &&
+                !allowedSet.has(type),
+            ),
         ),
       );
       if (invalidTypes.length) {
         errors.push(
-          `以下节点类型不属于${expectedEnv === 'client' ? '客户端' : '服务器'}节点库：${invalidTypes.join(', ')}`,
+          `以下节点类型不属于${expectedKind ? '客户端' : '服务器'}节点库：${invalidTypes.join(', ')}`,
         );
       }
       if (errors.length) {
@@ -162,7 +215,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       }
     }
     return map;
-  }, [clientNodeSet, document, serverNodeSet]);
+  }, [clientNodeSets, document, serverNodeSet, systemNodeIdSet]);
 
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(() => categories[0]?.key ?? '');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
@@ -755,6 +808,15 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     }
     const group = findGroupDescriptor(currentHistoryEntry, activeCategoryKey);
     const groupName = group?.groupName ?? DEFAULT_GROUP_NAME;
+    const location = {
+      topFolder,
+      categoryKey: activeCategoryKey,
+      categoryDirectory: categoryDefinition.directory,
+      groupSlug: currentHistoryEntry,
+      groupName,
+    };
+    const environment = resolveEnvironmentFromLocation(location);
+    const defaultInterval = getDefaultExecutionInterval(environment);
     const graphId = createProjectId();
     const timestamp = new Date().toISOString();
     const newGraph: GraphDocument = {
@@ -765,23 +827,15 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       nodes: [],
       edges: [],
       comments: [],
-      environment: topFolder === 'client' ? 'client' : 'server',
+      environment,
+      executionIntervalSeconds: defaultInterval ?? undefined,
     };
     updateDocument((draft) => {
       draft.graphs[graphId] = newGraph;
       draft.manifest.graphs.push({
         graphId,
         name: candidate,
-        path: buildGraphPath(
-          {
-            topFolder,
-            categoryKey: activeCategoryKey,
-            categoryDirectory: categoryDefinition.directory,
-            groupSlug: currentHistoryEntry,
-            groupName,
-          },
-          graphId,
-        ),
+        path: buildGraphPath(location, graphId),
         groupName,
         createdAt: timestamp,
         updatedAt: timestamp,
@@ -1144,10 +1198,24 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               });
             }
           }
-          const declaredEnvironment =
-            parsed.environment === 'client' ? 'client' : parsed.environment === 'server' ? 'server' : undefined;
-          const environment: GraphEnvironment =
-            declaredEnvironment ?? (topFolder === 'client' ? 'client' : 'server');
+          const environmentFromLocation = resolveEnvironmentFromLocation(location);
+          const declaredEnvironment = isGraphEnvironmentValue(parsed.environment)
+            ? normalizeGraphEnvironment(parsed.environment)
+            : undefined;
+          const fallbackKind = clientKindFromEnvironment(environmentFromLocation) ?? undefined;
+          const normalizedDeclared =
+            declaredEnvironment && getEnvironmentTopFolder(declaredEnvironment) === location.topFolder
+              ? normalizeGraphEnvironment(declaredEnvironment, { fallbackClientKind: fallbackKind })
+              : null;
+          const environment: GraphEnvironment = normalizedDeclared ?? environmentFromLocation;
+          const defaultInterval = getDefaultExecutionInterval(environment);
+          const executionIntervalSeconds =
+            defaultInterval !== undefined
+              ? sanitizeExecutionInterval(
+                  parsed.executionIntervalSeconds ?? defaultInterval,
+                  defaultInterval,
+                )
+              : parsed.executionIntervalSeconds;
           const normalizedDocument: GraphDocument = {
             ...parsed,
             environment,
@@ -1156,6 +1224,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
             createdAt: parsed.createdAt ?? timestamp,
             updatedAt: parsed.updatedAt ?? timestamp,
             comments: normalizedComments,
+            executionIntervalSeconds,
           };
           const entry = {
             graphId,
