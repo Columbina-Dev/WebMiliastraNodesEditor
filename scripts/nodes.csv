@@ -542,4 +542,5 @@ client.action.hate.removeTargetFromList,将目标实体移除出仇恨列表
 client.action.hate.clearTargetList,清空指定实体的仇恨列表
 client.action.hate.setValue,设置指定实体的仇恨值
 client.action.hate.addValue,修改指定实体的仇恨值
+client.action.sendSignalToServer,向服务器节点图发送信号
 client.flow.branch.ifElse,双分支

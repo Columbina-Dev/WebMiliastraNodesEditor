@@ -12442,12 +12442,12 @@ export const nodeDefinitions: NodeDefinition[] = [
     ],
   },
 
-  // ───────────────────────────── 07-单位标签 ─────────────────────────────
-  // 查询节点/单位标签
+  // ───────────────────────────── 07-标签 ─────────────────────────────
+  // 查询节点/标签
   {
     id: "client.query.unitTagEntities",
     displayName: "获取单位标签的实体列表",
-    category: "查询节点/单位标签",
+    category: "查询节点/标签",
     kind: "query",
     headerColor: QUERY_HEADER,
     ports: [
@@ -12468,7 +12468,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.query.entityUnitTagIndexes",
     displayName: "获取实体的单位标签列表",
-    category: "查询节点/单位标签",
+    category: "查询节点/标签",
     kind: "query",
     headerColor: QUERY_HEADER,
     ports: [
@@ -14439,6 +14439,27 @@ export const nodeDefinitions: NodeDefinition[] = [
         valueType: "entity",
       },
       { id: "delta", label: "仇恨值增量", kind: "data-in", valueType: "int" },
+    ],
+  },
+  // ───────────────────────────── 04-信号 ─────────────────────────────
+  // 执行节点/信号
+  {
+    id: "client.action.sendSignalToServer",
+    displayName: "向服务器节点图发送信号",
+    category: "执行节点/信号",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "signalName",
+        label: "信号名",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
     ],
   },
   // 流程控制节点
