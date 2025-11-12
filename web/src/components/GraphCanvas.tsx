@@ -647,13 +647,6 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     return map;
   }, [nodes]);
 
-  const defaultEdgeOptions = useMemo(
-    () => ({
-      style: { strokeWidth: 3, stroke: '#ffffff' },
-    }),
-    []
-  );
-
   const rfEdges: Edge[] = useMemo(
     () =>
       edges.map((edge) => {
@@ -1829,7 +1822,6 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         style={{ width: '100%', height: '100%' }}
         nodes={rfNodes}
         edges={rfEdges}
-        defaultEdgeOptions={defaultEdgeOptions}
         minZoom={0.25}
         maxZoom={1.5}
         selectionOnDrag={!isMobileMode}
