@@ -101,7 +101,7 @@ option {
   padding: 10px 14px;
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
   box-shadow: 0 12px 28px rgba(0, 0, 0, 0.45);
   z-index: 150;
 }
@@ -109,7 +109,7 @@ option {
 .action_dock__content {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: 5px;
 }
 
 .action_dock--collapsed .action_dock__content {
@@ -197,8 +197,8 @@ option {
 }
 
 .action_dock__name--interval {
-  min-width: 90px;
-  width: 90px;
+  min-width: 60px;
+  width: 60px;
   padding: 6px 12px;
   text-align: center;
 }
