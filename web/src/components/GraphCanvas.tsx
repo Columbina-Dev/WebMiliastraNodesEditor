@@ -44,6 +44,10 @@ import {
   isFlowPort,
 } from '../utils/graph';
 import { getEnvironmentTopFolder } from '../utils/graphEnvironment';
+import {
+  getNodeDefinitionsForEnvironment,
+  isNodeAllowedInEnvironment,
+} from '../utils/nodeAvailability';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
 import './GraphCanvas.css';
 
@@ -292,9 +296,10 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
+  const environment = useGraphStore((state) => state.environment);
   const availableDefinitions = useMemo(
-    () => nodeDefinitions.filter((definition) => !SYSTEM_NODE_ID_SET.has(definition.id)),
-    []
+    () => getNodeDefinitionsForEnvironment(environment, { includeSystem: false }),
+    [environment]
   );
   const protectedNodeIds = useMemo(
     () =>
@@ -305,7 +310,6 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       ),
     [nodes]
   );
-  const environment = useGraphStore((state) => state.environment);
   const comments = useGraphStore((state) => state.comments);
   const updateNode = useGraphStore((state) => state.updateNode);
   const removeNode = useGraphStore((state) => state.removeNode);
@@ -1056,6 +1060,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       if (!type) return;
       const definition = nodeDefinitionsById[type];
       if (!definition) return;
+      if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
       const position = reactFlow.screenToFlowPosition({
         x: event.clientX,
         y: event.clientY,
@@ -1066,7 +1071,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         data: {},
       });
     },
-    [reactFlow]
+    [environment, reactFlow]
   );
 
   const handleDragOver = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
@@ -1338,6 +1343,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     (definitionId: string, position: ScreenPoint) => {
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
+      if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
       const id = useGraphStore.getState().addNode({
         type: definition.id,
         position,
@@ -1347,13 +1353,14 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [setSelectedNode]
+    [environment, setFloatingPanel, setHasPartialSelection, setSelectedNode]
   );
 
   const handleInsertNodeForConnection = useCallback(
     (definitionId: string, panel: Extract<FloatingPanelState, { type: 'connection' }>) => {
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
+      if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
       const store = useGraphStore.getState();
       const newNodeId = store.addNode({
         type: definition.id,
@@ -1400,7 +1407,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setSelectedNode(newNodeId);
       setFloatingPanel(null);
     },
-    [setSelectedNode]
+    [environment, setFloatingPanel, setSelectedNode]
   );
 
   const canvasAnchor =
