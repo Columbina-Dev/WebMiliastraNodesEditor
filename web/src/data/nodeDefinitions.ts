@@ -12739,11 +12739,11 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
   // 运算节点
   // ───────────────────────────── 00-通用 ─────────────────────────────
-  // 查询节点/通用
+  // 运算节点/通用
   {
     id: "client.math.enumMatch",
     displayName: "枚举匹配",
-    category: "查询节点/通用",
+    category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12755,7 +12755,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.isEqual",
     displayName: "是否相等",
-    category: "查询节点/通用",
+    category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12767,7 +12767,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.typeCast",
     displayName: "数据类型转换",
-    category: "查询节点/通用",
+    category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12782,11 +12782,11 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
 
   // ───────────────────────────── 01-数学 ─────────────────────────────
-  // 查询节点/数学
+  // 运算节点/数学
   {
     id: "client.math.vector3.split",
     displayName: "拆分三维向量",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12804,7 +12804,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vector3.directionToRotation",
     displayName: "朝向转旋转",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12815,7 +12815,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.math.multiply",
     displayName: "乘法运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12827,7 +12827,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.math.divide",
     displayName: "除法运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12839,7 +12839,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.sin",
     displayName: "正弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12850,7 +12850,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.cos",
     displayName: "余弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12861,7 +12861,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.tan",
     displayName: "正切函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12872,7 +12872,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.degToRad",
     displayName: "角度转弧度",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12883,7 +12883,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.radToDeg",
     displayName: "弧度转角度",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12894,7 +12894,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vectorAdd",
     displayName: "三维向量加法",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12906,7 +12906,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vectorSubtract",
     displayName: "三维向量减法",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12918,7 +12918,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vectorDot",
     displayName: "三维向量内积",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12930,7 +12930,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vectorCross",
     displayName: "三维向量外积",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12942,7 +12942,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vectorNormalize",
     displayName: "三维向量归一化",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12953,7 +12953,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.arcCos",
     displayName: "反余弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12964,7 +12964,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.arcTan",
     displayName: "反正切函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12975,7 +12975,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.arcSin",
     displayName: "反正弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -12986,7 +12986,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.directionVectorToRotation",
     displayName: "方向向量转旋转",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13003,7 +13003,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.randomInRange",
     displayName: "获取随机数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13015,7 +13015,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.add",
     displayName: "加法运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13027,7 +13027,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.subtract",
     displayName: "减法运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13039,7 +13039,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.abs",
     displayName: "绝对值运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13050,7 +13050,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.logicalNot",
     displayName: "逻辑非运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13061,7 +13061,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.logicalOr",
     displayName: "逻辑或运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13073,7 +13073,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.logicalXor",
     displayName: "逻辑异或运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13085,7 +13085,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.logicalAnd",
     displayName: "逻辑与运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13097,7 +13097,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.normalizeVector3",
     displayName: "三维向量归一化",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13113,7 +13113,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.addVector3",
     displayName: "三维向量加法",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13135,7 +13135,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.angleBetweenVector3",
     displayName: "三维向量夹角",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13162,7 +13162,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.subtractVector3",
     displayName: "三维向量减法",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13184,7 +13184,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.vector3Length",
     displayName: "三维向量模运算",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13200,7 +13200,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.dotVector3",
     displayName: "三维向量内积",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13222,7 +13222,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.scaleVector3",
     displayName: "三维向量缩放",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13239,7 +13239,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.crossVector3",
     displayName: "三维向量外积",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13266,7 +13266,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.rotateVector3",
     displayName: "三维向量旋转",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13283,7 +13283,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.greaterThan",
     displayName: "是否大于",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13295,7 +13295,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.greaterOrEqual",
     displayName: "是否大于等于",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13307,7 +13307,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.lessThan",
     displayName: "是否小于",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13319,7 +13319,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.lessOrEqual",
     displayName: "是否小于等于",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13331,7 +13331,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.cos",
     displayName: "余弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13342,7 +13342,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.tan",
     displayName: "正切函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13353,7 +13353,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.sin",
     displayName: "正弦函数",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13364,7 +13364,7 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "client.math.makeVector3",
     displayName: "创建三维向量",
-    category: "查询节点/数学",
+    category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
@@ -13381,11 +13381,11 @@ export const nodeDefinitions: NodeDefinition[] = [
   },
 
   // ───────────────────────────── 03-列表 ─────────────────────────────
-  // 查询节点/列表
+  // 运算节点/列表
   {
     id: "client.math.assembleList",
     displayName: "拼装列表",
-    category: "查询节点/列表",
+    category: "运算节点/列表",
     kind: "math",
     headerColor: MATH_HEADER,
     ports: [
