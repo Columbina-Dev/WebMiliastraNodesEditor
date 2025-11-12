@@ -13329,30 +13329,8 @@ export const nodeDefinitions: NodeDefinition[] = [
     ],
   },
   {
-    id: "client.math.cos",
-    displayName: "余弦函数",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "radians", label: "弧度", kind: "data-in", valueType: "float" },
-      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
-    ],
-  },
-  {
     id: "client.math.tan",
     displayName: "正切函数",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "radians", label: "弧度", kind: "data-in", valueType: "float" },
-      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
-    ],
-  },
-  {
-    id: "client.math.sin",
-    displayName: "正弦函数",
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
