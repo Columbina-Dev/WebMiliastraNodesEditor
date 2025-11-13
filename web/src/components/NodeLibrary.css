@@ -1,7 +1,7 @@
 .node-library {
   display: flex;
   flex-direction: column;
-  background: rgba(12, 12, 20, 0.95);
+  background: #252529;
   color: #f6f6ff;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 18px;
@@ -118,7 +118,7 @@
   background: transparent;
   border: none;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   border-radius: 10px;
   transition: background 0.2s ease;
 }
@@ -181,7 +181,7 @@
   padding: 6px 10px;
   color: inherit;
   font-size: 13px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
 }
 

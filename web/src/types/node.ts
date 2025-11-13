@@ -106,17 +106,44 @@ export interface GraphEdge {
   target: GraphEdgeEndpoint;
 }
 
+export interface GraphComment {
+  id: string;
+  nodeId?: string;
+  position?: { x: number; y: number };
+  text: string;
+  pinned?: boolean;
+  collapsed?: boolean;
+}
+
+export type GraphSchemaVersion = 1 | 2;
+
+export const CLIENT_GRAPH_TYPES = ['boolean', 'integer', 'skill'] as const;
+export type ClientGraphType = (typeof CLIENT_GRAPH_TYPES)[number];
+export type ClientGraphEnvironment = `client:${ClientGraphType}`;
+
+export type GraphEnvironment = 'server' | 'client' | ClientGraphEnvironment;
+
 export interface GraphDocument {
-  schemaVersion: 1;
+  schemaVersion: GraphSchemaVersion;
   name: string;
   createdAt?: string;
   updatedAt?: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
+  comments?: GraphComment[];
+  environment?: GraphEnvironment;
+  executionIntervalSeconds?: number;
 }
 
-export const GRAPH_SCHEMA_VERSION = 1;
+export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
+export const CLIENT_GRAPH_START_NODE_ID = 'event.graphStart';
+export const CLIENT_BOOLEAN_RESULT_NODE_ID = 'flow.graphEndBoolean';
+export const CLIENT_INTEGER_RESULT_NODE_ID = 'flow.graphEndInteger';
+export const GRAPH_SYSTEM_NODE_IDS = [
+  CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_BOOLEAN_RESULT_NODE_ID,
+  CLIENT_INTEGER_RESULT_NODE_ID,
+] as const;
 
 export interface ConnectionPreview {
   handleType: 'source' | 'target';

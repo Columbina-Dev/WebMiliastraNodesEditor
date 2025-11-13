@@ -1,4 +1,4 @@
-.home {
+﻿.home {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -42,7 +42,7 @@
   background: rgba(92, 186, 255, 0.12);
   color: #f6f6ff;
   font-size: 16px;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
@@ -85,13 +85,13 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease;
 }
 
 .home__history-header button:disabled {
   opacity: 0.5;
-  cursor: not-allowed;
+  cursor: var(--cursor-default);
 }
 
 .home__history-header button:not(:disabled):hover {
@@ -121,7 +121,7 @@
   align-items: flex-start;
   gap: 6px;
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   position: relative;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
   outline: none;
@@ -149,7 +149,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
 }
 
@@ -232,7 +232,7 @@
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: background 0.2s ease, border 0.2s ease;
 }
 
@@ -260,26 +260,30 @@
 }
 
 .home__github,
-.home__tutorial {
+.home__tutorial,
+.home__effects {
   color: rgba(255, 255, 255, 0.7);
   transition: color 0.2s ease, opacity 0.2s ease;
   display: flex;
 }
 
-.home__tutorial {
+.home__tutorial,
+.home__effects {
   border: none;
   background: transparent;
   padding: 0;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
 }
 
-.home__tutorial:focus-visible {
+.home__tutorial:focus-visible,
+.home__effects:focus-visible {
   outline: 2px solid rgba(92, 186, 255, 0.7);
   outline-offset: 4px;
 }
 
 .home__github:hover,
-.home__tutorial:hover {
+.home__tutorial:hover,
+.home__effects:hover {
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
 }
@@ -301,3 +305,5 @@
     min-width: 180px;
   }
 }
+
+

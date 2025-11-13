@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+     width="1024" height="1024" viewBox="0 0 1024 1024"
+     version="1.1" preserveAspectRatio="xMidYMid meet"
+     stroke-linecap="round" stroke-linejoin="round" fill-rule="evenodd" xml:space="preserve">
+  <defs>
+    <clipPath id="clipId0">
+      <path d="M0,1024 1024,1024 1024,0 0,0 z" />
+    </clipPath>
+  </defs>
+  <g clip-path="url(#clipId0)" transform="translate(0,128)">
+    <path d="
+      M289.896,49.3595
+      A41.8301,41.8301 0 0 0 206.236,49.3595
+      L206.236,718.641
+      A41.8301,41.8301 0 0 0 289.896,718.641
+      L289.896,49.3595
+      Z"
+      fill="#ffffff" stroke="none" />
+    <path d="
+      M817.764,120.37
+      L748.898,160.129
+      L680.032,199.889
+      L611.166,239.649
+      L542.3,279.409
+      L473.434,319.168
+      L404.569,358.928
+      L335.703,398.688
+      L404.569,438.448
+      L473.434,478.207
+      L542.3,517.967
+      L611.166,557.727
+      L680.032,597.487
+      L748.898,637.246
+      L817.764,677.006
+      A456.829,456.829 0 0 1 817.764,120.37
+      Z"
+      fill="#ffffff" stroke="none" />
+  </g>
+</svg>

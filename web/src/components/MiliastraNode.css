@@ -39,6 +39,10 @@
   line-height: 1.2;
 }
 
+.miliastra-node--math .miliastra-node__title {
+  color: #fff;
+}
+
 .miliastra-node__icon {
   width: 24px;
   height: 24px;

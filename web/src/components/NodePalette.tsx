@@ -1,14 +1,23 @@
+import { useMemo } from 'react';
 import classNames from 'classnames';
 import NodeLibrary from './NodeLibrary';
-import { nodeDefinitions } from '../data/nodeDefinitions';
+import { useGraphStore } from '../state/graphStore';
+import { getNodeDefinitionsForEnvironment } from '../utils/nodeAvailability';
 import './NodePalette.css';
 
 interface NodePaletteProps {
   collapsed: boolean;
   onToggle: () => void;
+  isTouchEnvironment?: boolean;
 }
 
-const NodePalette = ({ collapsed, onToggle }: NodePaletteProps) => {
+const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePaletteProps) => {
+  const environment = useGraphStore((state) => state.environment);
+  const filteredDefinitions = useMemo(
+    () => getNodeDefinitionsForEnvironment(environment, { includeSystem: false }),
+    [environment]
+  );
+
   return (
     <aside
       className={classNames('palette', { 'palette--collapsed': collapsed })}
@@ -24,7 +33,12 @@ const NodePalette = ({ collapsed, onToggle }: NodePaletteProps) => {
         {collapsed ? '⇥' : '⇤'}
       </button>
       <div className="palette__content" aria-hidden={collapsed}>
-        <NodeLibrary variant="sidebar" definitions={nodeDefinitions} onSelect={() => {}} />
+        <NodeLibrary
+          variant="sidebar"
+          definitions={filteredDefinitions}
+          onSelect={() => {}}
+          isTouchEnvironment={isTouchEnvironment}
+        />
       </div>
     </aside>
   );

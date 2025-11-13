@@ -83,7 +83,7 @@ p a:hover {
   border-radius: 12px;
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.25s ease, background 0.25s ease, transform 0.2s ease;
   text-align: left;
   box-sizing: border-box;
@@ -119,7 +119,7 @@ p a:hover {
   border: 1px solid rgba(255, 255, 255, 0.18);
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 
@@ -210,7 +210,7 @@ p a:hover {
   border: 1px solid rgba(126, 186, 255, 0.4);
   background: rgba(126, 186, 255, 0.12);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease;
 }
 
@@ -252,7 +252,7 @@ p a:hover {
   height: 22px;
   border-radius: 6px;
   position: relative;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   transition: transform 0.25s ease, background 0.2s ease;
 }
 
@@ -284,7 +284,7 @@ p a:hover {
   color: inherit;
   font-size: 14px;
   text-align: left;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   padding: 8px 12px 8px 4px;
   border-radius: 8px;
   transition: color 0.2s ease;
@@ -539,7 +539,7 @@ p a:hover {
   padding: 28px 24px;
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -677,7 +677,7 @@ p a:hover {
 }
 
 .tutorial__content-body a[download]:empty::after {
-  content: "���� " attr(download);
+  content: "下载 " attr(download);
   font-size: 14px;
 }
 
@@ -709,7 +709,7 @@ p a:hover {
   border: 1px solid rgba(92, 186, 255, 0.45);
   background: rgba(92, 186, 255, 0.18);
   color: inherit;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   font-size: 14px;
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }

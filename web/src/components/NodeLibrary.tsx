@@ -1,7 +1,8 @@
-﻿import { useEffect, useMemo, useRef, useState } from 'react';
-import type { DragEvent, ReactElement } from 'react';
+﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import type { DragEvent, ReactElement, TouchEvent as ReactTouchEvent } from 'react';
 import classNames from 'classnames';
 import type { NodeDefinition, ValueType } from '../types/node';
+import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
 import './NodeLibrary.css';
 
 const ICON_EXECUTE = new URL('../assets/icons/execute.svg', import.meta.url).href;
@@ -40,6 +41,8 @@ interface NodeLibraryProps {
   filter?: (definition: NodeDefinition) => boolean;
   variant?: NodeLibraryVariant;
   valueTypeFilter?: ValueTypeFilterProps;
+  isTouchEnvironment?: boolean;
+  autoFocusSearch?: boolean;
 }
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
@@ -50,21 +53,24 @@ const GROUP_META: Record<string, { icon: string; color: string }> = {
   '运算节点': { icon: ICON_LOGIC, color: '#1976d2' },
 };
 
-const VALUE_TYPE_OPTIONS: Array<{ value: string; label: string }> = [
-  { value: 'all', label: '全部类型' },
-  { value: 'any', label: '泛型' },
-  { value: 'string', label: '字符串' },
-  { value: 'guid', label: 'GUID' },
-  { value: 'entity', label: '实体' },
-  { value: 'vector3', label: '三维向量' },
-  { value: 'camp', label: '阵营' },
-  { value: 'int', label: '整数' },
-  { value: 'float', label: '浮点数' },
-  { value: 'bool', label: '布尔' },
-  { value: 'list', label: '列表' },
-  { value: 'configId', label: '配置ID' },
-  { value: 'componentId', label: '组件ID' },
-];
+// 弃用：选择值类型过滤器
+// const VALUE_TYPE_OPTIONS: Array<{ value: string; label: string }> = [
+//   { value: 'all', label: '全部类型' },
+//   { value: 'any', label: '泛型' },
+//   { value: 'string', label: '字符串' },
+//   { value: 'guid', label: 'GUID' },
+//   { value: 'entity', label: '实体' },
+//   { value: 'vector3', label: '三维向量' },
+//   { value: 'camp', label: '阵营' },
+//   { value: 'int', label: '整数' },
+//   { value: 'float', label: '浮点数' },
+//   { value: 'bool', label: '布尔' },
+//   { value: 'list', label: '列表' },
+//   { value: 'configId', label: '配置ID' },
+//   { value: 'componentId', label: '组件ID' },
+// ];
+
+const TOUCH_DRAG_START_THRESHOLD = 12;
 
 const buildTree = (definitions: NodeDefinition[]): CategoryNode[] => {
   const root: CategoryNode = {
@@ -122,12 +128,34 @@ const NodeLibrary = ({
   onItemDragStart,
   filter,
   variant = 'sidebar',
-  valueTypeFilter,
+  isTouchEnvironment = false,
+  autoFocusSearch = false,
 }: NodeLibraryProps) => {
   const [search, setSearch] = useState('');
   // start collapsed by default
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
   const prevVariantRef = useRef<NodeLibraryVariant>(variant);
+  const searchInputRef = useRef<HTMLInputElement | null>(null);
+  const touchDragStateRef = useRef<{
+    identifier: number;
+    definitionId: string;
+    startX: number;
+    startY: number;
+    lastX: number;
+    lastY: number;
+    dragging: boolean;
+  } | null>(null);
+
+  const dispatchTouchDragEvent = useCallback(
+    (detail: NodeLibraryTouchDragDetail) => {
+      window.dispatchEvent(
+        new CustomEvent<NodeLibraryTouchDragDetail>(NODE_LIBRARY_TOUCH_DRAG_EVENT, {
+          detail,
+        })
+      );
+    },
+    []
+  );
 
   const filteredDefinitions = useMemo(() => {
     const term = search.trim().toLowerCase();
@@ -141,6 +169,112 @@ const NodeLibrary = ({
 
   const tree = useMemo(() => buildTree(filteredDefinitions), [filteredDefinitions]);
 
+  const handleDefinitionTouchStart = (
+    event: ReactTouchEvent<HTMLButtonElement>,
+    definition: NodeDefinition
+  ) => {
+    if (!isTouchEnvironment) return;
+    const touch = event.changedTouches[0];
+    if (!touch) return;
+    touchDragStateRef.current = {
+      identifier: touch.identifier,
+      definitionId: definition.id,
+      startX: touch.clientX,
+      startY: touch.clientY,
+      lastX: touch.clientX,
+      lastY: touch.clientY,
+      dragging: false,
+    };
+  };
+
+  useEffect(() => {
+    if (!isTouchEnvironment) {
+      touchDragStateRef.current = null;
+      return;
+    }
+
+    const handleTouchMove = (event: TouchEvent) => {
+      const state = touchDragStateRef.current;
+      if (!state) return;
+      const touch = Array.from(event.touches).find(
+        (item) => item.identifier === state.identifier
+      );
+      if (!touch) return;
+
+      const dx = touch.clientX - state.startX;
+      const dy = touch.clientY - state.startY;
+      const distance = Math.hypot(dx, dy);
+      if (!state.dragging && distance > TOUCH_DRAG_START_THRESHOLD) {
+        state.dragging = true;
+        dispatchTouchDragEvent({
+          phase: 'start',
+          definitionId: state.definitionId,
+          clientX: state.startX,
+          clientY: state.startY,
+        });
+      }
+      if (state.dragging) {
+        event.preventDefault();
+        state.lastX = touch.clientX;
+        state.lastY = touch.clientY;
+        dispatchTouchDragEvent({
+          phase: 'move',
+          definitionId: state.definitionId,
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+        });
+      }
+    };
+
+    const handleTouchEnd = (event: TouchEvent) => {
+      const state = touchDragStateRef.current;
+      if (!state) return;
+      const touch = Array.from(event.changedTouches).find(
+        (item) => item.identifier === state.identifier
+      );
+      if (!touch) return;
+      if (state.dragging) {
+        event.preventDefault();
+        dispatchTouchDragEvent({
+          phase: 'end',
+          definitionId: state.definitionId,
+          clientX: touch.clientX,
+          clientY: touch.clientY,
+        });
+      }
+      touchDragStateRef.current = null;
+    };
+
+    const handleTouchCancel = (event: TouchEvent) => {
+      const state = touchDragStateRef.current;
+      if (!state) return;
+      const touch = Array.from(event.changedTouches).find(
+        (item) => item.identifier === state.identifier
+      );
+      if (!touch) return;
+      if (state.dragging) {
+        dispatchTouchDragEvent({
+          phase: 'cancel',
+          definitionId: state.definitionId,
+          clientX: state.lastX,
+          clientY: state.lastY,
+        });
+      }
+      touchDragStateRef.current = null;
+    };
+
+    window.addEventListener('touchmove', handleTouchMove, { passive: false });
+    window.addEventListener('touchend', handleTouchEnd, { passive: false });
+    window.addEventListener('touchcancel', handleTouchCancel, { passive: false });
+
+    return () => {
+      window.removeEventListener('touchmove', handleTouchMove);
+      window.removeEventListener('touchend', handleTouchEnd);
+      window.removeEventListener('touchcancel', handleTouchCancel);
+      touchDragStateRef.current = null;
+    };
+  }, [dispatchTouchDragEvent, isTouchEnvironment]);
+
 
   useEffect(() => {
     // keep collapsed by default; if tree becomes empty, clear expanded set
@@ -149,6 +283,14 @@ const NodeLibrary = ({
     }
     prevVariantRef.current = variant;
   }, [tree, variant]);
+  useEffect(() => {
+    if (variant !== 'floating' || !autoFocusSearch) return;
+    const raf = window.requestAnimationFrame(() => {
+      searchInputRef.current?.focus();
+      searchInputRef.current?.select();
+    });
+    return () => window.cancelAnimationFrame(raf);
+  }, [autoFocusSearch, variant]);
 
   const handleSelect = (definition: NodeDefinition) => {
     onSelect(definition);
@@ -184,6 +326,7 @@ const NodeLibrary = ({
           className="node-library__definition"
           onClick={() => handleSelect(definition)}
           draggable
+          onTouchStart={(event) => handleDefinitionTouchStart(event, definition)}
           onDragStart={(event) => handleDragStartInternal(event, definition)}
         >
           <span className="node-library__definition-dot" />
@@ -206,7 +349,7 @@ const NodeLibrary = ({
           onClick={() => hasChildren && toggleExpanded(node.id)}
         >
           <span className={classNames('node-library__caret', { 'is-open': isExpanded })}>
-            {hasChildren ? '' : '•'}
+            {hasChildren ? '' : '?'}
           </span>
           {groupMeta && (
             <img className="node-library__icon" src={groupMeta.icon} alt="" aria-hidden="true" />
@@ -236,32 +379,11 @@ const NodeLibrary = ({
           <div className="node-library__title">{title}</div>
           {subtitle && <div className="node-library__subtitle">{subtitle}</div>}
         </div>
-        {valueTypeFilter && (
-          <div className="node-library__filter">
-            <select
-              value={valueTypeFilter.value}
-              onChange={(event) => valueTypeFilter.onChange(event.target.value)}
-            >
-              {VALUE_TYPE_OPTIONS.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-            {valueTypeFilter.requiredType && (
-              <span className="node-library__filter-hint">
-                推荐：                {
-                  VALUE_TYPE_OPTIONS.find((option) => option.value === valueTypeFilter.requiredType)?.label ||
-                  valueTypeFilter.requiredType
-                }
-              </span>
-            )}
-          </div>
-        )}
       </div>
       <div className="node-library__search">
         <img src={ICON_SEARCH} className="node-library__search-icon" alt="" aria-hidden="true" />
         <input
+          ref={searchInputRef}
           value={search}
           placeholder="搜索节点或分类"
           onChange={(event) => setSearch(event.target.value)}
@@ -279,9 +401,6 @@ const NodeLibrary = ({
 };
 
 export default NodeLibrary;
-
-
-
 
 
 

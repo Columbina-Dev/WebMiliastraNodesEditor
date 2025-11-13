@@ -1,9 +1,9 @@
-import classNames from 'classnames';
-import { useMemo } from 'react';
+﻿import { useMemo } from 'react';
 import type { ChangeEvent } from 'react';
 import { nodeDefinitionsById } from '../data/nodeDefinitions';
 import { useGraphStore } from '../state/graphStore';
 import type { DataPortDefinition } from '../types/node';
+import { useShallow } from 'zustand/react/shallow';
 import './NodeInspector.css';
 
 interface NodeInspectorProps {
@@ -12,14 +12,45 @@ interface NodeInspectorProps {
 }
 
 const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
-  const node = useGraphStore((state) => state.nodes.find((item) => item.id === state.selectedNodeId));
-  const edges = useGraphStore((state) => state.edges);
-  const updateNode = useGraphStore((state) => state.updateNode);
-  const removeNode = useGraphStore((state) => state.removeNode);
-  const setPortOverride = useGraphStore((state) => state.setPortOverride);
-  const clearPortOverride = useGraphStore((state) => state.clearPortOverride);
+  const {
+    nodes,
+    edges,
+    comments,
+    selectedNodeId,
+    updateNode,
+    removeNode,
+    setPortOverride,
+    clearPortOverride,
+    updateCommentText,
+    setSelectedComment,
+    setCommentCollapsed,
+  } = useGraphStore(
+    useShallow((state) => ({
+      nodes: state.nodes,
+      edges: state.edges,
+      comments: state.comments,
+      selectedNodeId: state.selectedNodeId,
+      updateNode: state.updateNode,
+      removeNode: state.removeNode,
+      setPortOverride: state.setPortOverride,
+      clearPortOverride: state.clearPortOverride,
+      updateCommentText: state.updateCommentText,
+      setSelectedComment: state.setSelectedComment,
+      setCommentCollapsed: state.setCommentCollapsed,
+    }))
+  );
+
+  const node = useMemo(
+    () => nodes.find((item) => item.id === selectedNodeId),
+    [nodes, selectedNodeId]
+  );
 
   const definition = node ? nodeDefinitionsById[node.type] : undefined;
+
+  const nodeComments = useMemo(() => {
+    if (!selectedNodeId) return [];
+    return comments.filter((comment) => comment.nodeId === selectedNodeId);
+  }, [comments, selectedNodeId]);
 
   const outgoing = useMemo(() => {
     if (!node) return [];
@@ -55,6 +86,15 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
       } else {
         setPortOverride(nodeId, port.id, value);
       }
+    };
+
+  const handleCommentTextChange =
+    (commentId: string) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+      const value = event.target.value;
+      updateCommentText(commentId, value);
+      const textarea = event.currentTarget;
+      textarea.style.height = 'auto';
+      textarea.style.height = `${textarea.scrollHeight}px`;
     };
 
   const content = isEmpty || !node || !definition ? (
@@ -111,6 +151,41 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
           )}
         </div>
       </section>
+      <section className="inspector__section inspector__section--comments">
+        <div className="inspector__comments-header">
+          <h3 className="inspector__subtitle">注释</h3>
+        </div>
+        {nodeComments.length ? (
+          <ul className="inspector__comment-list">
+            {nodeComments.map((comment) => {
+              const lineCount = comment.text ? comment.text.split('\n').length : 1;
+              const approxHeight = Math.min(180, Math.max(32, lineCount * 20));
+              return (
+                <li key={comment.id} className="inspector__comment-row">
+                  <textarea
+                    className="inspector__comment-item"
+                    value={comment.text}
+                    placeholder="（空注释）"
+                    rows={1}
+                    style={{ height: `${approxHeight}px` }}
+                    onFocus={(event) => {
+                      event.currentTarget.style.height = 'auto';
+                      event.currentTarget.style.height = `${event.currentTarget.scrollHeight}px`;
+                      setCommentCollapsed(comment.id, false);
+                      setSelectedComment(comment.id);
+                    }}
+                    onChange={handleCommentTextChange(comment.id)}
+                  />
+                  {comment.pinned && <span className="inspector__comment-pin">📌</span>}
+                </li>
+              );
+            })}
+          </ul>
+        ) : (
+          <div className="inspector__hint">暂无注释</div>
+        )}
+      </section>
+
       <section className="inspector__section">
         <h3 className="inspector__subtitle">连接</h3>
         <div className="inspector__connections">
@@ -142,24 +217,11 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
   );
 
   return (
-    <aside
-      className={classNames('inspector', {
-        'inspector--collapsed': collapsed,
-        'inspector--empty': isEmpty,
-      })}
-      aria-expanded={!collapsed}
-    >
-      <button
-        type="button"
-        className={classNames('inspector__toggle', { 'is-collapsed': collapsed })}
-        onClick={onToggle}
-        aria-label={collapsed ? '展开检查面板' : '收起检查面板'}
-      >
-        {collapsed ? '⇤' : '⇥'}
+    <aside className={`inspector${collapsed ? ' inspector--collapsed' : ''}`}>
+      <button className="inspector__toggle" onClick={onToggle}>
+        {collapsed ? '⟵' : '⟶'}
       </button>
-      <div className="inspector__content" aria-hidden={collapsed}>
-        {content}
-      </div>
+      <div className="inspector__content">{content}</div>
     </aside>
   );
 };

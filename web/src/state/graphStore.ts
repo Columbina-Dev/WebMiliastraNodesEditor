@@ -1,34 +1,185 @@
 ﻿import { create } from 'zustand';
 import { nanoid } from 'nanoid/non-secure';
-import { GRAPH_SCHEMA_VERSION } from '../types/node';
+import {
+  CLIENT_BOOLEAN_RESULT_NODE_ID,
+  CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_INTEGER_RESULT_NODE_ID,
+  GRAPH_SCHEMA_VERSION,
+  GRAPH_SYSTEM_NODE_IDS,
+} from '../types/node';
 import type {
   GraphDocument,
   GraphEdge,
   GraphNode,
   GraphNodeData,
+  GraphEnvironment,
 } from '../types/node';
+import {
+  clientKindFromEnvironment,
+  getDefaultExecutionInterval,
+  normalizeGraphEnvironment,
+  sanitizeExecutionInterval,
+} from '../utils/graphEnvironment';
 
 const HISTORY_LIMIT = 50;
+const CLIENT_SYSTEM_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
+const CLIENT_START_NODE_DEFAULT_POSITION = { ...CLIENT_SYSTEM_NODE_DEFAULT_POSITION };
+const CLIENT_RESULT_NODE_DEFAULT_POSITION = { ...CLIENT_SYSTEM_NODE_DEFAULT_POSITION };
+
+type SystemNodeType = (typeof GRAPH_SYSTEM_NODE_IDS)[number];
+
+const GRAPH_SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS);
+
+const isClientStartNode = (node: { type: string }) => node.type === CLIENT_GRAPH_START_NODE_ID;
+const isSystemNode = (node: { type: string }) => GRAPH_SYSTEM_NODE_ID_SET.has(node.type);
+
+const computeClientStartNodePosition = (nodes: GraphNode[]) => {
+  const candidates = nodes.filter((node) => !isClientStartNode(node));
+  if (!candidates.length) {
+    return { ...CLIENT_START_NODE_DEFAULT_POSITION };
+  }
+  let minX = Number.POSITIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  candidates.forEach((node) => {
+    minX = Math.min(minX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+  });
+  if (!Number.isFinite(minX) || !Number.isFinite(minY)) {
+    return { ...CLIENT_START_NODE_DEFAULT_POSITION };
+  }
+  return {
+    x: minX - 200,
+    y: minY - 60,
+  };
+};
+
+const computeResultNodePosition = (nodes: GraphNode[]) => {
+  const candidates = nodes.filter((node) => !isSystemNode(node));
+  if (!candidates.length) {
+    return { ...CLIENT_RESULT_NODE_DEFAULT_POSITION };
+  }
+  let maxX = Number.NEGATIVE_INFINITY;
+  let minY = Number.POSITIVE_INFINITY;
+  candidates.forEach((node) => {
+    maxX = Math.max(maxX, node.position.x);
+    minY = Math.min(minY, node.position.y);
+  });
+  if (!Number.isFinite(maxX) || !Number.isFinite(minY)) {
+    return { ...CLIENT_RESULT_NODE_DEFAULT_POSITION };
+  }
+  return {
+    x: maxX + 200,
+    y: minY - 60,
+  };
+};
+
+const getRequiredSystemNodeTypes = (environment: GraphEnvironment): SystemNodeType[] => {
+  const kind = clientKindFromEnvironment(environment);
+  if (!kind) return [];
+  if (kind === 'skill') return [CLIENT_GRAPH_START_NODE_ID];
+  if (kind === 'boolean') return [CLIENT_BOOLEAN_RESULT_NODE_ID];
+  if (kind === 'integer') return [CLIENT_INTEGER_RESULT_NODE_ID];
+  return [];
+};
+
+const createSystemNode = (type: SystemNodeType, nodes: GraphNode[]): GraphNode => {
+  const position =
+    type === CLIENT_GRAPH_START_NODE_ID
+      ? computeClientStartNodePosition(nodes)
+      : computeResultNodePosition(nodes);
+  return {
+    id: nanoid(),
+    type,
+    position,
+  };
+};
+
+const reconcileSystemNodes = (
+  nodes: GraphNode[],
+  edges: GraphEdge[],
+  environment: GraphEnvironment,
+) => {
+  const requiredTypes = new Set(getRequiredSystemNodeTypes(environment));
+  const nodesByType = new Map<SystemNodeType, GraphNode[]>();
+  nodes.forEach((node) => {
+    if (isSystemNode(node)) {
+      const list = nodesByType.get(node.type as SystemNodeType) ?? [];
+      list.push(node);
+      nodesByType.set(node.type as SystemNodeType, list);
+    }
+  });
+
+  const nodesToRemove = new Set<string>();
+  nodesByType.forEach((list, type) => {
+    if (!requiredTypes.has(type)) {
+      list.forEach((node) => nodesToRemove.add(node.id));
+    } else if (list.length > 1) {
+      list
+        .slice(1)
+        .forEach((node) => nodesToRemove.add(node.id));
+    }
+  });
+
+  const filteredNodes = nodes.filter((node) => !nodesToRemove.has(node.id));
+  const nodesToAdd: GraphNode[] = [];
+
+  requiredTypes.forEach((type) => {
+    const existing = filteredNodes.find((node) => node.type === type);
+    if (!existing) {
+      nodesToAdd.push(createSystemNode(type, filteredNodes));
+    }
+  });
+
+  if (!nodesToAdd.length && !nodesToRemove.size) {
+    return { nodes, edges };
+  }
+
+  const nextNodes = [...filteredNodes, ...nodesToAdd];
+  const removedIds = nodesToRemove;
+  const nextEdges = edges.filter(
+    (edge) => !removedIds.has(edge.source.nodeId) && !removedIds.has(edge.target.nodeId),
+  );
+  return { nodes: nextNodes, edges: nextEdges };
+};
+
+
+interface GraphCommentState {
+  id: string;
+  nodeId?: string;
+  position?: { x: number; y: number };
+  text: string;
+  pinned: boolean;
+  collapsed: boolean;
+}
+
+type CommentMode = 'inactive' | 'selecting';
 
 interface GraphSnapshot {
+  graphId: string;
   name: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
-  projectId: string;
+  comments: GraphCommentState[];
   selectedNodeId?: string;
+  zoomLevel: number;
+  environment: GraphEnvironment;
+  executionIntervalSeconds: number;
 }
 
 interface GraphState {
-  projectId: string;
+  graphId: string;
   name: string;
   nodes: GraphNode[];
   edges: GraphEdge[];
-  metadata?: Record<string, unknown>;
+  comments: GraphCommentState[];
+  environment: GraphEnvironment;
+  executionIntervalSeconds: number;
+  commentMode: CommentMode;
+  selectedCommentId?: string;
   selectedNodeId?: string;
   past: GraphSnapshot[];
   future: GraphSnapshot[];
-  setProjectId: (projectId: string) => void;
+  setGraphId: (graphId: string) => void;
   setName: (name: string) => void;
   addNode: (node: Omit<GraphNode, 'id'> & { id?: string }) => string;
   duplicateNode: (nodeId: string) => string | undefined;
@@ -43,12 +194,43 @@ interface GraphState {
   removeEdge: (edgeId: string, options?: { recordHistory?: boolean }) => void;
   removeEdges: (edgeIds: string[], options?: { recordHistory?: boolean }) => void;
   setSelectedNode: (nodeId?: string) => void;
-  importGraph: (doc: GraphDocument, options?: { projectId?: string; recordHistory?: boolean }) => void;
+  setCommentMode: (mode: CommentMode) => void;
+  setSelectedComment: (commentId?: string) => void;
+  addComment: (nodeId: string) => string;
+  addFloatingComment: (position: { x: number; y: number }) => string;
+  setCommentPosition: (commentId: string, position: { x: number; y: number }) => void;
+  updateCommentText: (commentId: string, text: string) => void;
+  setCommentPinned: (commentId: string, pinned: boolean) => void;
+  setCommentCollapsed: (commentId: string, collapsed: boolean) => void;
+  removeComment: (commentId: string) => void;
+  collapseUnpinnedComments: (activeNodeId?: string) => void;
+  importGraph: (
+    doc: GraphDocument,
+    options?: { graphId?: string; recordHistory?: boolean },
+  ) => void;
   exportGraph: () => GraphDocument;
-  reset: (options?: { projectId?: string }) => void;
+  setExecutionIntervalSeconds: (value: number) => void;
+  reset: (options?: { graphId?: string }) => void;
   undo: () => void;
   redo: () => void;
+  zoomLevel: number;
+  requestedZoom: number | null;
+  setZoomLevel: (zoom: number) => void;
+  setRequestedZoom: (zoom: number | null) => void;
 }
+
+const getProtectedNodeIds = (state: GraphState) =>
+  new Set(state.nodes.filter(isSystemNode).map((node) => node.id));
+
+const filterRemovableNodeIds = (state: GraphState, nodeIds: string[]) => {
+  if (!nodeIds.length) return [];
+  const protectedIds = getProtectedNodeIds(state);
+  if (!protectedIds.size) return nodeIds;
+  return nodeIds.filter((id) => !protectedIds.has(id));
+};
+
+const findSystemManagedNodeId = (state: GraphState, type: SystemNodeType) =>
+  state.nodes.find((node) => node.type === type)?.id;
 
 const cloneNode = (node: GraphNode): GraphNode => {
   const data = node.data
@@ -74,33 +256,46 @@ const cloneEdge = (edge: GraphEdge): GraphEdge => ({
 
 const cloneNodes = (nodes: GraphNode[]) => nodes.map(cloneNode);
 const cloneEdges = (edges: GraphEdge[]) => edges.map(cloneEdge);
+const cloneComments = (comments: GraphCommentState[]) => comments.map((comment) => ({ ...comment }));
 
 const createSnapshot = (state: GraphState): GraphSnapshot => ({
+  graphId: state.graphId,
   name: state.name,
   nodes: cloneNodes(state.nodes),
   edges: cloneEdges(state.edges),
-  metadata: state.metadata ? { ...state.metadata } : undefined,
-  projectId: state.projectId,
+  comments: cloneComments(state.comments),
   selectedNodeId: state.selectedNodeId,
+  zoomLevel: state.zoomLevel,
+  environment: state.environment,
+  executionIntervalSeconds: state.executionIntervalSeconds,
 });
 
 const applySnapshot = (snapshot: GraphSnapshot) => ({
+  graphId: snapshot.graphId,
   name: snapshot.name,
   nodes: cloneNodes(snapshot.nodes),
   edges: cloneEdges(snapshot.edges),
-  metadata: snapshot.metadata ? { ...snapshot.metadata } : undefined,
-  projectId: snapshot.projectId,
+  comments: cloneComments(snapshot.comments),
   selectedNodeId: snapshot.selectedNodeId,
+  zoomLevel: snapshot.zoomLevel,
+  environment: snapshot.environment,
+  executionIntervalSeconds: snapshot.executionIntervalSeconds,
 });
 
-const createDefaultState = (projectId?: string) => {
-  const id = projectId ?? nanoid();
+const createDefaultState = (graphId?: string) => {
+  const id = graphId ?? nanoid();
   return {
     name: '新建节点图',
     nodes: [],
     edges: [],
-    metadata: { projectId: id } as Record<string, unknown>,
-    projectId: id,
+    comments: [],
+    commentMode: 'inactive' as CommentMode,
+    selectedCommentId: undefined,
+    graphId: id,
+    zoomLevel: 1,
+    requestedZoom: null,
+    environment: 'server' as GraphEnvironment,
+    executionIntervalSeconds: 0,
   };
 };
 
@@ -126,17 +321,41 @@ export const useGraphStore = create<GraphState>((set, get) => {
     selectedNodeId: undefined,
     past: [],
     future: [],
-    setProjectId: (projectId) => {
-      set((state) => ({
-        projectId,
-        metadata: { ...(state.metadata ?? {}), projectId },
+    setGraphId: (graphId) => {
+      set(() => ({
+        graphId,
       }));
     },
     setName: (name) => {
       captureSnapshot();
       set(() => ({ name }));
     },
+    setExecutionIntervalSeconds: (value) => {
+      const state = get();
+      const defaultInterval = getDefaultExecutionInterval(state.environment);
+      if (defaultInterval === undefined) {
+        return;
+      }
+      const sanitized = sanitizeExecutionInterval(value, defaultInterval);
+      if (sanitized === state.executionIntervalSeconds) {
+        return;
+      }
+      captureSnapshot();
+      set(() => ({ executionIntervalSeconds: sanitized }));
+    },
     addNode: (node) => {
+      if (isSystemNode(node)) {
+        const state = get();
+        const requiredTypes = new Set(getRequiredSystemNodeTypes(state.environment));
+        const type = node.type as SystemNodeType;
+        if (!requiredTypes.has(type)) {
+          return '';
+        }
+        const existingId = findSystemManagedNodeId(state, type);
+        if (existingId) {
+          return existingId;
+        }
+      }
       captureSnapshot();
       const id = node.id ?? nanoid();
       set((state) => ({
@@ -156,10 +375,12 @@ export const useGraphStore = create<GraphState>((set, get) => {
       let createdIds: string[] = [];
       set((state) => {
         const selected = state.nodes.filter((node) => uniqueIds.includes(node.id));
-        if (!selected.length) return {};
+        const duplicable = selected.filter((node) => !isSystemNode(node));
+        if (!duplicable.length) return {};
 
         const idMap = new Map<string, string>();
-        const newNodes = selected.map((node) => {
+        const duplicableIdSet = new Set(duplicable.map((node) => node.id));
+        const newNodes = duplicable.map((node) => {
           const cloned = cloneNode(node);
           const id = nanoid();
           idMap.set(node.id, id);
@@ -174,8 +395,8 @@ export const useGraphStore = create<GraphState>((set, get) => {
         const newEdges = state.edges
           .filter(
             (edge) =>
-              uniqueIds.includes(edge.source.nodeId) &&
-              uniqueIds.includes(edge.target.nodeId)
+              duplicableIdSet.has(edge.source.nodeId) &&
+              duplicableIdSet.has(edge.target.nodeId)
           )
           .map((edge) => {
             const cloned = cloneEdge(edge);
@@ -210,19 +431,32 @@ export const useGraphStore = create<GraphState>((set, get) => {
     removeNodes: (nodeIds, options) => {
       const uniqueIds = Array.from(new Set(nodeIds));
       if (!uniqueIds.length) return;
+      const removableIds = filterRemovableNodeIds(get(), uniqueIds);
+      if (!removableIds.length) return;
       if (options?.recordHistory !== false) {
         captureSnapshot();
       }
-      const idSet = new Set(uniqueIds);
-      set((state) => ({
-        nodes: state.nodes.filter((node) => !idSet.has(node.id)),
-        edges: state.edges.filter(
-          (edge) => !idSet.has(edge.source.nodeId) && !idSet.has(edge.target.nodeId)
-        ),
-        selectedNodeId: state.selectedNodeId && idSet.has(state.selectedNodeId)
-          ? undefined
-          : state.selectedNodeId,
-      }));
+      const idSet = new Set(removableIds);
+      set((state) => {
+        const remainingComments = state.comments.filter(
+          (comment) => !comment.nodeId || !idSet.has(comment.nodeId)
+        );
+        const selectedCommentStillExists =
+          state.selectedCommentId &&
+          remainingComments.some((comment) => comment.id === state.selectedCommentId);
+        return {
+          nodes: state.nodes.filter((node) => !idSet.has(node.id)),
+          edges: state.edges.filter(
+            (edge) => !idSet.has(edge.source.nodeId) && !idSet.has(edge.target.nodeId)
+          ),
+          comments: remainingComments,
+          selectedNodeId: state.selectedNodeId && idSet.has(state.selectedNodeId)
+            ? undefined
+            : state.selectedNodeId,
+          selectedCommentId: selectedCommentStillExists ? state.selectedCommentId : undefined,
+          commentMode: selectedCommentStillExists ? state.commentMode : 'inactive',
+        };
+      });
     },
     setNodeData: (nodeId, data) => {
       captureSnapshot();
@@ -298,44 +532,194 @@ export const useGraphStore = create<GraphState>((set, get) => {
       const idSet = new Set(uniqueIds);
       set((state) => ({ edges: state.edges.filter((edge) => !idSet.has(edge.id)) }));
     },
-    setSelectedNode: (nodeId) => set(() => ({ selectedNodeId: nodeId })),
+    setSelectedNode: (nodeId) =>
+      set((state) => (state.selectedNodeId === nodeId ? {} : { selectedNodeId: nodeId })),
+    setCommentMode: (mode) =>
+      set((state) => (state.commentMode === mode ? {} : { commentMode: mode })),
+    setSelectedComment: (commentId) =>
+      set((state) =>
+        state.selectedCommentId === commentId ? {} : { selectedCommentId: commentId }
+      ),
+    addComment: (nodeId) => {
+      const existing = get().comments.find((comment) => comment.nodeId === nodeId);
+      if (existing) {
+        set(() => ({
+          selectedCommentId: existing.id,
+          commentMode: 'inactive',
+        }));
+        return existing.id;
+      }
+      captureSnapshot();
+      const commentId = nanoid();
+      set((state) => ({
+        comments: [
+          ...state.comments,
+          { id: commentId, nodeId, text: '', pinned: false, collapsed: false },
+        ],
+        selectedCommentId: commentId,
+        commentMode: 'inactive',
+      }));
+      return commentId;
+    },
+    addFloatingComment: (position) => {
+      captureSnapshot();
+      const commentId = nanoid();
+      set((state) => ({
+        comments: [
+          ...state.comments,
+          {
+            id: commentId,
+            position,
+            text: '',
+            pinned: false,
+            collapsed: false,
+          },
+        ],
+        selectedCommentId: commentId,
+        commentMode: 'inactive',
+      }));
+      return commentId;
+    },
+    updateCommentText: (commentId, text) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.text === text) return;
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, text } : comment
+        ),
+      }));
+    },
+    setCommentPinned: (commentId, pinned) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.pinned === pinned) return;
+      captureSnapshot();
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, pinned } : comment
+        ),
+      }));
+    },
+    setCommentCollapsed: (commentId, collapsed) => {
+      const target = get().comments.find((comment) => comment.id === commentId);
+      if (!target || target.collapsed === collapsed) return;
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, collapsed } : comment
+        ),
+      }));
+    },
+    removeComment: (commentId) => {
+      captureSnapshot();
+      set((state) => ({
+        comments: state.comments.filter((comment) => comment.id !== commentId),
+        selectedCommentId:
+          state.selectedCommentId === commentId ? undefined : state.selectedCommentId,
+        commentMode: state.selectedCommentId === commentId ? 'inactive' : state.commentMode,
+      }));
+    },
+    setCommentPosition: (commentId, position) => {
+      set((state) => ({
+        comments: state.comments.map((comment) =>
+          comment.id === commentId ? { ...comment, position } : comment
+        ),
+      }));
+    },
+    collapseUnpinnedComments: (activeNodeId) => {
+      set((state) => {
+        let changed = false;
+        const comments = state.comments.map((comment) => {
+          if (!comment.nodeId) return comment;
+          if (comment.pinned || comment.nodeId === activeNodeId) return comment;
+          if (comment.collapsed) return comment;
+          changed = true;
+          return { ...comment, collapsed: true };
+        });
+        return changed ? { comments } : {};
+      });
+    },
+    setRequestedZoom: (zoom) =>
+      set((state) => (state.requestedZoom === zoom ? {} : { requestedZoom: zoom })),
+    setZoomLevel: (zoom) =>
+      set((state) => (state.zoomLevel === zoom ? {} : { zoomLevel: zoom })),
     importGraph: (doc, options) => {
       if (options?.recordHistory !== false) {
         captureSnapshot();
       }
-      const incomingMetadata = doc.metadata ? { ...doc.metadata } : undefined;
-      const incomingProjectId =
-        options?.projectId ??
-        (typeof incomingMetadata?.projectId === 'string' && incomingMetadata.projectId
-          ? String(incomingMetadata.projectId)
-          : nanoid());
-      const nextMetadata = { ...(incomingMetadata ?? {}), projectId: incomingProjectId };
+      const incomingGraphId = options?.graphId ?? get().graphId ?? nanoid();
+      const normalizedComments: GraphCommentState[] = [];
+      if (Array.isArray(doc.comments)) {
+        for (const comment of doc.comments) {
+          const rawNodeId = (comment.nodeId ?? '').trim();
+          const position = comment.position
+            ? { x: Number(comment.position.x) || 0, y: Number(comment.position.y) || 0 }
+            : undefined;
+          if (!rawNodeId && !position) continue;
+          normalizedComments.push({
+            id: comment.id ?? nanoid(),
+            nodeId: rawNodeId ? rawNodeId : undefined,
+            position,
+            text: comment.text ?? '',
+            pinned: Boolean(comment.pinned),
+            collapsed: Boolean(comment.collapsed),
+          });
+        }
+      }
+      const fallbackEnvironment: GraphEnvironment = options?.graphId
+        ? get().environment
+        : 'server';
+      const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
+      const environment = normalizeGraphEnvironment(doc.environment ?? fallbackEnvironment, {
+        fallbackClientKind: fallbackKind,
+      });
+      const defaultInterval = getDefaultExecutionInterval(environment);
+      const executionIntervalSeconds =
+        defaultInterval !== undefined
+          ? sanitizeExecutionInterval(
+              doc.executionIntervalSeconds ?? defaultInterval,
+              defaultInterval,
+            )
+          : 0;
+      const clonedNodes = cloneNodes(doc.nodes);
+      const clonedEdges = cloneEdges(doc.edges);
+      const { nodes: normalizedNodes, edges: normalizedEdges } = reconcileSystemNodes(
+        clonedNodes,
+        clonedEdges,
+        environment,
+      );
       set(() => ({
         name: doc.name,
-        nodes: cloneNodes(doc.nodes),
-        edges: cloneEdges(doc.edges),
-        metadata: nextMetadata,
-        projectId: incomingProjectId,
+        nodes: normalizedNodes,
+        edges: normalizedEdges,
+        comments: normalizedComments,
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        graphId: incomingGraphId,
         selectedNodeId: undefined,
+        zoomLevel: 1,
+        requestedZoom: null,
+        environment,
+        executionIntervalSeconds,
       }));
     },
     exportGraph: () => {
       const state = get();
-      const metadata = { ...(state.metadata ?? {}), projectId: state.projectId };
+      const environment = state.environment;
+      const intervalApplicable = getDefaultExecutionInterval(environment) !== undefined;
       return {
         schemaVersion: GRAPH_SCHEMA_VERSION,
         name: state.name,
         nodes: cloneNodes(state.nodes),
         edges: cloneEdges(state.edges),
-        metadata,
-        updatedAt: new Date().toISOString(),
+        comments: cloneComments(state.comments),
+        environment,
+        executionIntervalSeconds: intervalApplicable ? state.executionIntervalSeconds : undefined,
       } satisfies GraphDocument;
     },
     reset: (options) => {
       captureSnapshot();
-      const nextProjectId = options?.projectId ?? nanoid();
+      const nextGraphId = options?.graphId ?? nanoid();
       set(() => ({
-        ...createDefaultState(nextProjectId),
+        ...createDefaultState(nextGraphId),
         selectedNodeId: undefined,
       }));
     },
@@ -348,6 +732,9 @@ export const useGraphStore = create<GraphState>((set, get) => {
         ...applySnapshot(previous),
         past: state.past.slice(0, -1),
         future: [currentSnapshot, ...state.future],
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        requestedZoom: previous.zoomLevel,
       }));
     },
     redo: () => {
@@ -359,6 +746,9 @@ export const useGraphStore = create<GraphState>((set, get) => {
         ...applySnapshot(next),
         past: [...state.past, currentSnapshot],
         future: state.future.slice(1),
+        commentMode: 'inactive',
+        selectedCommentId: undefined,
+        requestedZoom: next.zoomLevel,
       }));
     },
   };
