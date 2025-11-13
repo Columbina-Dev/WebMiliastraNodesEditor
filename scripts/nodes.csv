@@ -509,9 +509,7 @@ client.math.greaterThan,是否大于
 client.math.greaterOrEqual,是否大于等于
 client.math.lessThan,是否小于
 client.math.lessOrEqual,是否小于等于
-client.math.cos,余弦函数
 client.math.tan,正切函数
-client.math.sin,正弦函数
 client.math.makeVector3,创建三维向量
 client.math.assembleList,拼装列表
 client.action.iterateEntities,遍历实体列表
@@ -523,6 +521,9 @@ client.action.cameraRaycastData,镜头朝向检测数据
 client.action.forceExitAim,强制退出瞄准状态
 client.action.setSelfAttackTarget,设置自身攻击目标
 client.action.attackBoxAtPosition,特定位置打攻击盒
+client.action.rectangularAttackBoxAtPosition,特定位置打矩形攻击盒
+client.action.sphericalAttackBoxAtPosition,特定位置打球形攻击盒
+client.action.sectorAttackBoxAtPosition,特定位置打扇形攻击盒
 client.action.addUnitState,添加单位状态
 client.action.notifyServerGraph,通知服务器节点图
 client.action.playerTurn,玩家转向
@@ -531,6 +532,9 @@ client.action.modifyAttackWeight,修改攻击权重
 client.action.removeUnitState,移除单位状态
 client.action.removeCharacterDisturbDevice,移除指定角色扰动装置
 client.action.attackBoxAtSocket,指定挂接点打攻击盒
+client.action.rectangularAttackBoxAtSocket,指定挂接点打矩形攻击盒
+client.action.sphericalAttackBoxAtSocket,指定挂接点打球形攻击盒
+client.action.sectorAttackBoxAtSocket,指定挂接点扇形打攻击盒
 client.action.resetSkillTarget,重置技能目标
 client.action.setLocalVariable,设置局部变量
 client.action.breakLoop,跳出循环

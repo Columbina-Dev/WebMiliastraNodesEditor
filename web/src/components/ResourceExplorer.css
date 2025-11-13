@@ -278,7 +278,7 @@
 
 .resource-explorer__thead {
   display: grid;
-  grid-template-columns: 2fr 140px 200px;
+  grid-template-columns: 1.5fr 100px 500px;
   align-items: center;
   gap: 0;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
@@ -340,7 +340,7 @@
 
 .resource-explorer__row {
   display: grid;
-  grid-template-columns: 2fr 140px 200px;
+  grid-template-columns: 1.5fr 100px 500px;
   align-items: center;
   padding: 12px 18px;
   background: #323237;

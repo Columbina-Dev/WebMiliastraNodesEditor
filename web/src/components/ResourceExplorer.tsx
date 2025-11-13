@@ -207,7 +207,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       );
       if (invalidTypes.length) {
         errors.push(
-          `以下节点类型不属于${expectedKind ? '客户端' : '服务器'}节点库：${invalidTypes.join(', ')}`,
+          `以下节点类型不属于当前节点库分类：${invalidTypes.join(', ')}`,
         );
       }
       if (errors.length) {
