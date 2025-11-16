@@ -192,8 +192,8 @@
 }
 
 .graph-comment-bubble__action {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   border: none;
   background: none;
   color: #3f2d1a;
@@ -215,8 +215,8 @@
 
 .graph-comment-bubble__action svg,
 .graph-comment-bubble__action img {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
 }
 
 .graph-comment-bubble__action--danger {

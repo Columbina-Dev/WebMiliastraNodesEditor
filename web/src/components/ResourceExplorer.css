@@ -311,8 +311,8 @@
 }
 
 .resource-explorer__sort-indicator {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -320,8 +320,8 @@
 }
 
 .resource-explorer__sort-indicator img {
-  width: 14px;
-  height: 14px;
+  width: 20px;
+  height: 20px;
 }
 
 .resource-explorer__thead-cell--meta {
