@@ -53,7 +53,7 @@ import "./App.css";
 
 const AUTO_SAVE_INTERVAL = 30_000;
 const AUTO_SAVE_RECOVERY_THRESHOLD = 30_000;
-const GITHUB_PLACEHOLDER_URL = "https://github.com/Columbina-Dev/WebMiliastraNodesEditor";
+const GITHUB_URL = "https://github.com/Columbina-Dev/WebMiliastraNodesEditor";
 const APP_BASE_PATH = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const TUTORIAL_BASE_PATH = "/ys/ugc/tutorial";
 
@@ -69,10 +69,11 @@ const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
-const ICON_TAB_GRAPH = new URL("./assets/icons/graph.svg", import.meta.url).href;
+const ICON_TAB_GRAPH = new URL("./assets/icons/graph.png", import.meta.url).href;
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
+const ICON_DOCK_COMMENT = new URL("./assets/icons/dock-comment.svg", import.meta.url).href;
 const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
@@ -1610,7 +1611,7 @@ const App = () => {
           <button
             type="button"
             className="app__editor-icon-button app__editor-icon-button--github"
-            onClick={() => window.open(GITHUB_PLACEHOLDER_URL, '_blank', 'noopener')}
+            onClick={() => window.open(GITHUB_URL, '_blank', 'noopener')}
             aria-label="GitHub"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-hidden="true">
@@ -1696,9 +1697,12 @@ const App = () => {
                 onClick={handleCommentToggle}
                 title="注释模式"
               >
-                <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3 3h10a1 1 0 011 1v6.5a1 1 0 01-1 1H7.8l-2.3 2.2a.5.5 0 01-.8-.4V11.5H3a1 1 0 01-1-1V4a1 1 0 011-1z" fill="currentColor" />
-                </svg>
+                <img
+                  src={ICON_DOCK_COMMENT}
+                  alt=""
+                  aria-hidden="true"
+                  className="action_dock__icon-img"
+                />
                 <span className="sr-only">注释模式</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
@@ -1951,7 +1955,7 @@ const App = () => {
         onOpenProject={handleOpenProject}
       onDeleteProject={handleDeleteProject}
       onSaveAll={handleSaveAll}
-      githubUrl={GITHUB_PLACEHOLDER_URL}
+      githubUrl={GITHUB_URL}
       onOpenTutorial={handleOpenTutorial}
       onOpenEffects={handleOpenEffects}
     />

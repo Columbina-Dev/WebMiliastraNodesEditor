@@ -213,9 +213,10 @@
   color: #d78928;
 }
 
-.graph-comment-bubble__action svg {
-  width: 16px;
-  height: 16px;
+.graph-comment-bubble__action svg,
+.graph-comment-bubble__action img {
+  width: 24px;
+  height: 24px;
 }
 
 .graph-comment-bubble__action--danger {

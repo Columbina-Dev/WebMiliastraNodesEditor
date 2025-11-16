@@ -311,16 +311,17 @@
 }
 
 .resource-explorer__sort-indicator {
-  width: 10px;
-  height: 10px;
-  border-top: 2px solid rgba(255, 255, 255, 0.6);
-  border-right: 2px solid rgba(255, 255, 255, 0.6);
-  transform: rotate(-45deg);
-  transition: transform 0.2s ease;
+  width: 14px;
+  height: 14px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 6px;
 }
 
-.resource-explorer__sort-indicator.is-desc {
-  transform: rotate(135deg);
+.resource-explorer__sort-indicator img {
+  width: 14px;
+  height: 14px;
 }
 
 .resource-explorer__thead-cell--meta {
