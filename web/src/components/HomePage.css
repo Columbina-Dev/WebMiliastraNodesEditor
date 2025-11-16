@@ -262,7 +262,7 @@
 .home__github,
 .home__tutorial,
 .home__effects {
-  color: rgba(255, 255, 255, 0.7);
+  color: #FFF;
   transition: color 0.2s ease, opacity 0.2s ease;
   display: flex;
 }
@@ -286,6 +286,7 @@
 .home__effects:hover {
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
+  cursor: var(--cursor-pointer);
 }
 
 @media (max-width: 720px) {
