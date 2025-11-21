@@ -18,7 +18,7 @@
 - `web/src/types/node.ts` – 节点系统的定义。
 - `web/src/utils/` – IO、校验、拖拽、设备类型检测等额外工具函数。 
 - `web/public/tutorial/` - 本地存储的官方综合指南HTML文件及目录JSON。
-- `web/src/external/` - 一些已授权的第三方资源，目前含有特效预览（原网址：https://ys.keqizu.com/）
+- `web/src/external/` - 一些已授权的第三方资源，目前含有特效预览（原网址：[https://ys.keqizu.com/](https://ys.keqizu.com/)）
 
 ## 快速上手
 
