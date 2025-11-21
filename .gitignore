@@ -22,7 +22,8 @@ dist-ssr
 *.sln
 *.sw?
 *.code-workspace
-Notes.txt
+Notes*.txt
+Examples/
 
 # Official
 Official/
