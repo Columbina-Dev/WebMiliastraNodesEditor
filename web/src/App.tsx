@@ -890,7 +890,7 @@ const App = () => {
   const handleExportGil = useCallback(() => {
     if (!projectDocument) {
       setGilDialog({
-        title: "导出为.gil文件",
+        title: "导出为.gil存档",
         message: "当前没有打开的项目。",
         confirmLabel: "关闭",
         onConfirm: () => setGilDialog(null),
@@ -910,7 +910,7 @@ const App = () => {
         } catch (error) {
           console.error(error);
           setGilDialog({
-            title: "导出为.gil文件",
+            title: "导出为.gil存档",
             message: `导出失败：${error instanceof Error ? error.message : String(error)}`,
             confirmLabel: "关闭",
             onConfirm: () => setGilDialog(null),
@@ -923,7 +923,7 @@ const App = () => {
     };
 
     setGilDialog({
-      title: "导出为.gil文件",
+      title: "导出为.gil存档",
       message: (
         <>
           请选择一个.gil模板存档使用当前节点图数据。
@@ -931,7 +931,7 @@ const App = () => {
           注意：此操作会覆盖所选.gil模板存档中的所有节点图数据！
         </>
       ),
-      confirmLabel: "选择.gil模板文件",
+      confirmLabel: "选择.gil模板存档",
       cancelLabel: "取消",
       onConfirm: () => {
         setGilDialog(null);
@@ -1712,7 +1712,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                   </button>
                   <button type="button" onClick={handleExportGil}>
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                    导出为.gil文件
+                    导出为.gil存档
                   </button>
                 </div>
               )}

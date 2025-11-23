@@ -18,7 +18,7 @@ const MAGIC = 0x00000326;
  */
 function readGilEnvelope(buffer: ArrayBuffer): { payloadLength: number } {
   if (buffer.byteLength < HEADER_SIZE) {
-    throw new Error('模板 .gil 文件过小或已损坏。');
+    throw new Error('模板.gil存档疑似已损坏，请重新从原神导出。');
   }
   const view = new DataView(buffer);
   const declaredSize = view.getUint32(0, false);
@@ -28,10 +28,10 @@ function readGilEnvelope(buffer: ArrayBuffer): { payloadLength: number } {
   const payloadLength = view.getUint32(16, false);
 
   if (version !== 1 || magic !== MAGIC || constant !== 2) {
-    throw new Error('无法识别的 .gil 文件头，可能不是官方格式。');
+    throw new Error('无法识别的.gil文件头，请使用正式版原神导出 .gil 存档。');
   }
   if (payloadLength + HEADER_SIZE > buffer.byteLength) {
-    throw new Error('模板 .gil 文件的长度信息异常。');
+    throw new Error('模板.gil文件的长度信息异常。');
   }
   // declaredSize is totalLengthMinusHeader in samples; keep for reference
   const expectedLength = declaredSize + 4;

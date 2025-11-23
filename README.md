@@ -323,3 +323,6 @@ export const serverNodeList = [
   // ...
 ] as const;
 ```
+
+## 特别鸣谢
+- [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件
