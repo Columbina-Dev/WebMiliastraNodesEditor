@@ -28,10 +28,10 @@ function readGilEnvelope(buffer: ArrayBuffer): { payloadLength: number } {
   const payloadLength = view.getUint32(16, false);
 
   if (version !== 1 || magic !== MAGIC || constant !== 2) {
-    throw new Error('无法识别的.gil文件头，请使用正式版原神导出 .gil 存档。');
+    throw new Error('无法识别的.gil文件头，请使用正式版原神导出.gil存档。');
   }
   if (payloadLength + HEADER_SIZE > buffer.byteLength) {
-    throw new Error('模板.gil文件的长度信息异常。');
+    throw new Error('模板.gil文件的长度信息异常，请重新从原神导出。');
   }
   // declaredSize is totalLengthMinusHeader in samples; keep for reference
   const expectedLength = declaredSize + 4;
@@ -60,7 +60,7 @@ export async function exportGraphsToGil(options: GilExportOptions): Promise<GilE
   readGilEnvelope(templateGil);
 
   throw new Error(
-    'gil 导出映射尚未完成（节点图格式仍在反推），请暂时使用 Zip 导出。\n' +
+    'gil 导出映射尚未完成（节点图格式仍在反推），请暂时使用`导出为.zip项目`。\n' +
       '详见 docs/gil-node-format.md 了解当前进展。',
   );
 }
