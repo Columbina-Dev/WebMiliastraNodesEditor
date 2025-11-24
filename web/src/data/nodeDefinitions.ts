@@ -2517,6 +2517,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.tab.toggle",
     displayName: "激活/关闭选项卡",
+    displayNameEN: "Activate/Disable Tab",
+    officialID: 306,
     category: "执行节点/选项卡",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2551,6 +2553,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.collisionSource.toggle",
     displayName: "激活/关闭碰撞触发发源",
+    displayNameEN: "Activate/Disable Collision Trigger Source",
+    officialID: 367,
     category: "执行节点/碰撞触发源",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2578,6 +2582,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.switch",
     displayName: "更改玩家职业",
+    displayNameEN: "Change Player Class",
+    officialID: 389,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2592,6 +2598,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.setLevel",
     displayName: "更改玩家当前职业等级",
+    displayNameEN: "Change Player's Current Class Level",
+    officialID: 391,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2612,6 +2620,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.addExp",
     displayName: "提升玩家当前职业经验",
+    displayNameEN: "Increase Player's Current Class EXP",
+    officialID: 390,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2635,6 +2645,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.enableFromLibrary",
     displayName: "激活控件组库内界面控件组",
+    displayNameEN: "Activate UI Control Group in Control Group Library",
+    officialID: 383,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2655,6 +2667,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.switchLayout",
     displayName: "切换当前界面布局",
+    displayNameEN: "Switch Current Interface Layout",
+    officialID: 382,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2675,6 +2689,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.removeFromLibrary",
     displayName: "移除控件组库内界面控件组",
+    displayNameEN: "Remove Interface Control Group From Control Group Library",
+    officialID: 521,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2695,6 +2711,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.modifyControl",
     displayName: "修改界面布局内界面控件状态",
+    displayNameEN: "Modify UI Control Status Within the Interface Layout",
+    officialID: 384,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2724,6 +2742,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.init",
     displayName: "初始化角色技能",
+    displayNameEN: "Initialize Character Skill",
+    officialID: 397,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2748,6 +2768,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.add",
     displayName: "添加角色技能",
+    displayNameEN: "Add Character Skill",
+    officialID: 395,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2778,6 +2800,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.setCooldown",
     displayName: "设置角色技能冷却",
+    displayNameEN: "Set Character Skill CD",
+    officialID: 739,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2815,6 +2839,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.setResource",
     displayName: "设置技能资源量",
+    displayNameEN: "Set Skill Resource Amount",
+    officialID: 394,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2846,6 +2872,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.removeById",
     displayName: "以ID删除角色技能",
+    displayNameEN: "Delete Character Skill by ID",
+    officialID: 396,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2870,6 +2898,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.removeBySlot",
     displayName: "以槽位删除角色技能",
+    displayNameEN: "Delete Character Skill by Slot",
+    officialID: 399,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2894,6 +2924,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyCooldown",
     displayName: "修改角色技能冷却",
+    displayNameEN: "Modify Character Skill CD",
+    officialID: 740,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2931,6 +2963,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyResource",
     displayName: "修改技能资源量",
+    displayNameEN: "Modify Skill Resource Amount",
+    officialID: 393,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2962,6 +2996,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyCooldownByMaxPct",
     displayName: "按最大冷却时间修改技能冷却百分比",
+    displayNameEN: "Modify Skill CD Percentage Based on Max CD",
+    officialID: 741,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3001,6 +3037,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.play2DOnceForPlayer",
     displayName: "玩家播放单次2D音效",
+    displayNameEN: "Player Plays One-Shot 2D Sound Effect",
+    officialID: 598,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3040,6 +3078,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.togglePlayerBgm",
     displayName: "启动/暂停玩家背景音乐",
+    displayNameEN: "Start/Pause Player Background Music",
+    officialID: 595,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3064,6 +3104,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.toggleSpecificPlayer",
     displayName: "启动/暂停指定音效播放器",
+    displayNameEN: "Start/Pause Specified Sound Effect Player",
+    officialID: 592,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3095,6 +3137,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.addPlayer",
     displayName: "添加音效播放器",
+    displayNameEN: "Add Sound Effect Player",
+    officialID: 594,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3177,6 +3221,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.setPlayerBgmVolume",
     displayName: "调整玩家背景音乐音量",
+    displayNameEN: "Adjust Player Background Music Volume",
+    officialID: 596,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3202,6 +3248,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.tuneSpecificPlayer",
     displayName: "调整指定音效播放器",
+    displayNameEN: "Adjust Specified Sound Effect Player",
+    officialID: 593,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3241,6 +3289,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.closeSpecificPlayer",
     displayName: "关闭指定音效播放器",
+    displayNameEN: "Close Specified Sound Effect Player",
+    officialID: 591,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3266,6 +3316,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.modifyPlayerBgm",
     displayName: "修改玩家背景音乐",
+    displayNameEN: "Modify Player Background Music",
+    officialID: 597,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3336,6 +3388,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.clearAll",
     displayName: "实体清空单位标签",
+    displayNameEN: "Clear Unit Tags from Entity",
+    officialID: 588,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3354,6 +3408,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.add",
     displayName: "实体添加单位标签",
+    displayNameEN: "Add Unit Tag to Entity",
+    officialID: 586,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3379,6 +3435,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.remove",
     displayName: "实体移除单位标签",
+    displayNameEN: "Remove Unit Tag from Entity",
+    officialID: 587,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3407,6 +3465,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.taunt",
     displayName: "嘲讽目标",
+    displayNameEN: "Taunt Target",
+    officialID: 602,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3431,6 +3491,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.setValue",
     displayName: "设置指定实体的仇恨值",
+    displayNameEN: "Set the Aggro Value of Specified Entity",
+    officialID: 599,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3462,6 +3524,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.removeTarget",
     displayName: "将目标实体移除出仇恨列表",
+    displayNameEN: "Remove Target Entity From Aggro List",
+    officialID: 600,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3486,6 +3550,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.clearForTarget",
     displayName: "清空指定目标的仇恨列表",
+    displayNameEN: "Clear Specified Target's Aggro List",
+    officialID: 601,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3507,6 +3573,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.signal.send",
     displayName: "发送信号",
+    displayNameEN: "Send Signal",
+    officialID: 30000,
     category: "执行节点/信号",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3529,6 +3597,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.nameplate.apply",
     displayName: "设置实体生效铭牌",
+    displayNameEN: "Set Entity Active Nameplate",
+    officialID: 617,
     category: "执行节点/铭牌",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3556,6 +3626,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.textBubble.switchActive",
     displayName: "切换生效的文本气泡",
+    displayNameEN: "Switch Active Text Bubble",
+    officialID: 631,
     category: "执行节点/文本气泡",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3584,6 +3656,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.invoke",
     displayName: "唤起卡牌选择器",
+    displayNameEN: "Invoke Deck Selector",
+    officialID: 632,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3668,6 +3742,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.close",
     displayName: "关闭卡牌选择器",
+    displayNameEN: "Close Deck Selector",
+    officialID: 641,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3693,6 +3769,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.randomizeList",
     displayName: "随机卡牌选择器选择列表",
+    displayNameEN: "Random Deck Selector Selection List",
+    officialID: 743,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3714,6 +3792,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerSuccess",
     displayName: "设置玩家结算成功状态",
+    displayNameEN: "Set Player Settlement Success Status",
+    officialID: 652,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3738,6 +3818,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerRankValue",
     displayName: "设置玩家结算排名数值",
+    displayNameEN: "Set Player Settlement Ranking Value",
+    officialID: 650,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3763,6 +3845,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerScoreboardItem",
     displayName: "设置玩家结算计分板展示数据",
+    displayNameEN: "Set Player Settlement Scoreboard Data Display",
+    officialID: 647,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3802,6 +3886,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setCampSuccess",
     displayName: "设置阵营结算成功状态",
+    displayNameEN: "Set Faction Settlement Success Status",
+    officialID: 656,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3821,6 +3907,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setCampRankValue",
     displayName: "设置阵营结算排名数值",
+    displayNameEN: "Set Faction Settlement Ranking Value",
+    officialID: 654,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3844,6 +3932,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.light.toggleEntityLight",
     displayName: "开关实体光源",
+    displayNameEN: "Toggle Entity Light Source",
+    officialID: 667,
     category: "执行节点/光源组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3877,6 +3967,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.clear",
     displayName: "清空字典",
+    displayNameEN: "Clear Dictionary",
+    officialID: 1718,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3895,6 +3987,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.setOrAdd",
     displayName: "对字典设置或新增键值对",
+    displayNameEN: "Set or Add Key Value Pairs to Dictionary",
+    officialID: 948,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3927,6 +4021,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.sortByValue",
     displayName: "对字典按值排序",
+    displayNameEN: "Sort Dictionary by Value",
+    officialID: 1938,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3949,6 +4045,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.sortByKey",
     displayName: "对字典按键排序",
+    displayNameEN: "Sort Dictionary by Key",
+    officialID: 1928,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3971,6 +4069,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.removeByKey",
     displayName: "以键对字典移除键值对",
+    displayNameEN: "Remove Key Value Pairs from Dictionary by Key",
+    officialID: 1298,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3994,32 +4094,13 @@ export const nodeDefinitions: NodeDefinition[] = [
     ],
   },
 
-  // ───────────────────────────── 35-结构体 ─────────────────────────────
-  // 执行节点/结构体
-  {
-    id: "action.struct.modify",
-    displayName: "修改结构体",
-    category: "执行节点/结构体",
-    kind: "action",
-    headerColor: EXECUTION_HEADER,
-    ports: [
-      { id: "flowIn", label: "执行", kind: "flow-in" },
-      { id: "flowOut", label: "完成", kind: "flow-out" },
-      {
-        id: "targetStruct",
-        label: "目标结构体",
-        kind: "data-in",
-        valueType: "any",
-        ui: { accessory: "gear" },
-      },
-    ],
-  },
-
   // ───────────────────────────── 36-商店 ─────────────────────────────
   // 执行节点/商店
   {
     id: "action.shop.open",
     displayName: "打开商店",
+    displayNameEN: "Open Shop",
+    officialID: 702,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4050,6 +4131,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeCustomSellItemByIndex",
     displayName: "从自定义商店出售表中移除商品",
+    displayNameEN: "Remove Item From Custom Shop Sales List",
+    officialID: 711,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4081,6 +4164,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeBuyItem",
     displayName: "从物品收购表中移除物品",
+    displayNameEN: "Remove item from purchase list",
+    officialID: 713,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4111,6 +4196,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeBackpackSellItem",
     displayName: "从背包商店出售表中移除商品",
+    displayNameEN: "Remove Item From Inventory Shop Sales List",
+    officialID: 712,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4141,6 +4228,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.close",
     displayName: "关闭商店",
+    displayNameEN: "Close Shop",
+    officialID: 703,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4158,6 +4247,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addCustomSellItem",
     displayName: "向自定义商店出售表中新增商品",
+    displayNameEN: "Add New Item to Custom Shop Sales List",
+    officialID: 708,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4236,6 +4327,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addBuyItem",
     displayName: "向物品收购表中新增物品",
+    displayNameEN: "Add Items to the Purchase List",
+    officialID: 710,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4279,6 +4372,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addBackpackSellItem",
     displayName: "向背包商店出售表中新增商品",
+    displayNameEN: "Add New Item to Inventory Shop Sales List",
+    officialID: 709,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4336,6 +4431,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyCustomSellInfo",
     displayName: "修改自定义商店商品出售信息",
+    displayNameEN: "Modify Custom Shop Item Sales Info",
+    officialID: 704,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4413,6 +4510,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyBuyInfo",
     displayName: "修改物品收购表中道具收购信息",
+    displayNameEN: "Modify Item Purchase Info in the Purchase List",
+    officialID: 707,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4456,6 +4555,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyBackpackSellInfo",
     displayName: "修改背包商店商品出售信息",
+    displayNameEN: "Modify Inventory Shop Item Sales Info",
+    officialID: 706,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4516,6 +4617,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.remove",
     displayName: "移除装备词条",
+    displayNameEN: "Remove Equipment Affix",
+    officialID: 673,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4541,6 +4644,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.modifyValue",
     displayName: "修改装备词条值",
+    displayNameEN: "Modify Equipment Affix Value",
+    officialID: 674,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4573,6 +4678,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.addAtIndex",
     displayName: "装备指定序号添加词条",
+    displayNameEN: "Add Affix to Equipment at Specified ID",
+    officialID: 742,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4617,6 +4724,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.add",
     displayName: "装备添加词条",
+    displayNameEN: "Add Affix to Equipment",
+    officialID: 672,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4656,6 +4765,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.setDropContent",
     displayName: "设置战利品掉落内容",
+    displayNameEN: "Set Loot Drop Content",
+    officialID: 724,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4681,6 +4792,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.setDropType",
     displayName: "设置战利品掉落类型",
+    displayNameEN: "Set Loot Drop Type",
+    officialID: 725,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4700,6 +4813,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.setDropItemCurrencyCount",
     displayName: "设置背包掉落道具/货币数量",
+    displayNameEN: "Set Inventory Drop Items/Currency Amount",
+    officialID: 687,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4732,6 +4847,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.setItemDropContent",
     displayName: "设置背包道具掉落内容",
+    displayNameEN: "Set Inventory Item Drop Contents",
+    officialID: 720,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4758,6 +4875,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.increaseMaxCapacity",
     displayName: "增加背包最大容量",
+    displayNameEN: "Increase Maximum Inventory Capacity",
+    officialID: 685,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4783,6 +4902,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.modifyCurrencyCountOnDropEntity",
     displayName: "修改掉落物组件货币数量",
+    displayNameEN: "Modify Loot Component Currency Amount",
+    officialID: 727,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4814,6 +4935,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.modifyItemCountOnDropEntity",
     displayName: "修改掉落物组件道具数量",
+    displayNameEN: "Modify Loot Item Component Quantity",
+    officialID: 726,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4845,6 +4968,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.modifyCurrency",
     displayName: "修改背包货币数量",
+    displayNameEN: "Modify Inventory Currency Quantity",
+    officialID: 688,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4876,6 +5001,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.modifyItem",
     displayName: "修改背包道具数量",
+displayNameEN: "Modify Inventory Item Quantity",
+    officialID: 686,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4910,6 +5037,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setVisibleMarkerPlayers",
     displayName: "修改可见小地图标识的玩家列表",
+    displayNameEN: "Modify Player List for Visible Mini-Map Markers",
+    officialID: 636,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4941,6 +5070,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setScale",
     displayName: "修改小地图缩放",
+    displayNameEN: "Modify Mini-Map Zoom",
+    officialID: 634,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4966,6 +5097,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setMarkerEnabledState",
     displayName: "修改小地图标识生效状态",
+    displayNameEN: "Modify Mini-Map Marker Activation Status",
+    officialID: 635,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4991,6 +5124,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setMarkerPlayerTag",
     displayName: "修改小地图标识的玩家标记",
+    displayNameEN: "Modify Player Markers on the Mini-Map",
+    officialID: 640,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5022,6 +5157,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setTrackingMarkerPlayers",
     displayName: "修改追踪小地图标识的玩家列表",
+    displayNameEN: "Modify Player List for Tracking Mini-Map Markers",
+    officialID: 637,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5056,6 +5193,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.patrol.switchTemplate",
     displayName: "切换造物巡逻模板",
+    displayNameEN: "Switch Creation Patrol Template",
+    officialID: 618,
     category: "执行节点/造物巡逻",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5083,6 +5222,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.leaderboard.setScoreInt",
     displayName: "以整数设置玩家排行榜分数",
+    displayNameEN: "Set Player Leaderboard Score as an Integer",
+    officialID: 761,
     category: "执行节点/排行榜",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5115,6 +5256,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.leaderboard.setScoreFloat",
     displayName: "以浮点数设置玩家排行榜分数",
+    displayNameEN: "Set Player Leaderboard Score as a Float",
+    officialID: 762,
     category: "执行节点/排行榜",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5150,6 +5293,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.achievement.setProgressCount",
     displayName: "设置成就进度计数",
+    displayNameEN: "Set Achievement Progress Tally",
+    officialID: 645,
     category: "执行节点/成就",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5182,6 +5327,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.achievement.changeProgressCount",
     displayName: "变更成就进度计数",
+    displayNameEN: "Change Achievement Progress Tally",
+    officialID: 646,
     category: "执行节点/成就",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5217,6 +5364,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.scan.setActiveScanTagIndex",
     displayName: "设置扫描组件的生效扫描标签序号",
+    displayNameEN: "Set Scan Component's Active Scan Tag ID",
+    officialID: 736,
     category: "执行节点/扫描标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5242,6 +5391,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.scan.setTagRule",
     displayName: "设置扫描标签的规则",
+    displayNameEN: "Set Scan Tag Rules",
+    officialID: 735,
     category: "执行节点/扫描标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5264,6 +5415,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.setPlayerEscapeValidity",
     displayName: "设置玩家逃跑合法性",
+    displayNameEN: "Set Player Escape Validity",
+    officialID: 661,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5283,6 +5436,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.setPlayerRankDeltaScore",
     displayName: "设置玩家段位变化分数",
+    displayNameEN: "Set Player Rank Score Change",
+    officialID: 659,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5314,6 +5469,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.switchActiveScoreGroup",
     displayName: "切换玩家竞技段位生效的计分组",
+    displayNameEN: "Switch the scoring group that affects player's competitive rank",
+    officialID: 663,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5342,6 +5499,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.placement.toggleGroup",
     displayName: "激活/关闭实体布设组",
+    displayNameEN: "Activate/Disable Entity Deployment Group",
+    officialID: 178,
     category: "执行节点/实体布设组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5370,6 +5529,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.setChannelEnabled",
     displayName: "设置聊天频道开关",
+    displayNameEN: "Set Chat Channel Switch",
+    officialID: 769,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5395,6 +5556,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.setPlayerCurrentChannel",
     displayName: "设置玩家当前频道",
+    displayNameEN: "Set Player's Current Channel",
+    officialID: 771,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5419,6 +5582,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.modifyPlayerChannelPermission",
     displayName: "修改玩家频道权限",
+    displayNameEN: "Modify Player Channel Permission",
+    officialID: 770,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5448,6 +5613,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.giftBox.consume",
     displayName: "消耗礼盒",
+    displayNameEN: "Consume Gift Box",
+    officialID: 772,
     category: "执行节点/奇域礼盒相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5477,6 +5644,7 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
+
   // ───────────────────────────── 00-自定义变量 ─────────────────────────────
   // 事件节点/自定义变量
   {
