@@ -16,6 +16,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.printString",
     displayName: "打印字符串",
+    displayNameEN: "Print String",
+    officialID: 1,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -35,6 +37,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setLocalVariable",
     displayName: "设置局部变量",
+    displayNameEN: "Set Local Variable",
+    officialID: 19,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -61,6 +65,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loopFinite",
     displayName: "有限循环",
+    displayNameEN: "Finite Loop",
+    officialID: 5,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -96,6 +102,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.breakLoop",
     displayName: "跳出循环",
+    displayNameEN: "Break Loop",
+    officialID: 6,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -107,6 +115,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.forwardEvent",
     displayName: "转发事件",
+    displayNameEN: "Forwarding Event",
+    officialID: 190,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -128,6 +138,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.sort",
     displayName: "列表排序",
+    displayNameEN: "List Sorting",
+    officialID: 167,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -157,6 +169,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.modify",
     displayName: "对列表修改值",
+    displayNameEN: "Modify Value in List",
+    officialID: 160,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -191,6 +205,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.insert",
     displayName: "对列表插入值",
+    displayNameEN: "Insert Value Into List",
+    officialID: 135,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -225,6 +241,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.remove",
     displayName: "对列表移除值",
+    displayNameEN: "Remove Value From List",
+    officialID: 153,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -251,6 +269,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.iterate",
     displayName: "列表迭代循环",
+    displayNameEN: "List Iteration Loop",
+    officialID: 509,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -278,6 +298,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.concat",
     displayName: "拼接列表",
+    displayNameEN: "Concatenate List",
+    officialID: 100,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -303,6 +325,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.clear",
     displayName: "清除列表",
+    displayNameEN: "Clear List",
+    officialID: 107,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -322,6 +346,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setCustomVariable",
     displayName: "设置自定义变量",
+    displayNameEN: "Set Custom Variable",
+    officialID: 323,
     category: "执行节点/自定义变量",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -362,6 +388,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setGraphVariable",
     displayName: "设置节点图变量",
+    displayNameEN: "Set Node Graph Variable",
+    officialID: 22,
     category: "执行节点/自定义变量",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -396,6 +424,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPresetState",
     displayName: "设置预设状态",
+    displayNameEN: "Set Preset Status",
+    officialID: 66,
     category: "执行节点/预设状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -432,6 +462,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createComponent",
     displayName: "创建元件",
+    displayNameEN: "Create Prefab",
+    officialID: 252,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -486,6 +518,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createComponentGroup",
     displayName: "创建元件组",
+    displayNameEN: "Create Prefab Group",
+    officialID: 757,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -542,6 +576,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createEntity",
     displayName: "创建实体",
+    displayNameEN: "Create Entity",
+    officialID: 70,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -561,6 +597,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.destroyEntity",
     displayName: "销毁实体",
+    displayNameEN: "Destroy Entity",
+    officialID: 69,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -578,6 +616,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleModelVisibility",
     displayName: "激活/关闭模型显示",
+    displayNameEN: "Activate/Disable Model Display",
+    officialID: 308,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -602,6 +642,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.removeEntity",
     displayName: "移除实体",
+    displayNameEN: "Remove Entity",
+    officialID: 372,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -620,6 +662,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.finishLevel",
     displayName: "结算关卡",
+    displayNameEN: "Settle Stage",
+    officialID: 77,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -631,6 +675,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setEnvironmentTime",
     displayName: "设置当前环境时间",
+    displayNameEN: "Set Current Environment Time",
+    officialID: 665,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -649,6 +695,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setEnvironmentTimeRate",
     displayName: "设置环境时间流逝速度",
+    displayNameEN: "Set Environment Time Passage Speed",
+    officialID: 666,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -669,6 +717,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.modifyEntityFaction",
     displayName: "修改实体阵营",
+    displayNameEN: "Modify Entity Faction",
+    officialID: 250,
     category: "执行节点/阵营相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -694,6 +744,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.teleportPlayer",
     displayName: "传送玩家",
+    displayNameEN: "Teleport Player",
+    officialID: 288,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -723,6 +775,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.updateEnvironmentConfig",
     displayName: "修改环境配置",
+    displayNameEN: "Modify environment settings",
+    officialID: 763,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -762,6 +816,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.knockdownAllPlayerCharacters",
     displayName: "击倒玩家所有角色",
+    displayNameEN: "Defeat All Player's Characters",
+    officialID: 282,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -779,6 +835,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.reviveAllPlayerCharacters",
     displayName: "复苏玩家所有角色",
+    displayNameEN: "Revive All Player's Characters",
+    officialID: 283,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -791,17 +849,13 @@ export const nodeDefinitions: NodeDefinition[] = [
         kind: "data-in",
         valueType: "entity",
       },
-      {
-        id: "consumeReviveCount",
-        label: "是否扣除复苏次数",
-        kind: "data-in",
-        valueType: "bool",
-      },
     ],
   },
   {
     id: "action.reviveCharacter",
     displayName: "复苏角色",
+    displayNameEN: "Revive Character",
+    officialID: 279,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -819,6 +873,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unregisterRevivePoint",
     displayName: "注销复苏点",
+    displayNameEN: "Deactivate Revive Point",
+    officialID: 273,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -843,6 +899,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.activateRevivePoint",
     displayName: "激活复苏点",
+    displayNameEN: "Activate Revive Point",
+    officialID: 272,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -867,6 +925,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPlayerReviveCount",
     displayName: "设置玩家剩余复苏次数",
+    displayNameEN: "Set Player Remaining Revives",
+    officialID: 276,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -891,6 +951,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPlayerReviveDuration",
     displayName: "设置玩家复苏耗时",
+    displayNameEN: "Set Player Revive Time",
+    officialID: 278,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -915,6 +977,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.togglePlayerRevive",
     displayName: "允许/禁止玩家复苏",
+    displayNameEN: "Allow/Forbid Player to Revive",
+    officialID: 274,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -939,6 +1003,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleNativeCollision",
     displayName: "激活/关闭原生碰撞",
+    displayNameEN: "Activate/Disable Native Collision",
+    officialID: 240,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -962,6 +1028,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleNativeCollisionClimbable",
     displayName: "激活/关闭原生碰撞可攀爬性",
+    displayNameEN: "Activate/Disable Native Collision Climbability",
+    officialID: 241,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -985,6 +1053,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleExtraCollision",
     displayName: "激活/关闭额外碰撞",
+    displayNameEN: "Activate/Disable Extra Collision",
+    officialID: 242,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1015,6 +1085,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleExtraCollisionClimbable",
     displayName: "激活/关闭额外碰撞可攀爬性",
+    displayNameEN: "Activate/Disable Extra Collision Climbability",
+    officialID: 243,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1046,6 +1118,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleCollisionTrigger",
     displayName: "注册/关闭碰撞触发器",
+    displayNameEN: "Activate/Disable Collision Trigger",
+    officialID: 90,
     category: "执行节点/碰撞触发器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1079,6 +1153,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.directHeal",
     displayName: "直接恢复生命",
+    displayNameEN: "Recover HP Directly",
+    officialID: 698,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1136,6 +1212,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.attack",
     displayName: "发起攻击",
+    displayNameEN: "Initiate Attack",
+    officialID: 303,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1199,6 +1277,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.heal",
     displayName: "恢复生命",
+    displayNameEN: "Recover HP",
+    officialID: 583,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1243,6 +1323,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.loseHp",
     displayName: "损失生命",
+    displayNameEN: "HP Loss",
+    officialID: 697,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1290,6 +1372,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFixed.start",
     displayName: "开启定点运动器",
+    displayNameEN: "Activate Fixed-Point Motion Device",
+    officialID: 775,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1354,6 +1438,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.stopAndRemove",
     displayName: "停止并删除基础运动器",
+    displayNameEN: "Stop and Delete Basic Motion Device",
+    officialID: 86,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1385,6 +1471,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.resume",
     displayName: "恢复基础运动器",
+    displayNameEN: "Recover Basic Motion Device",
+    officialID: 88,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1410,6 +1498,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.pause",
     displayName: "暂停基础运动器",
+    displayNameEN: "Pause Basic Motion Device",
+    officialID: 87,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1435,6 +1525,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.activate",
     displayName: "激活基础运动器",
+    displayNameEN: "Activate Basic Motion Device",
+    officialID: 267,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1460,6 +1552,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addLookAtTargetRot",
     displayName: "添加朝向目标旋转型基础运动器",
+    displayNameEN: "Add Target-Oriented Rotation-Based Motion Device",
+    officialID: 520,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1498,6 +1592,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addUniformLinear",
     displayName: "添加匀速直线型基础运动器",
+    displayNameEN: "Add Uniform Basic Linear Motion Device",
+    officialID: 84,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1536,6 +1632,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addUniformRotate",
     displayName: "添加匀速旋转型基础运动器",
+    displayNameEN: "Add Uniform Basic Rotation-Based Motion Device",
+    officialID: 85,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1584,6 +1682,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.toggle",
     displayName: "激活/关闭跟随运动器",
+    displayNameEN: "Activate/Disable Follow Motion Device",
+    officialID: 365,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1608,6 +1708,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.switchTargetByGuid",
     displayName: "以GUID切换跟随运动器的目标",
+    displayNameEN: "Switch Follow Motion Device Target by GUID",
+    officialID: 245,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1664,6 +1766,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.switchTargetByEntity",
     displayName: "以实体切换跟随运动器的目标",
+    displayNameEN: "Switch Follow Motion Device Target by Entity",
+    officialID: 668,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1721,6 +1825,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.projectile.create",
     displayName: "创建投射物",
+    displayNameEN: "Create Projectile",
+    officialID: 256,
     category: "执行节点/投射物",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1785,6 +1891,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.clearByAsset",
     displayName: "根据特效资产清除特效",
+    displayNameEN: "Clear Special Effects Based on Special Effect Assets",
+    officialID: 473,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1809,6 +1917,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.clearLoop",
     displayName: "清除循环特效",
+    displayNameEN: "Clear Looping Special Effect",
+    officialID: 95,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1834,6 +1944,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.attachLoop",
     displayName: "挂载循环特效",
+    displayNameEN: "Mount Looping Special Effect",
+    officialID: 94,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1909,6 +2021,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.playTimed",
     displayName: "播放限时特效",
+    displayNameEN: "Play Timed Effects",
+    officialID: 93,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1980,6 +2094,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.stop",
     displayName: "终止定时器",
+    displayNameEN: "Stop Timer",
+    officialID: 82,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2005,6 +2121,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.resume",
     displayName: "恢复定时器",
+    displayNameEN: "Resume Timer",
+    officialID: 81,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2030,6 +2148,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.pause",
     displayName: "暂停定时器",
+    displayNameEN: "Pause Timer",
+    officialID: 80,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2055,6 +2175,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.start",
     displayName: "启动定时器",
+    displayNameEN: "Start Timer",
+    officialID: 79,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2090,6 +2212,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.stop",
     displayName: "终止全局计时器",
+    displayNameEN: "Stop Global Timer",
+    officialID: 313,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2115,6 +2239,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.resume",
     displayName: "恢复全局计时器",
+    displayNameEN: "Recover Global Timer",
+    officialID: 312,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2140,6 +2266,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.pause",
     displayName: "暂停全局计时器",
+    displayNameEN: "Pause Global Timer",
+    officialID: 309,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2165,6 +2293,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.start",
     displayName: "启动全局计时器",
+    displayNameEN: "Start Global Timer",
+    officialID: 311,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2190,6 +2320,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.modify",
     displayName: "修改全局计时器",
+    displayNameEN: "Modify Global Timer",
+    officialID: 314,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2225,6 +2357,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.camera.switchTemplate",
     displayName: "切换主镜头模板",
+    displayNameEN: "Switch Main Camera Template",
+    officialID: 261,
     category: "执行节点/镜头",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2253,6 +2387,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.playerDisturber.modify",
     displayName: "修改角色扰动装置",
+    displayNameEN: "Modifying Character Disruptor Device",
+    officialID: 302,
     category: "执行节点/角色扰动装置",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2281,6 +2417,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitState.add",
     displayName: "添加单位状态",
+    displayNameEN: "Add Unit Status",
+    officialID: 297,
     category: "执行节点/单位状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2337,6 +2475,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitState.remove",
     displayName: "移除单位状态",
+    displayNameEN: "Remove Unit Status",
+    officialID: 301,
     category: "执行节点/单位状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2372,7 +2512,6 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-
   // ───────────────────────────── 20-选项卡 ─────────────────────────────
   // 执行节点/选项卡
   {
@@ -4939,7 +5078,6 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-
   // ───────────────────────────── 41-排行榜 ─────────────────────────────
   // 执行节点/排行榜
   {
@@ -12801,17 +12939,7 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "z", label: "Z分量", kind: "data-out", valueType: "float" },
     ],
   },
-  {
-    id: "client.math.vector3.directionToRotation",
-    displayName: "朝向转旋转",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "direction", label: "朝向", kind: "data-in", valueType: "vector3" },
-      { id: "rotation", label: "旋转", kind: "data-out", valueType: "vector3" },
-    ],
-  },
+
   {
     id: "client.math.math.multiply",
     displayName: "乘法运算",
@@ -12891,65 +13019,7 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "degree", label: "角度", kind: "data-out", valueType: "float" },
     ],
   },
-  {
-    id: "client.math.vectorAdd",
-    displayName: "三维向量加法",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "vec1", label: "三维向量1", kind: "data-in", valueType: "vector3" },
-      { id: "vec2", label: "三维向量2", kind: "data-in", valueType: "vector3" },
-      { id: "calc", label: "计算结果", kind: "data-out", valueType: "vector3" },
-    ],
-  },
-  {
-    id: "client.math.vectorSubtract",
-    displayName: "三维向量减法",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "vec1", label: "三维向量1", kind: "data-in", valueType: "vector3" },
-      { id: "vec2", label: "三维向量2", kind: "data-in", valueType: "vector3" },
-      { id: "calc", label: "计算结果", kind: "data-out", valueType: "vector3" },
-    ],
-  },
-  {
-    id: "client.math.vectorDot",
-    displayName: "三维向量内积",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "vec1", label: "三维向量1", kind: "data-in", valueType: "vector3" },
-      { id: "vec2", label: "三维向量2", kind: "data-in", valueType: "vector3" },
-      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
-    ],
-  },
-  {
-    id: "client.math.vectorCross",
-    displayName: "三维向量外积",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "vec1", label: "三维向量1", kind: "data-in", valueType: "vector3" },
-      { id: "vec2", label: "三维向量2", kind: "data-in", valueType: "vector3" },
-      { id: "calc", label: "计算结果", kind: "data-out", valueType: "vector3" },
-    ],
-  },
-  {
-    id: "client.math.vectorNormalize",
-    displayName: "三维向量归一化",
-    category: "运算节点/数学",
-    kind: "math",
-    headerColor: MATH_HEADER,
-    ports: [
-      { id: "vec", label: "三维向量", kind: "data-in", valueType: "vector3" },
-      { id: "result", label: "结果", kind: "data-out", valueType: "vector3" },
-    ],
-  },
+
   {
     id: "client.math.arcCos",
     displayName: "反余弦函数",
