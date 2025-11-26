@@ -10,6 +10,11 @@ import { useOnViewportChange, useReactFlow, type Node } from 'reactflow';
 import { useGraphStore } from '../state/graphStore';
 import './GraphCommentsOverlay.css';
 
+const ICON_EDIT = new URL('../assets/icons/comment-edit.svg', import.meta.url).href;
+const ICON_PIN_OFF = new URL('../assets/icons/pin_0.png', import.meta.url).href;
+const ICON_PIN_ON = new URL('../assets/icons/pin_1.png', import.meta.url).href;
+const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
+
 const MIN_TEXT_HEIGHT = 32;
 const MAX_TEXT_HEIGHT = 180;
 const NODE_ICON_OFFSET_X = 12;
@@ -367,18 +372,13 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                         setSelectedComment(comment.id);
                         setCommentCollapsed(comment.id, false);
                       }
-                    }}
-                    title={isEditing ? '完成编辑' : '编辑注释'}
-                  >
-                    <svg viewBox="0 0 16 16" aria-hidden="true">
-                      <path
-                        d="M3 11.5V13h1.5L11 6.5 9.5 5 3 11.5zM12.9 4.6a.8.8 0 000-1.1l-1.4-1.4a.8.8 0 00-1.1 0l-.9.9L12 5.5l.9-.9z"
-                        fill="currentColor"
-                      />
-                    </svg>
-                  </button>
-                  {!isFloating && (
-                    <button
+                  }}
+                  title={isEditing ? '完成编辑' : '编辑注释'}
+                >
+                  <img src={ICON_EDIT} alt="" aria-hidden="true" />
+                </button>
+                {!isFloating && (
+                  <button
                       type="button"
                       className={classNames('graph-comment-bubble__action', {
                         'is-active': comment.pinned,
@@ -397,12 +397,11 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                       }}
                       title={comment.pinned ? '取消固定' : '固定注释'}
                     >
-                      <svg viewBox="0 0 16 16" aria-hidden="true">
-                        <path
-                          d="M6 2.5a1 1 0 011-1h2a1 1 0 011 1V6l1.4 1.4a1 1 0 01-.7 1.7H8.5V14a.5.5 0 01-1 0V9.1H5.3a1 1 0 01-.7-1.7L6 6V2.5z"
-                          fill="currentColor"
-                        />
-                      </svg>
+                      <img
+                        src={comment.pinned ? ICON_PIN_ON : ICON_PIN_OFF}
+                        alt=""
+                        aria-hidden="true"
+                      />
                     </button>
                   )}
                   <button
@@ -417,12 +416,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                     }}
                     title="删除注释"
                   >
-                    <svg viewBox="0 0 16 16" aria-hidden="true">
-                      <path
-                        d="M6 2l.4-1h3.2l.4 1H13v1H3V2h3zM4 4h8l-.6 9.1a1 1 0 01-1 .9H5.6a1 1 0 01-1-.9L4 4z"
-                        fill="currentColor"
-                      />
-                    </svg>
+                    <img src={ICON_DELETE} alt="" aria-hidden="true" />
                   </button>
                 </div>
               </div>

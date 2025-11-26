@@ -1,8 +1,8 @@
 import { useMemo } from 'react';
 import classNames from 'classnames';
 import NodeLibrary from './NodeLibrary';
-import { nodeDefinitions } from '../data/nodeDefinitions';
-import { GRAPH_SYSTEM_NODE_IDS } from '../types/node';
+import { useGraphStore } from '../state/graphStore';
+import { getNodeDefinitionsForEnvironment } from '../utils/nodeAvailability';
 import './NodePalette.css';
 
 interface NodePaletteProps {
@@ -11,12 +11,11 @@ interface NodePaletteProps {
   isTouchEnvironment?: boolean;
 }
 
-const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
-
 const NodePalette = ({ collapsed, onToggle, isTouchEnvironment = false }: NodePaletteProps) => {
+  const environment = useGraphStore((state) => state.environment);
   const filteredDefinitions = useMemo(
-    () => nodeDefinitions.filter((definition) => !SYSTEM_NODE_ID_SET.has(definition.id)),
-    []
+    () => getNodeDefinitionsForEnvironment(environment, { includeSystem: false }),
+    [environment]
   );
 
   return (

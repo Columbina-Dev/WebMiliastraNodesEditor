@@ -104,6 +104,8 @@ const ICON_GRAPH = new URL('../assets/icons/graph.svg', import.meta.url).href;
 const ICON_TAB_SERVER = new URL('../assets/icons/tab-server.svg', import.meta.url).href;
 const ICON_TAB_CLIENT = new URL('../assets/icons/tab-client.svg', import.meta.url).href;
 const ICON_TOGGLE = new URL('../assets/icons/sidebar-toggle.svg', import.meta.url).href;
+const ICON_SORT_ASC = new URL('../assets/icons/srt_asc.png', import.meta.url).href;
+const ICON_SORT_DESC = new URL('../assets/icons/srt_des.png', import.meta.url).href;
 
 type ResourceExplorerDialog = {
   title: string;
@@ -207,7 +209,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       );
       if (invalidTypes.length) {
         errors.push(
-          `以下节点类型不属于${expectedKind ? '客户端' : '服务器'}节点库：${invalidTypes.join(', ')}`,
+          `以下节点类型不属于当前节点库分类：${invalidTypes.join(', ')}`,
         );
       }
       if (errors.length) {
@@ -1750,12 +1752,9 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               onClick={() => setSortAscending((prev) => !prev)}
             >
               名称
-              <span
-                className={classNames('resource-explorer__sort-indicator', {
-                  'is-desc': !sortAscending,
-                })}
-                aria-hidden="true"
-              />
+              <span className="resource-explorer__sort-indicator" aria-hidden="true">
+                <img src={sortAscending ? ICON_SORT_ASC : ICON_SORT_DESC} alt="" />
+              </span>
             </button>
             <div className="resource-explorer__thead-cell">类型</div>
             <div className="resource-explorer__thead-cell resource-explorer__thead-cell--meta">

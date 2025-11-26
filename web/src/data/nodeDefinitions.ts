@@ -1,17 +1,23 @@
-﻿import type { NodeDefinition } from '../types/node';
+﻿import type { NodeDefinition } from "../types/node";
 
-const EXECUTION_HEADER = '#C5D253';
-const EVENT_HEADER = 'linear-gradient(90deg, #D352AC 0%, #FC5F6C 100%)';
-const FLOW_HEADER = '#FD925C';
-const QUERY_HEADER = '#3F54AF';
-const MATH_HEADER = '#0D5A8B';
+const EXECUTION_HEADER = "#C5D253";
+const EVENT_HEADER = "linear-gradient(90deg, #D352AC 0%, #FC5F6C 100%)";
+const FLOW_HEADER = "#FD925C";
+const QUERY_HEADER = "#3F54AF";
+const MATH_HEADER = "#0D5A8B";
 
 // 注意：以下**所有**节点的定义均由AI根据官方节点图编辑器截图推断，可能存在错误或不完整之处，如有任何问题，请在Issue中提出。
 export const nodeDefinitions: NodeDefinition[] = [
+  // ==============================================================================
+  // ============================= 服务器节点图可用节点 =============================
+  // ==============================================================================
+
   // 执行节点/通用
   {
     id: "action.printString",
     displayName: "打印字符串",
+    displayNameEN: "Print String",
+    officialID: 1,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -31,6 +37,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setLocalVariable",
     displayName: "设置局部变量",
+    displayNameEN: "Set Local Variable",
+    officialID: 19,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -57,6 +65,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loopFinite",
     displayName: "有限循环",
+    displayNameEN: "Finite Loop",
+    officialID: 5,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -92,6 +102,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.breakLoop",
     displayName: "跳出循环",
+    displayNameEN: "Break Loop",
+    officialID: 6,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -103,6 +115,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.forwardEvent",
     displayName: "转发事件",
+    displayNameEN: "Forwarding Event",
+    officialID: 190,
     category: "执行节点/通用",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -124,6 +138,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.sort",
     displayName: "列表排序",
+    displayNameEN: "List Sorting",
+    officialID: 167,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -153,6 +169,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.modify",
     displayName: "对列表修改值",
+    displayNameEN: "Modify Value in List",
+    officialID: 160,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -187,6 +205,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.insert",
     displayName: "对列表插入值",
+    displayNameEN: "Insert Value Into List",
+    officialID: 135,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -221,6 +241,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.remove",
     displayName: "对列表移除值",
+    displayNameEN: "Remove Value From List",
+    officialID: 153,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -247,6 +269,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.iterate",
     displayName: "列表迭代循环",
+    displayNameEN: "List Iteration Loop",
+    officialID: 509,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -274,6 +298,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.concat",
     displayName: "拼接列表",
+    displayNameEN: "Concatenate List",
+    officialID: 100,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -299,6 +325,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.list.clear",
     displayName: "清除列表",
+    displayNameEN: "Clear List",
+    officialID: 107,
     category: "执行节点/列表相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -318,6 +346,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setCustomVariable",
     displayName: "设置自定义变量",
+    displayNameEN: "Set Custom Variable",
+    officialID: 323,
     category: "执行节点/自定义变量",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -358,6 +388,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setGraphVariable",
     displayName: "设置节点图变量",
+    displayNameEN: "Set Node Graph Variable",
+    officialID: 22,
     category: "执行节点/自定义变量",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -392,6 +424,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPresetState",
     displayName: "设置预设状态",
+    displayNameEN: "Set Preset Status",
+    officialID: 66,
     category: "执行节点/预设状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -428,6 +462,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createComponent",
     displayName: "创建元件",
+    displayNameEN: "Create Prefab",
+    officialID: 252,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -482,6 +518,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createComponentGroup",
     displayName: "创建元件组",
+    displayNameEN: "Create Prefab Group",
+    officialID: 757,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -538,6 +576,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.createEntity",
     displayName: "创建实体",
+    displayNameEN: "Create Entity",
+    officialID: 70,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -557,6 +597,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.destroyEntity",
     displayName: "销毁实体",
+    displayNameEN: "Destroy Entity",
+    officialID: 69,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -574,6 +616,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleModelVisibility",
     displayName: "激活/关闭模型显示",
+    displayNameEN: "Activate/Disable Model Display",
+    officialID: 308,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -598,6 +642,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.removeEntity",
     displayName: "移除实体",
+    displayNameEN: "Remove Entity",
+    officialID: 372,
     category: "执行节点/实体相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -616,6 +662,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.finishLevel",
     displayName: "结算关卡",
+    displayNameEN: "Settle Stage",
+    officialID: 77,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -627,6 +675,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setEnvironmentTime",
     displayName: "设置当前环境时间",
+    displayNameEN: "Set Current Environment Time",
+    officialID: 665,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -645,6 +695,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setEnvironmentTimeRate",
     displayName: "设置环境时间流逝速度",
+    displayNameEN: "Set Environment Time Passage Speed",
+    officialID: 666,
     category: "执行节点/关卡相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -665,6 +717,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.modifyEntityFaction",
     displayName: "修改实体阵营",
+    displayNameEN: "Modify Entity Faction",
+    officialID: 250,
     category: "执行节点/阵营相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -690,6 +744,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.teleportPlayer",
     displayName: "传送玩家",
+    displayNameEN: "Teleport Player",
+    officialID: 288,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -719,6 +775,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.updateEnvironmentConfig",
     displayName: "修改环境配置",
+    displayNameEN: "Modify environment settings",
+    officialID: 763,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -758,6 +816,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.knockdownAllPlayerCharacters",
     displayName: "击倒玩家所有角色",
+    displayNameEN: "Defeat All Player's Characters",
+    officialID: 282,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -775,6 +835,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.reviveAllPlayerCharacters",
     displayName: "复苏玩家所有角色",
+    displayNameEN: "Revive All Player's Characters",
+    officialID: 283,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -787,17 +849,13 @@ export const nodeDefinitions: NodeDefinition[] = [
         kind: "data-in",
         valueType: "entity",
       },
-      {
-        id: "consumeReviveCount",
-        label: "是否扣除复苏次数",
-        kind: "data-in",
-        valueType: "bool",
-      },
     ],
   },
   {
     id: "action.reviveCharacter",
     displayName: "复苏角色",
+    displayNameEN: "Revive Character",
+    officialID: 279,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -815,6 +873,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unregisterRevivePoint",
     displayName: "注销复苏点",
+    displayNameEN: "Deactivate Revive Point",
+    officialID: 273,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -839,6 +899,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.activateRevivePoint",
     displayName: "激活复苏点",
+    displayNameEN: "Activate Revive Point",
+    officialID: 272,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -863,6 +925,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPlayerReviveCount",
     displayName: "设置玩家剩余复苏次数",
+    displayNameEN: "Set Player Remaining Revives",
+    officialID: 276,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -887,6 +951,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.setPlayerReviveDuration",
     displayName: "设置玩家复苏耗时",
+    displayNameEN: "Set Player Revive Time",
+    officialID: 278,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -911,6 +977,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.togglePlayerRevive",
     displayName: "允许/禁止玩家复苏",
+    displayNameEN: "Allow/Forbid Player to Revive",
+    officialID: 274,
     category: "执行节点/玩家与角色相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -935,6 +1003,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleNativeCollision",
     displayName: "激活/关闭原生碰撞",
+    displayNameEN: "Activate/Disable Native Collision",
+    officialID: 240,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -958,6 +1028,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleNativeCollisionClimbable",
     displayName: "激活/关闭原生碰撞可攀爬性",
+    displayNameEN: "Activate/Disable Native Collision Climbability",
+    officialID: 241,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -981,6 +1053,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleExtraCollision",
     displayName: "激活/关闭额外碰撞",
+    displayNameEN: "Activate/Disable Extra Collision",
+    officialID: 242,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1011,6 +1085,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleExtraCollisionClimbable",
     displayName: "激活/关闭额外碰撞可攀爬性",
+    displayNameEN: "Activate/Disable Extra Collision Climbability",
+    officialID: 243,
     category: "执行节点/碰撞",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1042,6 +1118,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.toggleCollisionTrigger",
     displayName: "注册/关闭碰撞触发器",
+    displayNameEN: "Activate/Disable Collision Trigger",
+    officialID: 90,
     category: "执行节点/碰撞触发器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1075,6 +1153,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.directHeal",
     displayName: "直接恢复生命",
+    displayNameEN: "Recover HP Directly",
+    officialID: 698,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1132,6 +1212,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.attack",
     displayName: "发起攻击",
+    displayNameEN: "Initiate Attack",
+    officialID: 303,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1195,6 +1277,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.heal",
     displayName: "恢复生命",
+    displayNameEN: "Recover HP",
+    officialID: 583,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1239,6 +1323,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.combat.loseHp",
     displayName: "损失生命",
+    displayNameEN: "HP Loss",
+    officialID: 697,
     category: "执行节点/战斗",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1286,6 +1372,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFixed.start",
     displayName: "开启定点运动器",
+    displayNameEN: "Activate Fixed-Point Motion Device",
+    officialID: 775,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1350,6 +1438,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.stopAndRemove",
     displayName: "停止并删除基础运动器",
+    displayNameEN: "Stop and Delete Basic Motion Device",
+    officialID: 86,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1381,6 +1471,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.resume",
     displayName: "恢复基础运动器",
+    displayNameEN: "Recover Basic Motion Device",
+    officialID: 88,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1406,6 +1498,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.pause",
     displayName: "暂停基础运动器",
+    displayNameEN: "Pause Basic Motion Device",
+    officialID: 87,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1431,6 +1525,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.activate",
     displayName: "激活基础运动器",
+    displayNameEN: "Activate Basic Motion Device",
+    officialID: 267,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1456,6 +1552,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addLookAtTargetRot",
     displayName: "添加朝向目标旋转型基础运动器",
+    displayNameEN: "Add Target-Oriented Rotation-Based Motion Device",
+    officialID: 520,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1494,6 +1592,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addUniformLinear",
     displayName: "添加匀速直线型基础运动器",
+    displayNameEN: "Add Uniform Basic Linear Motion Device",
+    officialID: 84,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1532,6 +1632,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverBase.addUniformRotate",
     displayName: "添加匀速旋转型基础运动器",
+    displayNameEN: "Add Uniform Basic Rotation-Based Motion Device",
+    officialID: 85,
     category: "执行节点/运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1580,6 +1682,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.toggle",
     displayName: "激活/关闭跟随运动器",
+    displayNameEN: "Activate/Disable Follow Motion Device",
+    officialID: 365,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1604,6 +1708,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.switchTargetByGuid",
     displayName: "以GUID切换跟随运动器的目标",
+    displayNameEN: "Switch Follow Motion Device Target by GUID",
+    officialID: 245,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1660,6 +1766,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.moverFollow.switchTargetByEntity",
     displayName: "以实体切换跟随运动器的目标",
+    displayNameEN: "Switch Follow Motion Device Target by Entity",
+    officialID: 668,
     category: "执行节点/跟随运动器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1717,6 +1825,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.projectile.create",
     displayName: "创建投射物",
+    displayNameEN: "Create Projectile",
+    officialID: 256,
     category: "执行节点/投射物",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1781,6 +1891,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.clearByAsset",
     displayName: "根据特效资产清除特效",
+    displayNameEN: "Clear Special Effects Based on Special Effect Assets",
+    officialID: 473,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1805,6 +1917,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.clearLoop",
     displayName: "清除循环特效",
+    displayNameEN: "Clear Looping Special Effect",
+    officialID: 95,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1830,6 +1944,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.attachLoop",
     displayName: "挂载循环特效",
+    displayNameEN: "Mount Looping Special Effect",
+    officialID: 94,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1905,6 +2021,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.fx.playTimed",
     displayName: "播放限时特效",
+    displayNameEN: "Play Timed Effects",
+    officialID: 93,
     category: "执行节点/特效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -1976,6 +2094,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.stop",
     displayName: "终止定时器",
+    displayNameEN: "Stop Timer",
+    officialID: 82,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2001,6 +2121,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.resume",
     displayName: "恢复定时器",
+    displayNameEN: "Resume Timer",
+    officialID: 81,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2026,6 +2148,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.pause",
     displayName: "暂停定时器",
+    displayNameEN: "Pause Timer",
+    officialID: 80,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2051,6 +2175,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.timer.start",
     displayName: "启动定时器",
+    displayNameEN: "Start Timer",
+    officialID: 79,
     category: "执行节点/定时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2086,6 +2212,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.stop",
     displayName: "终止全局计时器",
+    displayNameEN: "Stop Global Timer",
+    officialID: 313,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2111,6 +2239,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.resume",
     displayName: "恢复全局计时器",
+    displayNameEN: "Recover Global Timer",
+    officialID: 312,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2136,6 +2266,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.pause",
     displayName: "暂停全局计时器",
+    displayNameEN: "Pause Global Timer",
+    officialID: 309,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2161,6 +2293,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.start",
     displayName: "启动全局计时器",
+    displayNameEN: "Start Global Timer",
+    officialID: 311,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2186,6 +2320,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.globalTimer.modify",
     displayName: "修改全局计时器",
+    displayNameEN: "Modify Global Timer",
+    officialID: 314,
     category: "执行节点/全局计时器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2221,6 +2357,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.camera.switchTemplate",
     displayName: "切换主镜头模板",
+    displayNameEN: "Switch Main Camera Template",
+    officialID: 261,
     category: "执行节点/镜头",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2249,6 +2387,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.playerDisturber.modify",
     displayName: "修改角色扰动装置",
+    displayNameEN: "Modifying Character Disruptor Device",
+    officialID: 302,
     category: "执行节点/角色扰动装置",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2277,6 +2417,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitState.add",
     displayName: "添加单位状态",
+    displayNameEN: "Add Unit Status",
+    officialID: 297,
     category: "执行节点/单位状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2333,6 +2475,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitState.remove",
     displayName: "移除单位状态",
+    displayNameEN: "Remove Unit Status",
+    officialID: 301,
     category: "执行节点/单位状态",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2368,12 +2512,13 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-
   // ───────────────────────────── 20-选项卡 ─────────────────────────────
   // 执行节点/选项卡
   {
     id: "action.tab.toggle",
     displayName: "激活/关闭选项卡",
+    displayNameEN: "Activate/Disable Tab",
+    officialID: 306,
     category: "执行节点/选项卡",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2408,6 +2553,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.collisionSource.toggle",
     displayName: "激活/关闭碰撞触发发源",
+    displayNameEN: "Activate/Disable Collision Trigger Source",
+    officialID: 367,
     category: "执行节点/碰撞触发源",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2435,6 +2582,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.switch",
     displayName: "更改玩家职业",
+    displayNameEN: "Change Player Class",
+    officialID: 389,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2449,6 +2598,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.setLevel",
     displayName: "更改玩家当前职业等级",
+    displayNameEN: "Change Player's Current Class Level",
+    officialID: 391,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2469,6 +2620,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.class.addExp",
     displayName: "提升玩家当前职业经验",
+    displayNameEN: "Increase Player's Current Class EXP",
+    officialID: 390,
     category: "执行节点/职业",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2492,6 +2645,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.enableFromLibrary",
     displayName: "激活控件组库内界面控件组",
+    displayNameEN: "Activate UI Control Group in Control Group Library",
+    officialID: 383,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2512,6 +2667,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.switchLayout",
     displayName: "切换当前界面布局",
+    displayNameEN: "Switch Current Interface Layout",
+    officialID: 382,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2532,6 +2689,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.removeFromLibrary",
     displayName: "移除控件组库内界面控件组",
+    displayNameEN: "Remove Interface Control Group From Control Group Library",
+    officialID: 521,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2552,6 +2711,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.uiGroup.modifyControl",
     displayName: "修改界面布局内界面控件状态",
+    displayNameEN: "Modify UI Control Status Within the Interface Layout",
+    officialID: 384,
     category: "执行节点/界面控件组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2581,6 +2742,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.init",
     displayName: "初始化角色技能",
+    displayNameEN: "Initialize Character Skill",
+    officialID: 397,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2605,6 +2768,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.add",
     displayName: "添加角色技能",
+    displayNameEN: "Add Character Skill",
+    officialID: 395,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2635,6 +2800,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.setCooldown",
     displayName: "设置角色技能冷却",
+    displayNameEN: "Set Character Skill CD",
+    officialID: 739,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2672,6 +2839,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.setResource",
     displayName: "设置技能资源量",
+    displayNameEN: "Set Skill Resource Amount",
+    officialID: 394,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2703,6 +2872,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.removeById",
     displayName: "以ID删除角色技能",
+    displayNameEN: "Delete Character Skill by ID",
+    officialID: 396,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2727,6 +2898,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.removeBySlot",
     displayName: "以槽位删除角色技能",
+    displayNameEN: "Delete Character Skill by Slot",
+    officialID: 399,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2751,6 +2924,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyCooldown",
     displayName: "修改角色技能冷却",
+    displayNameEN: "Modify Character Skill CD",
+    officialID: 740,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2788,6 +2963,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyResource",
     displayName: "修改技能资源量",
+    displayNameEN: "Modify Skill Resource Amount",
+    officialID: 393,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2819,6 +2996,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.skill.modifyCooldownByMaxPct",
     displayName: "按最大冷却时间修改技能冷却百分比",
+    displayNameEN: "Modify Skill CD Percentage Based on Max CD",
+    officialID: 741,
     category: "执行节点/技能",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2858,6 +3037,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.play2DOnceForPlayer",
     displayName: "玩家播放单次2D音效",
+    displayNameEN: "Player Plays One-Shot 2D Sound Effect",
+    officialID: 598,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2897,6 +3078,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.togglePlayerBgm",
     displayName: "启动/暂停玩家背景音乐",
+    displayNameEN: "Start/Pause Player Background Music",
+    officialID: 595,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2921,6 +3104,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.toggleSpecificPlayer",
     displayName: "启动/暂停指定音效播放器",
+    displayNameEN: "Start/Pause Specified Sound Effect Player",
+    officialID: 592,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -2952,6 +3137,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.addPlayer",
     displayName: "添加音效播放器",
+    displayNameEN: "Add Sound Effect Player",
+    officialID: 594,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3034,6 +3221,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.setPlayerBgmVolume",
     displayName: "调整玩家背景音乐音量",
+    displayNameEN: "Adjust Player Background Music Volume",
+    officialID: 596,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3059,6 +3248,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.tuneSpecificPlayer",
     displayName: "调整指定音效播放器",
+    displayNameEN: "Adjust Specified Sound Effect Player",
+    officialID: 593,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3098,6 +3289,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.closeSpecificPlayer",
     displayName: "关闭指定音效播放器",
+    displayNameEN: "Close Specified Sound Effect Player",
+    officialID: 591,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3123,6 +3316,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.audio.modifyPlayerBgm",
     displayName: "修改玩家背景音乐",
+    displayNameEN: "Modify Player Background Music",
+    officialID: 597,
     category: "执行节点/音效",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3193,6 +3388,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.clearAll",
     displayName: "实体清空单位标签",
+    displayNameEN: "Clear Unit Tags from Entity",
+    officialID: 588,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3211,6 +3408,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.add",
     displayName: "实体添加单位标签",
+    displayNameEN: "Add Unit Tag to Entity",
+    officialID: 586,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3236,6 +3435,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.unitTags.remove",
     displayName: "实体移除单位标签",
+    displayNameEN: "Remove Unit Tag from Entity",
+    officialID: 587,
     category: "执行节点/单位标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3264,6 +3465,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.taunt",
     displayName: "嘲讽目标",
+    displayNameEN: "Taunt Target",
+    officialID: 602,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3288,6 +3491,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.setValue",
     displayName: "设置指定实体的仇恨值",
+    displayNameEN: "Set the Aggro Value of Specified Entity",
+    officialID: 599,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3319,6 +3524,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.removeTarget",
     displayName: "将目标实体移除出仇恨列表",
+    displayNameEN: "Remove Target Entity From Aggro List",
+    officialID: 600,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3343,6 +3550,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.hatred.clearForTarget",
     displayName: "清空指定目标的仇恨列表",
+    displayNameEN: "Clear Specified Target's Aggro List",
+    officialID: 601,
     category: "执行节点/自定义仇恨",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3364,6 +3573,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.signal.send",
     displayName: "发送信号",
+    displayNameEN: "Send Signal",
+    officialID: 30000,
     category: "执行节点/信号",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3386,6 +3597,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.nameplate.apply",
     displayName: "设置实体生效铭牌",
+    displayNameEN: "Set Entity Active Nameplate",
+    officialID: 617,
     category: "执行节点/铭牌",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3413,6 +3626,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.textBubble.switchActive",
     displayName: "切换生效的文本气泡",
+    displayNameEN: "Switch Active Text Bubble",
+    officialID: 631,
     category: "执行节点/文本气泡",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3441,6 +3656,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.invoke",
     displayName: "唤起卡牌选择器",
+    displayNameEN: "Invoke Deck Selector",
+    officialID: 632,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3525,6 +3742,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.close",
     displayName: "关闭卡牌选择器",
+    displayNameEN: "Close Deck Selector",
+    officialID: 641,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3550,6 +3769,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.cardPicker.randomizeList",
     displayName: "随机卡牌选择器选择列表",
+    displayNameEN: "Random Deck Selector Selection List",
+    officialID: 743,
     category: "执行节点/卡牌选择器",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3571,6 +3792,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerSuccess",
     displayName: "设置玩家结算成功状态",
+    displayNameEN: "Set Player Settlement Success Status",
+    officialID: 652,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3595,6 +3818,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerRankValue",
     displayName: "设置玩家结算排名数值",
+    displayNameEN: "Set Player Settlement Ranking Value",
+    officialID: 650,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3620,6 +3845,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setPlayerScoreboardItem",
     displayName: "设置玩家结算计分板展示数据",
+    displayNameEN: "Set Player Settlement Scoreboard Data Display",
+    officialID: 647,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3659,6 +3886,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setCampSuccess",
     displayName: "设置阵营结算成功状态",
+    displayNameEN: "Set Faction Settlement Success Status",
+    officialID: 656,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3678,6 +3907,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.settlement.setCampRankValue",
     displayName: "设置阵营结算排名数值",
+    displayNameEN: "Set Faction Settlement Ranking Value",
+    officialID: 654,
     category: "执行节点/关卡结算",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3701,6 +3932,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.light.toggleEntityLight",
     displayName: "开关实体光源",
+    displayNameEN: "Toggle Entity Light Source",
+    officialID: 667,
     category: "执行节点/光源组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3734,6 +3967,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.clear",
     displayName: "清空字典",
+    displayNameEN: "Clear Dictionary",
+    officialID: 1718,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3752,6 +3987,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.setOrAdd",
     displayName: "对字典设置或新增键值对",
+    displayNameEN: "Set or Add Key Value Pairs to Dictionary",
+    officialID: 948,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3784,6 +4021,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.sortByValue",
     displayName: "对字典按值排序",
+    displayNameEN: "Sort Dictionary by Value",
+    officialID: 1938,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3806,6 +4045,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.sortByKey",
     displayName: "对字典按键排序",
+    displayNameEN: "Sort Dictionary by Key",
+    officialID: 1928,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3828,6 +4069,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.dict.removeByKey",
     displayName: "以键对字典移除键值对",
+    displayNameEN: "Remove Key Value Pairs from Dictionary by Key",
+    officialID: 1298,
     category: "执行节点/字典",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3851,32 +4094,13 @@ export const nodeDefinitions: NodeDefinition[] = [
     ],
   },
 
-  // ───────────────────────────── 35-结构体 ─────────────────────────────
-  // 执行节点/结构体
-  {
-    id: "action.struct.modify",
-    displayName: "修改结构体",
-    category: "执行节点/结构体",
-    kind: "action",
-    headerColor: EXECUTION_HEADER,
-    ports: [
-      { id: "flowIn", label: "执行", kind: "flow-in" },
-      { id: "flowOut", label: "完成", kind: "flow-out" },
-      {
-        id: "targetStruct",
-        label: "目标结构体",
-        kind: "data-in",
-        valueType: "any",
-        ui: { accessory: "gear" },
-      },
-    ],
-  },
-
   // ───────────────────────────── 36-商店 ─────────────────────────────
   // 执行节点/商店
   {
     id: "action.shop.open",
     displayName: "打开商店",
+    displayNameEN: "Open Shop",
+    officialID: 702,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3907,6 +4131,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeCustomSellItemByIndex",
     displayName: "从自定义商店出售表中移除商品",
+    displayNameEN: "Remove Item From Custom Shop Sales List",
+    officialID: 711,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3938,6 +4164,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeBuyItem",
     displayName: "从物品收购表中移除物品",
+    displayNameEN: "Remove item from purchase list",
+    officialID: 713,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3968,6 +4196,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.removeBackpackSellItem",
     displayName: "从背包商店出售表中移除商品",
+    displayNameEN: "Remove Item From Inventory Shop Sales List",
+    officialID: 712,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -3998,6 +4228,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.close",
     displayName: "关闭商店",
+    displayNameEN: "Close Shop",
+    officialID: 703,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4015,6 +4247,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addCustomSellItem",
     displayName: "向自定义商店出售表中新增商品",
+    displayNameEN: "Add New Item to Custom Shop Sales List",
+    officialID: 708,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4093,6 +4327,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addBuyItem",
     displayName: "向物品收购表中新增物品",
+    displayNameEN: "Add Items to the Purchase List",
+    officialID: 710,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4136,6 +4372,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.addBackpackSellItem",
     displayName: "向背包商店出售表中新增商品",
+    displayNameEN: "Add New Item to Inventory Shop Sales List",
+    officialID: 709,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4193,6 +4431,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyCustomSellInfo",
     displayName: "修改自定义商店商品出售信息",
+    displayNameEN: "Modify Custom Shop Item Sales Info",
+    officialID: 704,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4270,6 +4510,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyBuyInfo",
     displayName: "修改物品收购表中道具收购信息",
+    displayNameEN: "Modify Item Purchase Info in the Purchase List",
+    officialID: 707,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4313,6 +4555,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.shop.modifyBackpackSellInfo",
     displayName: "修改背包商店商品出售信息",
+    displayNameEN: "Modify Inventory Shop Item Sales Info",
+    officialID: 706,
     category: "执行节点/商店",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4373,6 +4617,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.remove",
     displayName: "移除装备词条",
+    displayNameEN: "Remove Equipment Affix",
+    officialID: 673,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4398,6 +4644,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.modifyValue",
     displayName: "修改装备词条值",
+    displayNameEN: "Modify Equipment Affix Value",
+    officialID: 674,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4430,6 +4678,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.addAtIndex",
     displayName: "装备指定序号添加词条",
+    displayNameEN: "Add Affix to Equipment at Specified ID",
+    officialID: 742,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4474,6 +4724,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.affix.add",
     displayName: "装备添加词条",
+    displayNameEN: "Add Affix to Equipment",
+    officialID: 672,
     category: "执行节点/装备",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4513,6 +4765,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.setDropContent",
     displayName: "设置战利品掉落内容",
+    displayNameEN: "Set Loot Drop Content",
+    officialID: 724,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4538,6 +4792,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.setDropType",
     displayName: "设置战利品掉落类型",
+    displayNameEN: "Set Loot Drop Type",
+    officialID: 725,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4557,6 +4813,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.setDropItemCurrencyCount",
     displayName: "设置背包掉落道具/货币数量",
+    displayNameEN: "Set Inventory Drop Items/Currency Amount",
+    officialID: 687,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4589,6 +4847,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.setItemDropContent",
     displayName: "设置背包道具掉落内容",
+    displayNameEN: "Set Inventory Item Drop Contents",
+    officialID: 720,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4615,6 +4875,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.increaseMaxCapacity",
     displayName: "增加背包最大容量",
+    displayNameEN: "Increase Maximum Inventory Capacity",
+    officialID: 685,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4640,6 +4902,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.modifyCurrencyCountOnDropEntity",
     displayName: "修改掉落物组件货币数量",
+    displayNameEN: "Modify Loot Component Currency Amount",
+    officialID: 727,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4671,6 +4935,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.loot.modifyItemCountOnDropEntity",
     displayName: "修改掉落物组件道具数量",
+    displayNameEN: "Modify Loot Item Component Quantity",
+    officialID: 726,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4702,6 +4968,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.modifyCurrency",
     displayName: "修改背包货币数量",
+    displayNameEN: "Modify Inventory Currency Quantity",
+    officialID: 688,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4733,6 +5001,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.backpack.modifyItem",
     displayName: "修改背包道具数量",
+displayNameEN: "Modify Inventory Item Quantity",
+    officialID: 686,
     category: "执行节点/道具与背包",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4767,6 +5037,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setVisibleMarkerPlayers",
     displayName: "修改可见小地图标识的玩家列表",
+    displayNameEN: "Modify Player List for Visible Mini-Map Markers",
+    officialID: 636,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4798,6 +5070,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setScale",
     displayName: "修改小地图缩放",
+    displayNameEN: "Modify Mini-Map Zoom",
+    officialID: 634,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4823,6 +5097,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setMarkerEnabledState",
     displayName: "修改小地图标识生效状态",
+    displayNameEN: "Modify Mini-Map Marker Activation Status",
+    officialID: 635,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4848,6 +5124,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setMarkerPlayerTag",
     displayName: "修改小地图标识的玩家标记",
+    displayNameEN: "Modify Player Markers on the Mini-Map",
+    officialID: 640,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4879,6 +5157,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.minimap.setTrackingMarkerPlayers",
     displayName: "修改追踪小地图标识的玩家列表",
+    displayNameEN: "Modify Player List for Tracking Mini-Map Markers",
+    officialID: 637,
     category: "执行节点/小地图标识组件",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4913,6 +5193,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.patrol.switchTemplate",
     displayName: "切换造物巡逻模板",
+    displayNameEN: "Switch Creation Patrol Template",
+    officialID: 618,
     category: "执行节点/造物巡逻",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4935,12 +5217,13 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-
   // ───────────────────────────── 41-排行榜 ─────────────────────────────
   // 执行节点/排行榜
   {
     id: "action.leaderboard.setScoreInt",
     displayName: "以整数设置玩家排行榜分数",
+    displayNameEN: "Set Player Leaderboard Score as an Integer",
+    officialID: 761,
     category: "执行节点/排行榜",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -4973,6 +5256,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.leaderboard.setScoreFloat",
     displayName: "以浮点数设置玩家排行榜分数",
+    displayNameEN: "Set Player Leaderboard Score as a Float",
+    officialID: 762,
     category: "执行节点/排行榜",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5008,6 +5293,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.achievement.setProgressCount",
     displayName: "设置成就进度计数",
+    displayNameEN: "Set Achievement Progress Tally",
+    officialID: 645,
     category: "执行节点/成就",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5040,6 +5327,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.achievement.changeProgressCount",
     displayName: "变更成就进度计数",
+    displayNameEN: "Change Achievement Progress Tally",
+    officialID: 646,
     category: "执行节点/成就",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5075,6 +5364,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.scan.setActiveScanTagIndex",
     displayName: "设置扫描组件的生效扫描标签序号",
+    displayNameEN: "Set Scan Component's Active Scan Tag ID",
+    officialID: 736,
     category: "执行节点/扫描标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5100,6 +5391,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.scan.setTagRule",
     displayName: "设置扫描标签的规则",
+    displayNameEN: "Set Scan Tag Rules",
+    officialID: 735,
     category: "执行节点/扫描标签",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5122,6 +5415,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.setPlayerEscapeValidity",
     displayName: "设置玩家逃跑合法性",
+    displayNameEN: "Set Player Escape Validity",
+    officialID: 661,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5141,6 +5436,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.setPlayerRankDeltaScore",
     displayName: "设置玩家段位变化分数",
+    displayNameEN: "Set Player Rank Score Change",
+    officialID: 659,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5172,6 +5469,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.rank.switchActiveScoreGroup",
     displayName: "切换玩家竞技段位生效的计分组",
+    displayNameEN: "Switch the scoring group that affects player's competitive rank",
+    officialID: 663,
     category: "执行节点/段位",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5200,6 +5499,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.placement.toggleGroup",
     displayName: "激活/关闭实体布设组",
+    displayNameEN: "Activate/Disable Entity Deployment Group",
+    officialID: 178,
     category: "执行节点/实体布设组",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5228,6 +5529,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.setChannelEnabled",
     displayName: "设置聊天频道开关",
+    displayNameEN: "Set Chat Channel Switch",
+    officialID: 769,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5253,6 +5556,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.setPlayerCurrentChannel",
     displayName: "设置玩家当前频道",
+    displayNameEN: "Set Player's Current Channel",
+    officialID: 771,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5277,6 +5582,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.chat.modifyPlayerChannelPermission",
     displayName: "修改玩家频道权限",
+    displayNameEN: "Modify Player Channel Permission",
+    officialID: 770,
     category: "执行节点/聊天频道",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5306,6 +5613,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "action.giftBox.consume",
     displayName: "消耗礼盒",
+    displayNameEN: "Consume Gift Box",
+    officialID: 772,
     category: "执行节点/奇域礼盒相关",
     kind: "action",
     headerColor: EXECUTION_HEADER,
@@ -5335,23 +5644,14 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-  // ───────────────────────────── -1-客户端事件节点 ─────────────────────────────
-  // 事件节点//<隐藏>客户端节点自带
-  {
-    id: "event.graphStart",
-    displayName: "节点图开始",
-    category: "事件节点/<隐藏>客户端节点自带",
-    kind: "event",
-    headerColor: EVENT_HEADER,
-    ports: [
-      { id: "flowOut", label: "事件", kind: "flow-out" },
-    ],
-  },
+
   // ───────────────────────────── 00-自定义变量 ─────────────────────────────
   // 事件节点/自定义变量
   {
     id: "event.graphVariableChanged",
     displayName: "节点图变量变化时",
+    displayNameEN: "When Node Graph Variable Changes",
+    officialID: 351,
     category: "事件节点/自定义变量",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5394,6 +5694,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.customVariableChanged",
     displayName: "自定义变量变化时",
+    displayNameEN: "When Custom Variable Changes",
+    officialID: 36,
     category: "事件节点/自定义变量",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5439,6 +5741,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.presetStateChanged",
     displayName: "预设状态变化时",
+    displayNameEN: "When Preset Status Changes",
+    officialID: 67,
     category: "事件节点/预设状态",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5471,6 +5775,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.characterMoveSpeedReached",
     displayName: "角色移动速度达到条件时",
+    displayNameEN: "When Character Movement SPD Meets Condition",
+    officialID: 946,
     category: "事件节点/实体相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5517,6 +5823,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.entityCreated",
     displayName: "实体创建时",
+    displayNameEN: "When Entity Is Created",
+    officialID: 71,
     category: "事件节点/实体相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5539,6 +5847,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.entityDestroyed",
     displayName: "实体销毁时",
+    displayNameEN: "When Entity Is Destroyed",
+    officialID: 373,
     category: "事件节点/实体相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5588,6 +5898,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.entityRemovedOrDestroyed",
     displayName: "实体移除/销毁时",
+    displayNameEN: "When Entity Is Removed/Destroyed",
+    officialID: 72,
     category: "事件节点/实体相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5609,6 +5921,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.entityCampChanged",
     displayName: "实体阵营变化时",
+    displayNameEN: "When Entity Faction Changes",
+    officialID: 251,
     category: "事件节点/阵营相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5646,6 +5960,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerTeleportFinished",
     displayName: "玩家传送完成时",
+    displayNameEN: "When Player Teleport Completes",
+    officialID: 289,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5668,6 +5984,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerAbnormalDownAndRevived",
     displayName: "玩家异常倒下并复苏时",
+    displayNameEN: "When Player Is Abnormally Downed and Revives",
+    officialID: 285,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5684,6 +6002,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerAllCharactersRevived",
     displayName: "玩家所有角色复苏时",
+    displayNameEN: "When All Player's Characters Are Revived",
+    officialID: 286,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5700,6 +6020,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerAllCharactersDown",
     displayName: "玩家所有角色倒下时",
+    displayNameEN: "When All Player's Characters Are Down",
+    officialID: 284,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5717,6 +6039,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.characterRevived",
     displayName: "角色复苏时",
+    displayNameEN: "When Character Revives",
+    officialID: 281,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5733,6 +6057,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.characterDown",
     displayName: "角色倒下时",
+    displayNameEN: "When the Character Is Down",
+    officialID: 280,
     category: "事件节点/玩家与角色相关",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5759,6 +6085,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.leaveCollisionTrigger",
     displayName: "离开碰撞触发器时",
+    displayNameEN: "When Exiting Collision Trigger",
+    officialID: 91,
     category: "事件节点/碰撞触发器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5799,6 +6127,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.enterCollisionTrigger",
     displayName: "进入碰撞触发器时",
+    displayNameEN: "When Entering Collision Trigger",
+    officialID: 92,
     category: "事件节点/碰撞触发器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5842,6 +6172,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.healIssued",
     displayName: "发起恢复生命值时",
+    displayNameEN: "When Initiating HP Recovery",
+    officialID: 585,
     category: "事件节点/战斗",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5882,6 +6214,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.enterInterruptible",
     displayName: "进入易受打断状态时",
+    displayNameEN: "When Entering an Interruptible State",
+    officialID: 765,
     category: "事件节点/战斗",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5910,6 +6244,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.attackHit",
     displayName: "攻击命中时",
+    displayNameEN: "When Attack Hits",
+    officialID: 305,
     category: "事件节点/战斗",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -5957,6 +6293,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.attacked",
     displayName: "受到攻击时",
+    displayNameEN: "When Attacked",
+    officialID: 304,
     category: "事件节点/战斗",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6004,6 +6342,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.healed",
     displayName: "被恢复生命值时",
+    displayNameEN: "When HP Is Recovered",
+    officialID: 584,
     category: "事件节点/战斗",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6047,6 +6387,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.pathReachedWaypoint",
     displayName: "路径到达路点时",
+    displayNameEN: "When Path Reaches Waypoint",
+    officialID: 177,
     category: "事件节点/运动器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6081,6 +6423,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.basicMoverStopped",
     displayName: "基础运动器停止时",
+    displayNameEN: "When Basic Motion Device Stops",
+    officialID: 89,
     category: "事件节点/运动器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6112,6 +6456,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.hitCheckTriggered",
     displayName: "命中检测触发时",
+    displayNameEN: "When On-Hit Detection Is Triggered",
+    officialID: 253,
     category: "事件节点/命中判定",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6155,6 +6501,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.timerTriggered",
     displayName: "定时器触发时",
+    displayNameEN: "When Timer Is Triggered",
+    officialID: 83,
     category: "事件节点/定时器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6198,6 +6546,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.globalTimerTriggered",
     displayName: "全局计时器触发时",
+    displayNameEN: "When Global Timer Is Triggered",
+    officialID: 315,
     category: "事件节点/全局计时器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6229,6 +6579,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.uiControlGroupTriggered",
     displayName: "界面控件组触发时",
+    displayNameEN: "When UI Control Group Is Triggered",
+    officialID: 316,
     category: "事件节点/界面控件组",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6266,6 +6618,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.elementReaction",
     displayName: "发生元素反应事件时",
+    displayNameEN: "When Elemental Reaction Event Occurs",
+    officialID: 642,
     category: "事件节点/单位状态",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6306,6 +6660,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.shieldAttacked",
     displayName: "护盾受到攻击时",
+    displayNameEN: "When Shield Is Attacked",
+    officialID: 643,
     category: "事件节点/单位状态",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6370,6 +6726,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.unitStateEnded",
     displayName: "单位状态结束时",
+    displayNameEN: "When Unit Status Ends",
+    officialID: 299,
     category: "事件节点/单位状态",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6440,6 +6798,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.unitStateChanged",
     displayName: "单位状态变更时",
+    displayNameEN: "When Unit Status Changes",
+    officialID: 300,
     category: "事件节点/单位状态",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6507,6 +6867,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.tabSelected",
     displayName: "选项卡选中时",
+    displayNameEN: "When Tab Is Selected",
+    officialID: 307,
     category: "事件节点/选项卡",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6544,6 +6906,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.constructExitCombat",
     displayName: "造物脱战时",
+    displayNameEN: "When Creation Leaves Combat",
+    officialID: 375,
     category: "事件节点/造物",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6566,6 +6930,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.constructEnterCombat",
     displayName: "造物入战时",
+    displayNameEN: "When Creation Enters Combat",
+    officialID: 374,
     category: "事件节点/造物",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6591,6 +6957,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerCareerRemoved",
     displayName: "玩家职业解除时",
+    displayNameEN: "When Player Class Is Removed",
+    officialID: 764,
     category: "事件节点/职业",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6625,6 +6993,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerCareerLevelChanged",
     displayName: "玩家职业等级变化时",
+    displayNameEN: "When Player Class Level Changes",
+    officialID: 386,
     category: "事件节点/职业",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6659,6 +7029,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.playerCareerChanged",
     displayName: "玩家职业更改时",
+    displayNameEN: "When Player Class Changes",
+    officialID: 385,
     category: "事件节点/职业",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6696,6 +7068,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.skillNodeInvoked",
     displayName: "技能节点调用时",
+    displayNameEN: "When Skill Node Is Called",
+    officialID: 392,
     category: "事件节点/技能",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6724,6 +7098,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.hatredTargetChanged",
     displayName: "仇恨目标变化时",
+    displayNameEN: "When Aggro Target Changes",
+    officialID: 611,
     category: "事件节点/自定义仇恨",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6758,6 +7134,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.selfExitCombat",
     displayName: "自身脱战时",
+    displayNameEN: "When Self Leaves Combat",
+    officialID: 613,
     category: "事件节点/自定义仇恨",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6780,6 +7158,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.selfEnterCombat",
     displayName: "自身入战时",
+    displayNameEN: "When Self Enters Combat",
+    officialID: 612,
     category: "事件节点/自定义仇恨",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6805,6 +7185,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.signalListen",
     displayName: "监听信号",
+    displayNameEN: "Monitor Signal",
+    officialID: 300001,
     category: "事件节点/信号",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6843,6 +7225,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.cardPickerCompleted",
     displayName: "卡牌选择器完成时",
+    displayNameEN: "When Deck Selector Is Complete",
+    officialID: 633,
     category: "事件节点/卡牌选择器",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6880,6 +7264,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.textBubbleCompleted",
     displayName: "文本气泡完成时",
+    displayNameEN: "When Text Bubble Is Completed",
+    officialID: 679,
     category: "事件节点/文本气泡",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6917,6 +7303,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.shopSellCustomItem",
     displayName: "商店出售自定义商品时",
+    displayNameEN: "When Custom Shop Item Is Sold",
+    officialID: 700,
     category: "事件节点/商店",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6958,6 +7346,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.shopSellBackpackItem",
     displayName: "商店出售背包物品时",
+    displayNameEN: "When Selling Inventory Items in the Shop",
+    officialID: 701,
     category: "事件节点/商店",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -6999,6 +7389,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.shopBuyItems",
     displayName: "商店收购道具时",
+    displayNameEN: "When selling items to the shop",
+    officialID: 705,
     category: "事件节点/商店",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7042,6 +7434,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.equipmentInitialized",
     displayName: "装备初始化时",
+    displayNameEN: "When Equipment Is Initialized",
+    officialID: 694,
     category: "事件节点/装备",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7070,6 +7464,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.equipmentAffixValueChanged",
     displayName: "装备的词条数值改变时",
+    displayNameEN: "When Equipment Affix Value Changes",
+    officialID: 680,
     category: "事件节点/装备",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7116,6 +7512,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.equipmentEquipped",
     displayName: "装备被穿戴时",
+    displayNameEN: "When Equipment Is Equipped",
+    officialID: 695,
     category: "事件节点/装备",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7144,6 +7542,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.equipmentUnequipped",
     displayName: "装备被卸下时",
+    displayNameEN: "When Equipment Is Unequipped",
+    officialID: 696,
     category: "事件节点/装备",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7175,6 +7575,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.backpackItemUsed",
     displayName: "背包内道具被使用时",
+    displayNameEN: "When Items in the Inventory Are Used",
+    officialID: 733,
     category: "事件节点/道具",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7204,6 +7606,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.backpackCurrencyChanged",
     displayName: "背包货币数量变化时",
+    displayNameEN: "When the Quantity of Inventory Currency Changes",
+    officialID: 684,
     category: "事件节点/道具",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7238,6 +7642,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.backpackItemAdded",
     displayName: "背包道具新增时",
+    displayNameEN: "When Item Is Added to Inventory",
+    officialID: 681,
     category: "事件节点/道具",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7272,6 +7678,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.backpackItemCountChanged",
     displayName: "背包道具数量变化时",
+    displayNameEN: "When the Quantity of Inventory Item Changes",
+    officialID: 683,
     category: "事件节点/道具",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7318,6 +7726,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.backpackItemLost",
     displayName: "背包道具失去时",
+    displayNameEN: "When Item Is Lost From Inventory",
+    officialID: 682,
     category: "事件节点/道具",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7355,6 +7765,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "event.constructReachedPatrolWaypoint",
     displayName: "造物抵达巡逻路点时",
+    displayNameEN: "When Creation Reaches Patrol Waypoint",
+    officialID: 620,
     category: "事件节点/造物巡逻",
     kind: "event",
     headerColor: EVENT_HEADER,
@@ -7398,43 +7810,14 @@ export const nodeDefinitions: NodeDefinition[] = [
       },
     ],
   },
-  // ───────────────────────────── -1-客户端流程控制节点 ─────────────────────────────
-  // 流程控制节点/<隐藏>客户端节点自带
-  {
-    id: "flow.graphEndBoolean",
-    displayName: "节点图结束（布尔型）",
-    category: "流程控制节点/<隐藏>客户端节点自带",
-    kind: "flow-control",
-    headerColor: FLOW_HEADER,
-    ports: [
-      {
-        id: "result",
-        label: "输出结果（布尔型）",
-        kind: "data-in",
-        valueType: "bool",
-      },
-    ],
-  },
-  {
-    id: "flow.graphEndInteger",
-    displayName: "节点图结束（整数）",
-    category: "流程控制节点/<隐藏>客户端节点自带",
-    kind: "flow-control",
-    headerColor: FLOW_HEADER,
-    ports: [
-      {
-        id: "result",
-        label: "输出结果（整数）",
-        kind: "data-in",
-        valueType: "int",
-      },
-    ],
-  },
+
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 流程控制节点/通用
   {
     id: "flow.branch.multi",
     displayName: "多分支",
+    displayNameEN: "Multiple Branches",
+    officialID: 3,
     category: "流程控制节点/通用",
     kind: "flow-control",
     headerColor: FLOW_HEADER,
@@ -7459,6 +7842,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "flow.branch.ifElse",
     displayName: "双分支",
+    displayNameEN: "Double Branch",
+    officialID: 2,
     category: "流程控制节点/通用",
     kind: "flow-control",
     headerColor: FLOW_HEADER,
@@ -7475,11 +7860,14 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "false", label: "否", kind: "flow-out" },
     ],
   },
+
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 查询节点/通用
   {
     id: "query.matchModeAndPlayerCount",
     displayName: "查询对局游玩方式及人数",
+    displayNameEN: "Query Game Mode and Player Number",
+    officialID: 766,
     category: "查询节点/通用",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7496,6 +7884,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.getLocalVariable",
     displayName: "获取局部变量",
+    displayNameEN: "Get Local Variable",
+    officialID: 18,
     category: "查询节点/通用",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7528,6 +7918,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.up",
     displayName: "三维向量：上方",
+    displayNameEN: "3D Vector: Up",
+    officialID: 193,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7543,6 +7935,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.down",
     displayName: "三维向量：下方",
+    displayNameEN: "3D Vector: Down",
+    officialID: 194,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7558,6 +7952,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.forward",
     displayName: "三维向量：前方",
+    displayNameEN: "3D Vector: Forward",
+    officialID: 197,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7573,6 +7969,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.back",
     displayName: "三维向量：后方",
+    displayNameEN: "3D Vector: Backward",
+    officialID: 198,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7588,6 +7986,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.right",
     displayName: "三维向量：右侧",
+    displayNameEN: "3D Vector: Right",
+    officialID: 196,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7603,6 +8003,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.left",
     displayName: "三维向量：左侧",
+    displayNameEN: "3D Vector: Left",
+    officialID: 195,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7618,6 +8020,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.vector3.zero",
     displayName: "三维向量：零向量",
+    displayNameEN: "3D Vector: Zero Vector",
+    officialID: 192,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7633,6 +8037,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.pi",
     displayName: "圆周率",
+    displayNameEN: "Pi (π)",
+    officialID: 191,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7643,6 +8049,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.weightedRandomIndex",
     displayName: "权重随机",
+    displayNameEN: "Weighted Random",
+    officialID: 8,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7654,6 +8062,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.utcTimestamp",
     displayName: "查询时间戳（UTC+0时区）",
+    displayNameEN: "Query Timestamp (UTC+0)",
+    officialID: 755,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7664,6 +8074,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.serverTimezone",
     displayName: "查询服务器时区",
+    displayNameEN: "Query Server Time Zone",
+    officialID: 756,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7674,6 +8086,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.randomInt",
     displayName: "获取随机整数",
+    displayNameEN: "Get Random Integer",
+    officialID: 257,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7698,6 +8112,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.randomFloat",
     displayName: "获取随机浮点数",
+    displayNameEN: "Get Random Floating Point Number",
+    officialID: 7,
     category: "查询节点/数学",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7725,6 +8141,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.contains",
     displayName: "列表是否包含该值",
+    displayNameEN: "List Includes This Value",
+    officialID: 114,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7749,6 +8167,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.findIndicesByValue",
     displayName: "查找列表并返回值的序号",
+    displayNameEN: "Search List and Return Value ID",
+    officialID: 121,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7778,6 +8198,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.getAt",
     displayName: "获取列表对应值",
+    displayNameEN: "Get Corresponding Value From List",
+    officialID: 128,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7808,6 +8230,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.max",
     displayName: "获取列表最大值",
+    displayNameEN: "Get Maximum Value from List",
+    officialID: 149,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7831,6 +8255,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.min",
     displayName: "获取列表最小值",
+    displayNameEN: "Get Minimum Value From List",
+    officialID: 151,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7854,6 +8280,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.list.length",
     displayName: "获取列表长度",
+    displayNameEN: "Get List Length",
+    officialID: 142,
     category: "查询节点/列表相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7873,6 +8301,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.customVar.snapshot",
     displayName: "查询自定义变量快照",
+    displayNameEN: "Query Custom Variable Snapshot",
+    officialID: 3360,
     category: "查询节点/自定义变量",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7902,6 +8332,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.customVar.get",
     displayName: "获取自定义变量",
+    displayNameEN: "Get Custom Variable",
+    officialID: 50,
     category: "查询节点/自定义变量",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7931,6 +8363,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.graphVar.get",
     displayName: "获取节点图变量",
+    displayNameEN: "Get Node Graph Variable",
+    officialID: 337,
     category: "查询节点/自定义变量",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7957,6 +8391,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.presetState.get",
     displayName: "获取预设状态",
+    displayNameEN: "Get Preset Status",
+    officialID: 68,
     category: "查询节点/预设状态",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7988,6 +8424,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.byGuid",
     displayName: "以GUID查询实体",
+    displayNameEN: "Query Entity by GUID",
+    officialID: 75,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -7999,6 +8437,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.guid.byEntity",
     displayName: "以实体查询GUID",
+    displayNameEN: "Query GUID by Entity",
+    officialID: 76,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8010,6 +8450,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.isAlive",
     displayName: "查询实体是否在场",
+    displayNameEN: "Query If Entity Is on the Field",
+    officialID: 507,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8026,6 +8468,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.character.moveSpeed",
     displayName: "查询角色当前移动速度",
+    displayNameEN: "Query Character's Current Movement SPD",
+    officialID: 947,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8048,6 +8492,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.getAll",
     displayName: "获取场上所有实体",
+    displayNameEN: "Get All Entities on the Field",
+    officialID: 318,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8063,6 +8509,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.byComponentOnField",
     displayName: "获取场上指定元件ID的实体",
+    displayNameEN: "Get Entities With Specified Prefab on the Field",
+    officialID: 320,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8084,6 +8532,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.byTypeOnField",
     displayName: "获取场上指定类型实体",
+    displayNameEN: "Get Specified Type of Entities on the Field",
+    officialID: 319,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8105,6 +8555,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.transform",
     displayName: "获取实体位置与旋转",
+    displayNameEN: "Get Entity Location and Rotation",
+    officialID: 99,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8122,6 +8574,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.elementStats",
     displayName: "获取实体元素属性",
+    displayNameEN: "Get Entity Elemental Attribute",
+    officialID: 671,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8233,6 +8687,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.upVector",
     displayName: "获取实体向上向量",
+    displayNameEN: "Get Entity Upward Vector",
+    officialID: 518,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8249,6 +8705,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.forwardVector",
     displayName: "获取实体向前向量",
+    displayNameEN: "Get Entity Forward Vector",
+    officialID: 516,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8270,6 +8728,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.rightVector",
     displayName: "获取实体向右向量",
+    displayNameEN: "Get Entity Right Vector",
+    officialID: 517,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8291,6 +8751,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.ownedEntities",
     displayName: "获取实体拥有的实体列表",
+    displayNameEN: "Get List of Entities Owned by the Entity",
+    officialID: 745,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8312,6 +8774,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.type",
     displayName: "获取实体类型",
+    displayNameEN: "Get Entity Type",
+    officialID: 260,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8333,6 +8797,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.advancedStats",
     displayName: "获取实体进阶属性",
+    displayNameEN: "Get Entity Advanced Attribute",
+    officialID: 670,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8375,6 +8841,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.owner",
     displayName: "获取拥有者实体",
+    displayNameEN: "Get Owner Entity",
+    officialID: 744,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8396,6 +8864,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.filterByComponentId",
     displayName: "获取指定元件ID的实体列表",
+    displayNameEN: "Get Entity List by Specified Prefab",
+    officialID: 378,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8423,6 +8893,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.filterByType",
     displayName: "获取指定类型的实体列表",
+    displayNameEN: "Get Entity List by Specified Type",
+    officialID: 377,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8450,6 +8922,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.filterByRange",
     displayName: "获取指定范围的实体列表",
+    displayNameEN: "Get Entity List by Specified Range",
+    officialID: 380,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8479,6 +8953,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entities.filterByCamp",
     displayName: "获取指定阵营的实体列表",
+    displayNameEN: "Get Entity List by Specified Faction",
+    officialID: 379,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8501,6 +8977,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.object.stats",
     displayName: "获取物件属性",
+    displayNameEN: "Get Object Attribute",
+    officialID: 580,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8553,6 +9031,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entity.self",
     displayName: "获取自身实体",
+    displayNameEN: "Get Self Entity",
+    officialID: 73,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8563,6 +9043,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.character.stats",
     displayName: "获取角色属性",
+    displayNameEN: "Get Character Attribute",
+    officialID: 738,
     category: "查询节点/实体相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8635,6 +9117,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.level.environmentTime",
     displayName: "查询当前环境时间",
+    displayNameEN: "Query Current Environment Time",
+    officialID: 664,
     category: "查询节点/关卡相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8656,6 +9140,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.level.gameElapsed",
     displayName: "获取游戏已进行时间",
+    displayNameEN: "Query Game Time Elapsed",
+    officialID: 290,
     category: "查询节点/关卡相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8674,6 +9160,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.camp.ofEntity",
     displayName: "查询实体阵营",
+    displayNameEN: "Query Entity Faction",
+    officialID: 249,
     category: "查询节点/阵营相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8690,6 +9178,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.camp.isHostile",
     displayName: "获取阵营是否敌对",
+    displayNameEN: "Query If Faction Is Hostile",
+    officialID: 614,
     category: "查询节点/阵营相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8705,6 +9195,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.allCharactersDown",
     displayName: "查询玩家角色是否全部倒下",
+    displayNameEN: "Query If All Player Characters Are Down",
+    officialID: 287,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8716,6 +9208,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.playerIndex.byGuid",
     displayName: "根据玩家GUID获取玩家序号",
+    displayNameEN: "Get Player ID by Player GUID",
+    officialID: 751,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8737,6 +9231,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.playerGuid.byIndex",
     displayName: "根据玩家序号获取玩家GUID",
+    displayNameEN: "Get Player GUID by Player ID",
+    officialID: 750,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8759,6 +9255,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.players.inField",
     displayName: "获取在场玩家实体列表",
+    displayNameEN: "Get List of Player Entities on the Field",
+    officialID: 248,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8774,6 +9272,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.allCharacterEntities",
     displayName: "获取指定玩家所有角色实体",
+    displayNameEN: "Get All Character Entities of Specified Player",
+    officialID: 258,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8790,6 +9290,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.reviveRemaining",
     displayName: "获取玩家剩余复苏次数",
+    displayNameEN: "Get Player Remaining Revives",
+    officialID: 275,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8801,6 +9303,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.reviveDuration",
     displayName: "获取玩家复苏耗时",
+    displayNameEN: "Get Player Revive Time",
+    officialID: 277,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8812,6 +9316,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.inputDeviceType",
     displayName: "获得玩家客户端输入设备类型",
+    displayNameEN: "Get Player Client Input Device Type",
+    officialID: 768,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8828,6 +9334,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.nickname",
     displayName: "获取玩家昵称",
+    displayNameEN: "Get Player Nickname",
+    officialID: 767,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8844,6 +9352,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.player.ofCharacter",
     displayName: "获取角色归属的玩家实体",
+    displayNameEN: "Get Player Entity to Which the Character Belongs",
+    officialID: 259,
     category: "查询节点/玩家与角色相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8868,6 +9378,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.follower.target",
     displayName: "获取跟随运动器的目标",
+    displayNameEN: "Get Follow Motion Device Target",
+    officialID: 246,
     category: "查询节点/跟随运动器",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8898,6 +9410,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.timer.globalCurrent",
     displayName: "获取全局计时器当前时间",
+    displayNameEN: "Get Current Global Timer Time",
+    officialID: 310,
     category: "查询节点/全局计时器",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8929,6 +9443,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.ui.currentLayout",
     displayName: "获取玩家当前界面布局",
+    displayNameEN: "Get Player's Current UI Layout",
+    officialID: 317,
     category: "查询节点/界面控件组",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -8948,6 +9464,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.creation.stats",
     displayName: "获取造物属性",
+    displayNameEN: "Get Creation Attribute",
+    officialID: 381,
     category: "查询节点/造物",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9006,6 +9524,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.creation.currentTarget",
     displayName: "获取造物当前目标",
+    displayNameEN: "Get Creation's Current Target",
+    officialID: 376,
     category: "查询节点/造物",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9027,6 +9547,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.creation.defaultAggroList",
     displayName: "获取默认模式的造物仇恨列表",
+    displayNameEN: "Get Aggro List of Creation in Default Mode",
+    officialID: 758,
     category: "查询节点/造物",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9046,6 +9568,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.career.ofPlayer",
     displayName: "查询玩家职业",
+    displayNameEN: "Query Player Class",
+    officialID: 387,
     category: "查询节点/职业",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9062,6 +9586,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.career.level",
     displayName: "查询玩家职业的等级",
+    displayNameEN: "Query Player Class Level",
+    officialID: 388,
     category: "查询节点/职业",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9082,6 +9608,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.character.skill",
     displayName: "查询角色技能",
+    displayNameEN: "Query Character Skill",
+    officialID: 398,
     category: "查询节点/技能",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9106,6 +9634,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.unitState.slotIndexList",
     displayName: "查询单位状态的槽位序号列表",
+    displayNameEN: "List of Slot IDs Querying Unit Status",
+    officialID: 748,
     category: "查询节点/单位状态",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9133,6 +9663,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.unitState.hasState",
     displayName: "查询实体是否具有单位状态",
+    displayNameEN: "Query If Entity Has Unit Status",
+    officialID: 508,
     category: "查询节点/单位状态",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9155,6 +9687,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.unitState.layerCountBySlot",
     displayName: "根据槽位序号查询单位状态层数",
+    displayNameEN: "Query Unit Status Stacks by Slot ID",
+    officialID: 746,
     category: "查询节点/单位状态",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9184,6 +9718,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.unitState.applierBySlot",
     displayName: "根据槽位序号查询单位状态施加者",
+    displayNameEN: "Query Unit Status Applier by Slot ID",
+    officialID: 747,
     category: "查询节点/单位状态",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9221,6 +9757,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.tags.entitiesByUnitTagIndex",
     displayName: "获取单位标签的实体列表",
+    displayNameEN: "Get Entity List by Unit Tag",
+    officialID: 590,
     category: "查询节点/标签",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9243,6 +9781,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.tags.ofEntity",
     displayName: "获取实体单位标签列表",
+    displayNameEN: "Get Entity Unit Tag List",
+    officialID: 589,
     category: "查询节点/标签",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9267,6 +9807,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.globalTransferMultiplier",
     displayName: "查询全局仇恨转移倍率",
+    displayNameEN: "Query Global Aggro Transfer Multiplier",
+    officialID: 605,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9282,6 +9824,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.isInCombat",
     displayName: "查询指定实体是否已入战",
+    displayNameEN: "Query if Specified Entity Is in Combat",
+    officialID: 610,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9303,6 +9847,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.multiplierOfEntity",
     displayName: "查询指定实体的仇恨倍率",
+    displayNameEN: "Query the Aggro Multiplier of the Specified Entity",
+    officialID: 604,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9324,6 +9870,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.valueOfEntity",
     displayName: "查询指定实体的仇恨值",
+    displayNameEN: "Query the Aggro Value of the Specified Entity",
+    officialID: 603,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9346,6 +9894,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.ownersByTarget",
     displayName: "获取以目标为仇恨目标的拥有者列表",
+    displayNameEN: "Get List of Owners That Have the Target As Their Aggro Target",
+    officialID: 608,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9367,6 +9917,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.listOfEntity",
     displayName: "获取指定实体的仇恨列表",
+    displayNameEN: "Get the Aggro List of the Specified Entity",
+    officialID: 609,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9388,6 +9940,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.targetOfOwner",
     displayName: "获取指定实体的仇恨目标",
+    displayNameEN: "Get the Aggro Target of the Specified Entity",
+    officialID: 606,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9409,6 +9963,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.hatred.ownersByListContainingTarget",
     displayName: "获取目标所在仇恨列表的拥有者列表",
+    displayNameEN: "Get List of Owners Who Have the Target in Their Aggro List",
+    officialID: 607,
     category: "查询节点/自定义仇恨",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9433,6 +9989,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.path.pointInfo",
     displayName: "获取指定路径点信息",
+    displayNameEN: "Get Specified Waypoint Info",
+    officialID: 621,
     category: "查询节点/路径",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9471,6 +10029,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.preset.indicesByUnitTag",
     displayName: "以单位标签获取预设点位列表",
+    displayNameEN: "Get Preset Point List by Unit Tag",
+    officialID: 271,
     category: "查询节点/预设点",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9493,6 +10053,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.preset.transformByIndex",
     displayName: "查询预设点位置旋转",
+    displayNameEN: "Query Preset Point Position Rotation",
+    officialID: 270,
     category: "查询节点/预设点",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9514,6 +10076,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.settlement.playerSuccess",
     displayName: "获取玩家结算成功状态",
+    displayNameEN: "Get Player Settlement Success Status",
+    officialID: 653,
     category: "查询节点/关卡结算",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9530,6 +10094,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.settlement.playerRankValue",
     displayName: "获取玩家结算排名数值",
+    displayNameEN: "Get Player Settlement Ranking Value",
+    officialID: 651,
     category: "查询节点/关卡结算",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9551,6 +10117,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.settlement.campSuccess",
     displayName: "获取阵营结算成功状态",
+    displayNameEN: "Get Faction Settlement Success Status",
+    officialID: 657,
     category: "查询节点/关卡结算",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9562,6 +10130,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.settlement.campRankValue",
     displayName: "获取阵营结算排名数值",
+    displayNameEN: "Get Faction Settlement Ranking Value",
+    officialID: 655,
     category: "查询节点/关卡结算",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9581,6 +10151,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.getByKey",
     displayName: "以键查询字典值",
+    displayNameEN: "Query Dictionary Value by Key",
+    officialID: 1158,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9605,6 +10177,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.containsValue",
     displayName: "查询字典是否包含特定值",
+    displayNameEN: "Query If Dictionary Contains Specific Value",
+    officialID: 1438,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9628,6 +10202,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.containsKey",
     displayName: "查询字典是否包含特定键",
+    displayNameEN: "Query If Dictionary Contains Specific Key",
+    officialID: 1368,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9651,6 +10227,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.length",
     displayName: "查询字典长度",
+    displayNameEN: "Query Dictionary's Length",
+    officialID: 1648,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9662,6 +10240,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.values",
     displayName: "获取字典中值组成的列表",
+    displayNameEN: "Get List of Values from Dictionary",
+    officialID: 1578,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9679,6 +10259,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.dict.keys",
     displayName: "获取字典中键组成的列表",
+    displayNameEN: "Get List of Keys from Dictionary",
+    officialID: 1508,
     category: "查询节点/字典",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9698,6 +10280,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.purchaseInfo",
     displayName: "查询商店商品收购信息",
+    displayNameEN: "Query Shop Item Purchase Info",
+    officialID: 719,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9738,6 +10322,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.purchaseList",
     displayName: "查询商店收购物品列表",
+    displayNameEN: "Query Shop Purchase Item List",
+    officialID: 716,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9766,6 +10352,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.backpackSellInfo",
     displayName: "查询背包商店商品出售信息",
+    displayNameEN: "Query Inventory Shop Item Sales Info",
+    officialID: 718,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9812,6 +10400,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.backpackSellList",
     displayName: "查询背包商店物品出售列表",
+    displayNameEN: "Query Inventory Shop Item Sales List",
+    officialID: 715,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9840,6 +10430,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.customSellInfo",
     displayName: "查询自定义商店商品出售信息",
+    displayNameEN: "Query Custom Shop Item Sales Info",
+    officialID: 717,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9906,6 +10498,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.shop.customSellList",
     displayName: "查询自定义商店商品出售列表",
+    displayNameEN: "Query Custom Shop Item Sales List",
+    officialID: 714,
     category: "查询节点/商店",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9937,6 +10531,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.equip.tagList",
     displayName: "查询装备标签列表",
+    displayNameEN: "Query Equipment Tag List",
+    officialID: 734,
     category: "查询节点/装备",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9954,6 +10550,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.equip.configIdByIndex",
     displayName: "根据装备索引查询装备配置ID",
+    displayNameEN: "Query Equipment Config ID by Equipment ID",
+    officialID: 749,
     category: "查询节点/装备",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9976,6 +10574,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.equip.entryList",
     displayName: "获取装备词条列表",
+    displayNameEN: "Get Equipment Affix List",
+    officialID: 675,
     category: "查询节点/装备",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -9998,6 +10598,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.equip.entryValue",
     displayName: "获取装备词条数值",
+    displayNameEN: "Get Equipment Affix Value",
+    officialID: 677,
     category: "查询节点/装备",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10027,6 +10629,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.equip.entryConfigId",
     displayName: "获取装备词条配置ID",
+    displayNameEN: "Get Equipment Affix Config ID",
+    officialID: 676,
     category: "查询节点/装备",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10059,6 +10663,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.drop.coinCount",
     displayName: "获取凋落物组件货币数量",
+    displayNameEN: "Get Loot Component Currency Quantity",
+    officialID: 729,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10086,6 +10692,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.reward.allCoins",
     displayName: "获取战利品所有货币",
+    displayNameEN: "Get All Trophy Currency",
+    officialID: 731,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10102,6 +10710,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.reward.allItems",
     displayName: "获取战利品所有道具",
+    displayNameEN: "Get All Trophy Items",
+    officialID: 730,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10118,6 +10728,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.drop.allEquip",
     displayName: "获取掉落物件所有装备",
+    displayNameEN: "Get All Equipment from Loot Component",
+    officialID: 732,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10139,6 +10751,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.drop.itemCount",
     displayName: "获取掉落物组件道具数量",
+    displayNameEN: "Get Loot Component Item Quantity",
+    officialID: 728,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10166,6 +10780,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.capacity",
     displayName: "获取背包容量",
+    displayNameEN: "Get Inventory Capacity",
+    officialID: 689,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10182,6 +10798,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.basicItems",
     displayName: "获取背包所有基础道具",
+    displayNameEN: "Get all basic items from Inventory",
+    officialID: 721,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10203,6 +10821,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.allEquip",
     displayName: "获取背包所有装备",
+    displayNameEN: "Get all equipment from Inventory",
+    officialID: 723,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10224,6 +10844,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.allCoins",
     displayName: "获取背包所有货币",
+    displayNameEN: "Get All Currency From Inventory",
+    officialID: 722,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10240,6 +10862,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.coinCount",
     displayName: "获取背包货币数量",
+    displayNameEN: "Get Inventory Currency Quantity",
+    officialID: 691,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10267,6 +10891,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.backpack.itemCount",
     displayName: "获取背包道具数量",
+    displayNameEN: "Get Inventory Item Quantity",
+    officialID: 690,
     category: "查询节点/道具",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10297,6 +10923,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.collisionTrigger.entitiesIn",
     displayName: "获取碰撞触发器内所有实体",
+    displayNameEN: "Get All Entities Within the Collision Trigger",
+    officialID: 669,
     category: "查询节点/碰撞触发器",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10328,6 +10956,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.minimap.markerInfo",
     displayName: "查询指定小地图标识信息",
+    displayNameEN: "Query Specified Mini-Map Marker Information",
+    officialID: 638,
     category: "查询节点/小地图标识组件",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10363,6 +10993,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.minimap.markerStates",
     displayName: "获取实体的小地图标识状态",
+    displayNameEN: "Get Entity's Mini-Map Marker Status",
+    officialID: 639,
     category: "查询节点/小地图标识组件",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10398,6 +11030,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.creation.patrolTemplate",
     displayName: "获取当前造物的巡逻模板",
+    displayNameEN: "Get Current Creation's Patrol Template",
+    officialID: 619,
     category: "查询节点/造物巡逻",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10434,6 +11068,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.achievement.isCompleted",
     displayName: "查询成就是否完成",
+    displayNameEN: "Query If Achievement Is Completed",
+    officialID: 644,
     category: "查询节点/成就",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10465,6 +11101,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.scanTag.activeConfigId",
     displayName: "获取当前生效的扫描标签配置ID",
+    displayNameEN: "Get the Currently Active Scan Tag Config ID",
+    officialID: 737,
     category: "查询节点/扫描标签",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10489,6 +11127,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.rank.info",
     displayName: "获取玩家段位信息",
+    displayNameEN: "Get Player Ranking Info",
+    officialID: 658,
     category: "查询节点/段位",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10523,6 +11163,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.rank.deltaScore",
     displayName: "获取玩家段位变化分数",
+    displayNameEN: "Get Player Rank Score Change",
+    officialID: 660,
     category: "查询节点/段位",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10535,6 +11177,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.rank.escapeLegal",
     displayName: "获取玩家逃跑合法性",
+    displayNameEN: "Get Player Escape Validity",
+    officialID: 662,
     category: "查询节点/段位",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10549,6 +11193,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.entityLayoutGroups.active",
     displayName: "查询当前激活的实体布设组列表",
+    displayNameEN: "Get Currently Active Entity Deployment Groups",
+    officialID: 179,
     category: "查询节点/实体布设组",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10567,6 +11213,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.giftBox.count",
     displayName: "查询对应礼盒数量",
+    displayNameEN: "Query Corresponding Gift Box Quantity",
+    officialID: 773,
     category: "查询节点/奇域礼盒相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10585,6 +11233,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "query.giftBox.consumeCount",
     displayName: "查询对应礼盒消耗数量",
+    displayNameEN: "Query Corresponding Gift Box Consumption",
+    officialID: 774,
     category: "查询节点/奇域礼盒相关",
     kind: "query",
     headerColor: QUERY_HEADER,
@@ -10600,11 +11250,14 @@ export const nodeDefinitions: NodeDefinition[] = [
       { id: "count", label: "数量", kind: "data-out", valueType: "int" },
     ],
   },
+
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 运算节点/通用
   {
     id: "math.enumEquals",
     displayName: "枚举是否相等",
+    displayNameEN: "Enumerations Equal",
+    officialID: 0,
     category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10629,6 +11282,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.list.assemble",
     displayName: "拼装列表",
+    displayNameEN: "Assembly List",
+    officialID: 0,
     category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10646,6 +11301,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.equals",
     displayName: "是否相等",
+    displayNameEN: "Equal",
+    officialID: 0,
     category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10670,6 +11327,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.typeCast",
     displayName: "数据类型转换",
+    displayNameEN: "Data Type Conversion",
+    officialID: 0,
     category: "运算节点/通用",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10689,6 +11348,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.dot",
     displayName: "三维向量内积",
+    displayNameEN: "3D Vector Dot Product",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10701,6 +11362,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.sub",
     displayName: "三维向量减法",
+    displayNameEN: "3D Vector Subtraction",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10713,6 +11376,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.add",
     displayName: "三维向量加法",
+    displayNameEN: "3D Vector Addition",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10725,6 +11390,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.cross",
     displayName: "三维向量外积",
+    displayNameEN: "3D Vector Cross Product",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10737,6 +11404,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.angle",
     displayName: "三维向量夹角",
+    displayNameEN: "3D Vector Angle",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10754,6 +11423,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.normalize",
     displayName: "三维向量归一化",
+    displayNameEN: "3D Vector Normalization",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10765,6 +11436,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.rotate",
     displayName: "三维向量旋转",
+    displayNameEN: "3D Vector Rotation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10782,6 +11455,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.magnitude",
     displayName: "三维向量模运算",
+    displayNameEN: "3D Vector Modulo Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10793,6 +11468,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.scale",
     displayName: "三维向量缩放",
+    displayNameEN: "3D Vector Zoom",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10811,6 +11488,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.distance",
     displayName: "两坐标点距离",
+    displayNameEN: "Distance Between Two Coordinate Points",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10823,6 +11502,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.mul",
     displayName: "乘法运算",
+    displayNameEN: "Multiplication",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10853,6 +11534,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.cos",
     displayName: "余弦函数",
+    displayNameEN: "Cosine Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10870,6 +11553,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.sub",
     displayName: "减法运算",
+    displayNameEN: "Subtraction",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10900,6 +11585,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.div",
     displayName: "除法运算",
+    displayNameEN: "Division",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10930,6 +11617,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.create",
     displayName: "创建三维向量",
+    displayNameEN: "Create 3D Vector",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10966,6 +11655,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.add",
     displayName: "加法运算",
+    displayNameEN: "Addition",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -10996,6 +11687,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.acos",
     displayName: "反余弦函数",
+    displayNameEN: "Arccosine Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11013,6 +11706,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.atan",
     displayName: "反正切函数",
+    displayNameEN: "Arctangent Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11030,6 +11725,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.asin",
     displayName: "反正弦函数",
+    displayNameEN: "Arcsine Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11047,6 +11744,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.truncate",
     displayName: "取整数运算",
+    displayNameEN: "Round to Integer Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11065,6 +11764,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.sign",
     displayName: "取符号运算",
+    displayNameEN: "Sign Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11088,6 +11789,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.max",
     displayName: "取较大值",
+    displayNameEN: "Take Larger Value",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11118,6 +11821,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.min",
     displayName: "取较小值",
+    displayNameEN: "Take Smaller Value",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11148,6 +11853,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.shift.right",
     displayName: "右移运算",
+    displayNameEN: "Right Shift Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11172,6 +11879,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.log",
     displayName: "对数运算",
+    displayNameEN: "Logarithm Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11189,6 +11898,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.shift.left",
     displayName: "左移运算",
+    displayNameEN: "Left Shift Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11213,6 +11924,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.pow",
     displayName: "幂运算",
+    displayNameEN: "Exponentiation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11237,6 +11950,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.rad2deg",
     displayName: "弧度转角度",
+    displayNameEN: "Radians to Degrees",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11254,6 +11969,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.vector3.split",
     displayName: "拆分三维向量",
+    displayNameEN: "Split 3D Vector",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11272,6 +11989,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.and",
     displayName: "按位与",
+    displayNameEN: "Bitwise AND",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11296,6 +12015,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.write",
     displayName: "按位写入",
+    displayNameEN: "Write by bit",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11321,6 +12042,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.not",
     displayName: "按位取补",
+    displayNameEN: "Bitwise Complement",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11338,6 +12061,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.xor",
     displayName: "按位异或",
+    displayNameEN: "XOR (Exclusive OR)",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11362,6 +12087,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.or",
     displayName: "按位或",
+    displayNameEN: "Bitwise OR",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11386,6 +12113,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.bit.read",
     displayName: "按位读出",
+    displayNameEN: "Read by bit",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11404,6 +12133,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.gt",
     displayName: "数值大于",
+    displayNameEN: "Greater Than",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11428,6 +12159,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.gte",
     displayName: "数值大于等于",
+    displayNameEN: "Greater Than or Equal To",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11452,6 +12185,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.lt",
     displayName: "数值小于",
+    displayNameEN: "Less Than",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11476,6 +12211,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.lte",
     displayName: "数值小于等于",
+    displayNameEN: "Less Than or Equal To",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11500,6 +12237,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.direction.rotate",
     displayName: "方向向量旋转",
+    displayNameEN: "Direction Vector to Rotation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11512,6 +12251,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.time.weekdayFromTimestamp",
     displayName: "根据时间戳计算星期几",
+    displayNameEN: "Calculate Day of the Week From Timestamp",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11529,6 +12270,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.time.formatFromTimestamp",
     displayName: "根据时间戳计算格式化时间",
+    displayNameEN: "Calculate Formatted Time From Timestamp",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11551,6 +12294,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.time.timestampFromFormat",
     displayName: "根据格式化时间计算时间戳",
+    displayNameEN: "Calculate Timestamp From Formatted Time",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11603,6 +12348,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.mod",
     displayName: "模运算",
+    displayNameEN: "Modulo Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11627,6 +12374,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.tan",
     displayName: "正切函数",
+    displayNameEN: "Tangent Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11644,6 +12393,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.sin",
     displayName: "正弦函数",
+    displayNameEN: "Sine Function",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11661,6 +12412,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.sqrt",
     displayName: "算术平方根运算",
+    displayNameEN: "Arithmetic Square Root Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11678,6 +12431,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.abs",
     displayName: "绝对值运算",
+    displayNameEN: "Absolute Value Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11701,6 +12456,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.clamp",
     displayName: "范围限制运算",
+    displayNameEN: "Range Limiting Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11738,6 +12495,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.deg2rad",
     displayName: "角度转弧度",
+    displayNameEN: "Degrees to Radians",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11755,6 +12514,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.logic.and",
     displayName: "逻辑与运算",
+    displayNameEN: "Logical AND Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11767,6 +12528,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.logic.xor",
     displayName: "逻辑异或运算",
+    displayNameEN: "Logical XOR Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11779,6 +12542,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.logic.or",
     displayName: "逻辑或运算",
+    displayNameEN: "Logical OR Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11791,6 +12556,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.logic.not",
     displayName: "逻辑非运算",
+    displayNameEN: "Logical NOT Operation",
+    officialID: 0,
     category: "运算节点/数学",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11804,6 +12571,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.dict.create",
     displayName: "建立字典",
+    displayNameEN: "Create Dictionary",
+    officialID: 0,
     category: "运算节点/字典",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11828,6 +12597,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.dict.assemble",
     displayName: "拼装字典",
+    displayNameEN: "Assembly Dictionary",
+    officialID: 0,
     category: "运算节点/字典",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11855,6 +12626,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.struct.decompose",
     displayName: "拆分结构体",
+    displayNameEN: "Split Structure",
+    officialID: 0,
     category: "运算节点/结构体",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11871,6 +12644,8 @@ export const nodeDefinitions: NodeDefinition[] = [
   {
     id: "math.struct.assemble",
     displayName: "拼装结构体",
+    displayNameEN: "Assemble Structure",
+    officialID: 0,
     category: "运算节点/结构体",
     kind: "math",
     headerColor: MATH_HEADER,
@@ -11882,6 +12657,3712 @@ export const nodeDefinitions: NodeDefinition[] = [
         valueType: "any",
         ui: { accessory: "gear" },
       },
+    ],
+  },
+
+  // ==============================================================================
+  // ============================= 客户端节点图可用节点 =============================
+  // ==============================================================================
+
+  // ───────────────────────────── 99-客户端事件节点 ─────────────────────────────
+  // 事件节点//<隐藏>客户端节点自带
+  {
+    id: "event.graphStart",
+    displayName: "节点图开始",
+    displayNameEN: "Node Graph Begins",
+    officialID: 200042,
+    category: "事件节点/<隐藏>客户端节点自带",
+    kind: "event",
+    headerColor: EVENT_HEADER,
+    ports: [{ id: "flowOut", label: "事件", kind: "flow-out" }],
+  },
+  // 流程控制节点/<隐藏>客户端节点自带
+  {
+    id: "flow.graphEndBoolean",
+    displayName: "节点图结束（布尔型）",
+    displayNameEN: "Node Graph End (Boolean)",
+    officialID: 200000,
+    category: "流程控制节点/<隐藏>客户端节点自带",
+    kind: "flow-control",
+    headerColor: FLOW_HEADER,
+    ports: [
+      {
+        id: "result",
+        label: "输出结果（布尔型）",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "flow.graphEndInteger",
+    displayName: "节点图结束（整数）",
+    displayNameEN: "Node Graph End (Integer)",
+    officialID: ???,
+    category: "流程控制节点/<隐藏>客户端节点自带",
+    kind: "flow-control",
+    headerColor: FLOW_HEADER,
+    ports: [
+      {
+        id: "result",
+        label: "输出结果（整数）",
+        kind: "data-in",
+        valueType: "int",
+      },
+    ],
+  },
+  // 查询节点
+  // ───────────────────────────── 01-列表相关 ─────────────────────────────
+  // 查询节点/列表相关
+  {
+    id: "client.query.list.getValue",
+    displayName: "获取列表对应值",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "index", label: "序号", kind: "data-in", valueType: "int" },
+      { id: "dataList", label: "数据列表", kind: "data-in", valueType: "list" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.query.list.length",
+    displayName: "获取列表长度",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "inputList",
+        label: "输入列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      { id: "length", label: "长度", kind: "data-out", valueType: "int" },
+    ],
+  },
+  {
+    id: "client.query.list.max",
+    displayName: "获取列表最大值",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "list", label: "列表", kind: "data-in", valueType: "list" },
+      { id: "maxValue", label: "最大值", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.query.list.min",
+    displayName: "获取列表最小值",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "list", label: "列表", kind: "data-in", valueType: "list" },
+      { id: "minValue", label: "最小值", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.query.raycast.filterList",
+    displayName: "获取射线筛选类型列表",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [{ id: "list", label: "列表", kind: "data-out", valueType: "list" }],
+  },
+  {
+    id: "client.query.entity.typeList",
+    displayName: "获取实体类型列表",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [{ id: "list", label: "列表", kind: "data-out", valueType: "list" }],
+  },
+  {
+    id: "client.query.list.contains",
+    displayName: "列表是否包含该值",
+    category: "查询节点/列表相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "value", label: "值", kind: "data-in", valueType: "any" },
+      { id: "list", label: "列表", kind: "data-in", valueType: "list" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+
+  // ───────────────────────────── 02-自定义变量 ─────────────────────────────
+  // 查询节点/自定义变量
+  {
+    id: "client.query.customVariable.get",
+    displayName: "获取自定义变量",
+    category: "查询节点/自定义变量",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "variableName",
+        label: "变量名",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "variableValue",
+        label: "变量值",
+        kind: "data-out",
+        valueType: "any",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 03-预设状态 ─────────────────────────────
+  // 查询节点/预设状态
+  {
+    id: "client.query.presetState.get",
+    displayName: "获取预设状态",
+    category: "查询节点/预设状态",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "entity", label: "实体", kind: "data-in", valueType: "entity" },
+      {
+        id: "presetIndex",
+        label: "预设状态索引",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "presetValue",
+        label: "预设状态值",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 04-实体相关 ─────────────────────────────
+  // 查询节点/实体相关
+  {
+    id: "client.query.entity.isPresent",
+    displayName: "查询实体是否在场",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "isPresent",
+        label: "是否在场",
+        kind: "data-out",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.query.entity.getAttackTarget",
+    displayName: "获取单位攻击目标",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "unitEntity",
+        label: "单位实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "attackTargetEntity",
+        label: "攻击目标实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.query.entity.getSocketPosition",
+    displayName: "获取目标挂接点位置",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "attachmentName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "attachmentPosition",
+        label: "挂接点位置",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+    ],
+  },
+  {
+    id: "client.query.entity.getSocketRotation",
+    displayName: "获取目标挂接点旋转",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "attachmentName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "attachmentRotation",
+        label: "挂接点旋转",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 06-玩家与角色相关 ─────────────────────────────
+  // 查询节点/玩家与角色相关
+  {
+    id: "client.query.player.isSelfInCombat",
+    displayName: "查询自身是否已入战",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "isInCombat",
+        label: "是否入战",
+        kind: "data-out",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.query.player.getCurrentCharacter",
+    displayName: "获取当前角色",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "characterEntity",
+        label: "角色实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.query.character.getOwnerPlayer",
+    displayName: "获取角色归属的玩家实体",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "characterEntity",
+        label: "角色实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "ownerPlayerEntity",
+        label: "所属玩家实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.query.player.listPresent",
+    displayName: "获取在场玩家实体列表",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "playerEntities",
+        label: "玩家实体列表",
+        kind: "data-out",
+        valueType: "list",
+      },
+    ],
+  },
+  {
+    id: "client.query.player.getCharacter",
+    displayName: "获取指定玩家的角色实体",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "playerEntity",
+        label: "玩家实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "characterEntity",
+        label: "角色实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  // ───────────────────────────── 11-射线 ─────────────────────────────
+  // 查询节点/射线
+  {
+    id: "client.query.raycast.getResult",
+    displayName: "获取射线检测结果",
+    category: "查询节点/射线",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "origin",
+        label: "出射位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "direction",
+        label: "出射方向",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "maxDistance",
+        label: "射线最大长度",
+        kind: "data-in",
+        valueType: "float",
+      },
+
+      {
+        id: "hitPosition",
+        label: "命中位置",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+      {
+        id: "hitEntity",
+        label: "命中实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  // ───────────────────────────── 04-实体相关 ─────────────────────────────
+  // 查询节点/实体相关
+  {
+    id: "client.query.getTargetEntity",
+    displayName: "获取目标实体",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.query.getEntityType",
+    displayName: "获取实体的类型",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "entityType",
+        label: "实体类型",
+        kind: "data-out",
+        valueType: "enum",
+      },
+    ],
+  },
+  {
+    id: "client.query.getEntityPosition",
+    displayName: "获取实体位置",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "entity", label: "实体", kind: "data-in", valueType: "entity" },
+      { id: "position", label: "位置", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.query.getEntityRotation",
+    displayName: "获取实体旋转",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "entity", label: "实体", kind: "data-in", valueType: "entity" },
+      { id: "rotation", label: "旋转", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.query.getSelfEntity",
+    displayName: "获取自身实体",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "self", label: "自身实体", kind: "data-out", valueType: "entity" },
+    ],
+  },
+  {
+    id: "client.query.filterEntitiesInBox",
+    displayName: "筛选方形范围内的实体列表",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "width", label: "宽度", kind: "data-in", valueType: "float" },
+      { id: "height", label: "高度", kind: "data-in", valueType: "float" },
+      { id: "length", label: "长度", kind: "data-in", valueType: "float" },
+      {
+        id: "center",
+        label: "中心位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "limit", label: "筛选数量上限", kind: "data-in", valueType: "int" },
+      { id: "rule", label: "筛选规则", kind: "data-in", valueType: "enum" },
+      { id: "result", label: "筛选结果", kind: "data-out", valueType: "list" },
+    ],
+  },
+  {
+    id: "client.query.filterEntitiesInSphere",
+    displayName: "筛选球体范围内的实体列表",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "radius", label: "半径", kind: "data-in", valueType: "float" },
+      {
+        id: "center",
+        label: "中心位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "limit", label: "筛选数量上限", kind: "data-in", valueType: "int" },
+      { id: "rule", label: "筛选规则", kind: "data-in", valueType: "enum" },
+      { id: "result", label: "筛选结果", kind: "data-out", valueType: "list" },
+    ],
+  },
+  {
+    id: "client.query.findEntityByGuid",
+    displayName: "以GUID查询实体",
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "guid", label: "GUID", kind: "data-in", valueType: "guid" },
+      { id: "entity", label: "实体", kind: "data-out", valueType: "entity" },
+    ],
+  },
+  // ───────────────────────────── 05-阵营相关 ─────────────────────────────
+  // 查询节点/阵营相关
+  {
+    id: "client.query.getEntityCamp",
+    displayName: "查询实体阵营",
+    category: "查询节点/阵营相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "camp", label: "阵营", kind: "data-out", valueType: "camp" },
+    ],
+  },
+  {
+    id: "client.query.campsAreHostile",
+    displayName: "查询阵营是否敌对",
+    category: "查询节点/阵营相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "camp1", label: "阵营1", kind: "data-in", valueType: "camp" },
+      { id: "camp2", label: "阵营2", kind: "data-in", valueType: "camp" },
+      {
+        id: "isHostile",
+        label: "是否敌对",
+        kind: "data-out",
+        valueType: "bool",
+      },
+    ],
+  },
+  // ───────────────────────────── 06-玩家与角色相关 ─────────────────────────────
+  // 查询节点/玩家与角色相关
+  {
+    id: "client.query.entityToGuid",
+    displayName: "以实体查询GUID",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "entity", label: "实体", kind: "data-in", valueType: "entity" },
+      { id: "guid", label: "GUID", kind: "data-out", valueType: "guid" },
+    ],
+  },
+  {
+    id: "client.query.getInputDeviceType",
+    displayName: "获得玩家客户端输入设备类型",
+    category: "查询节点/玩家与角色相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "inputDeviceType",
+        label: "输入设备类型",
+        kind: "data-out",
+        valueType: "enum",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 07-标签 ─────────────────────────────
+  // 查询节点/标签
+  {
+    id: "client.query.unitTagEntities",
+    displayName: "获取单位标签的实体列表",
+    category: "查询节点/标签",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "unitTagIndex",
+        label: "单位标签索引",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "entities",
+        label: "实体列表",
+        kind: "data-out",
+        valueType: "list",
+      },
+    ],
+  },
+  {
+    id: "client.query.entityUnitTagIndexes",
+    displayName: "获取实体的单位标签列表",
+    category: "查询节点/标签",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "indexes", label: "列表", kind: "data-out", valueType: "list" },
+    ],
+  },
+
+  // ───────────────────────────── 08-通用 ─────────────────────────────
+  // 查询节点/通用
+  {
+    id: "client.query.getLocalVariable",
+    displayName: "获取局部变量",
+    category: "查询节点/通用",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "variableName",
+        label: "变量名",
+        kind: "data-in",
+        valueType: "string",
+      },
+      { id: "value", label: "变量值", kind: "data-out", valueType: "any" },
+    ],
+  },
+
+  // ───────────────────────────── 09-自定义仇恨 ─────────────────────────────
+  // 查询节点/自定义仇恨
+  {
+    id: "client.query.isEntityInCombat",
+    displayName: "查询指定实体是否入战",
+    category: "查询节点/自定义仇恨",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "isInCombat",
+        label: "是否入战",
+        kind: "data-out",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.query.entityHateList",
+    displayName: "获取指定实体的仇恨列表",
+    category: "查询节点/自定义仇恨",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "specifiedEntity",
+        label: "指定实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "hateList",
+        label: "仇恨列表",
+        kind: "data-out",
+        valueType: "list",
+      },
+    ],
+  },
+  {
+    id: "client.query.entityHateTarget",
+    displayName: "获取指定实体的仇恨目标",
+    category: "查询节点/自定义仇恨",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "specifiedEntity",
+        label: "指定实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "hateTarget",
+        label: "仇恨目标",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 10-触发器 ─────────────────────────────
+  // 查询节点/触发器
+  {
+    id: "client.query.getEntitiesInCollisionTrigger",
+    displayName: "获取碰撞触发器内所有实体",
+    category: "查询节点/触发器",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "triggerIndex",
+        label: "触发器序号",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "entities",
+        label: "实体列表",
+        kind: "data-out",
+        valueType: "list",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 11-射线 ─────────────────────────────
+  // 查询节点/射线
+  {
+    id: "client.query.getRaycastResult",
+    displayName: "获取射线检测结果",
+    category: "查询节点/射线",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "caster",
+        label: "检测发起者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "origin",
+        label: "出射位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "direction",
+        label: "出射方向",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "maxLength",
+        label: "射线最大长度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "campFilter",
+        label: "阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "entityTypeFilter",
+        label: "实体类型筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "命中层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitPosition",
+        label: "命中位置",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+      {
+        id: "hitEntity",
+        label: "命中实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  // ───────────────────────────── 12-扫描 ─────────────────────────────
+  // 查询节点/扫描
+  {
+    id: "client.query.scanAllValidObjects",
+    displayName: "获取扫描组件可扫描的所有合法对象",
+    category: "查询节点/扫描",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      { id: "objects", label: "对象列表", kind: "data-out", valueType: "list" },
+    ],
+  },
+  {
+    id: "client.query.scanCurrentHit",
+    displayName: "获取扫描组件当前扫描到的实体",
+    category: "查询节点/扫描",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "entity",
+        label: "对应实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+      {
+        id: "scanTagConfigId",
+        label: "扫描标签配置ID",
+        kind: "data-out",
+        valueType: "configId",
+      },
+    ],
+  },
+  {
+    id: "client.query.getEntityScanTag",
+    displayName: "获取实体当前生效的扫描标签",
+    category: "查询节点/扫描",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "scanTagConfigId",
+        label: "扫描标签配置ID",
+        kind: "data-out",
+        valueType: "configId",
+      },
+    ],
+  },
+  {
+    id: "client.query.getEntityScanState",
+    displayName: "获取实体扫描状态",
+    category: "查询节点/扫描",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "scanState",
+        label: "扫描状态",
+        kind: "data-out",
+        valueType: "enum",
+      },
+    ],
+  },
+  // 运算节点
+  // ───────────────────────────── 00-通用 ─────────────────────────────
+  // 运算节点/通用
+  {
+    id: "client.math.enumMatch",
+    displayName: "枚举匹配",
+    category: "运算节点/通用",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "enum1", label: "枚举1", kind: "data-in", valueType: "any" },
+      { id: "enum2", label: "枚举2", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.isEqual",
+    displayName: "是否相等",
+    category: "运算节点/通用",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.typeCast",
+    displayName: "数据类型转换",
+    category: "运算节点/通用",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "input", label: "输入", kind: "data-in", valueType: "any" },
+      {
+        id: "converted",
+        label: "转换结果",
+        kind: "data-out",
+        valueType: "any",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 01-数学 ─────────────────────────────
+  // 运算节点/数学
+  {
+    id: "client.math.vector3.split",
+    displayName: "拆分三维向量",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector",
+        label: "三维向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "x", label: "X分量", kind: "data-out", valueType: "float" },
+      { id: "y", label: "Y分量", kind: "data-out", valueType: "float" },
+      { id: "z", label: "Z分量", kind: "data-out", valueType: "float" },
+    ],
+  },
+
+  {
+    id: "client.math.math.multiply",
+    displayName: "乘法运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.math.divide",
+    displayName: "除法运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.sin",
+    displayName: "正弦函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "radian", label: "弧度", kind: "data-in", valueType: "float" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.cos",
+    displayName: "余弦函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "radian", label: "弧度", kind: "data-in", valueType: "float" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.tan",
+    displayName: "正切函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "radian", label: "弧度", kind: "data-in", valueType: "float" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.degToRad",
+    displayName: "角度转弧度",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "degree", label: "角度", kind: "data-in", valueType: "float" },
+      { id: "radian", label: "弧度", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.radToDeg",
+    displayName: "弧度转角度",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "radian", label: "弧度", kind: "data-in", valueType: "float" },
+      { id: "degree", label: "角度", kind: "data-out", valueType: "float" },
+    ],
+  },
+
+  {
+    id: "client.math.arcCos",
+    displayName: "反余弦函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "input", label: "输入", kind: "data-in", valueType: "float" },
+      { id: "radians", label: "弧度", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.arcTan",
+    displayName: "反正切函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "input", label: "输入", kind: "data-in", valueType: "float" },
+      { id: "radians", label: "弧度", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.arcSin",
+    displayName: "反正弦函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "input", label: "输入", kind: "data-in", valueType: "float" },
+      { id: "radians", label: "弧度", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.directionVectorToRotation",
+    displayName: "方向向量转旋转",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "forward",
+        label: "向前向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "up", label: "向上向量", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.randomInRange",
+    displayName: "获取随机数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "min", label: "下限", kind: "data-in", valueType: "any" },
+      { id: "max", label: "上限", kind: "data-in", valueType: "any" },
+      { id: "value", label: "随机数", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.add",
+    displayName: "加法运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.subtract",
+    displayName: "减法运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.abs",
+    displayName: "绝对值运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "input", label: "输入", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "any" },
+    ],
+  },
+  {
+    id: "client.math.logicalNot",
+    displayName: "逻辑非运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "cond", label: "条件", kind: "data-in", valueType: "bool" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.logicalOr",
+    displayName: "逻辑或运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "条件1", kind: "data-in", valueType: "bool" },
+      { id: "b", label: "条件2", kind: "data-in", valueType: "bool" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.logicalXor",
+    displayName: "逻辑异或运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "条件1", kind: "data-in", valueType: "bool" },
+      { id: "b", label: "条件2", kind: "data-in", valueType: "bool" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.logicalAnd",
+    displayName: "逻辑与运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "条件1", kind: "data-in", valueType: "bool" },
+      { id: "b", label: "条件2", kind: "data-in", valueType: "bool" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.normalizeVector3",
+    displayName: "三维向量归一化",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector",
+        label: "三维向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "result", label: "结果", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.addVector3",
+    displayName: "三维向量加法",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector1",
+        label: "三维向量1",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "vector2",
+        label: "三维向量2",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "sum", label: "计算结果", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.angleBetweenVector3",
+    displayName: "三维向量夹角",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector1",
+        label: "三维向量1",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "vector2",
+        label: "三维向量2",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "angleDegrees",
+        label: "夹角角度",
+        kind: "data-out",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.math.subtractVector3",
+    displayName: "三维向量减法",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector1",
+        label: "三维向量1",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "vector2",
+        label: "三维向量2",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "diff", label: "计算结果", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.vector3Length",
+    displayName: "三维向量模运算",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector",
+        label: "三维向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.dotVector3",
+    displayName: "三维向量内积",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector1",
+        label: "三维向量1",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "vector2",
+        label: "三维向量2",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "dot", label: "计算结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.scaleVector3",
+    displayName: "三维向量缩放",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "scale", label: "缩放倍率", kind: "data-in", valueType: "float" },
+      {
+        id: "vector",
+        label: "三维向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "result", label: "结果", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.crossVector3",
+    displayName: "三维向量外积",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector1",
+        label: "三维向量1",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "vector2",
+        label: "三维向量2",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "cross",
+        label: "计算结果",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+    ],
+  },
+  {
+    id: "client.math.rotateVector3",
+    displayName: "三维向量旋转",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      {
+        id: "vector",
+        label: "被旋转的三维向量",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.math.greaterThan",
+    displayName: "是否大于",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.greaterOrEqual",
+    displayName: "是否大于等于",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.lessThan",
+    displayName: "是否小于",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.lessOrEqual",
+    displayName: "是否小于等于",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "a", label: "", kind: "data-in", valueType: "any" },
+      { id: "b", label: "", kind: "data-in", valueType: "any" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "bool" },
+    ],
+  },
+  {
+    id: "client.math.tan",
+    displayName: "正切函数",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "radians", label: "弧度", kind: "data-in", valueType: "float" },
+      { id: "result", label: "结果", kind: "data-out", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.math.makeVector3",
+    displayName: "创建三维向量",
+    category: "运算节点/数学",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "x", label: "X分量", kind: "data-in", valueType: "float" },
+      { id: "y", label: "Y分量", kind: "data-in", valueType: "float" },
+      { id: "z", label: "Z分量", kind: "data-in", valueType: "float" },
+      {
+        id: "vector",
+        label: "三维向量",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 03-列表 ─────────────────────────────
+  // 运算节点/列表
+  {
+    id: "client.math.assembleList",
+    displayName: "拼装列表",
+    category: "运算节点/列表",
+    kind: "math",
+    headerColor: MATH_HEADER,
+    ports: [
+      { id: "params0To99", label: "0~99", kind: "data-in", valueType: "any" },
+      { id: "list", label: "列表", kind: "data-out", valueType: "list" },
+    ],
+  },
+  // 执行节点
+  // ───────────────────────────── 01-角色技能 ─────────────────────────────
+  // 执行节点/角色技能
+  {
+    id: "client.action.iterateEntities",
+    displayName: "遍历实体列表",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "loopBody", label: "执行", kind: "flow-out" },
+      { id: "flowFinish", label: "完成", kind: "flow-out" },
+      {
+        id: "entityList",
+        label: "实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "currentEntity",
+        label: "当前实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.action.playTimedEffect",
+    displayName: "播放限时特效",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "effectConfigId",
+        label: "特效资产配置ID",
+        kind: "data-in",
+        valueType: "configId",
+      },
+      { id: "position", label: "位置", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      {
+        id: "scale",
+        label: "缩放倍率",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "playDefaultSfx",
+        label: "是否播放默认音效",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.action.fireProjectileAtPoint",
+    displayName: "定点发射投射物",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "projectileComponentId",
+        label: "投射物的元件ID",
+        kind: "data-in",
+        valueType: "componentId",
+      },
+      {
+        id: "spawnPosition",
+        label: "创建位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "spawnRotation",
+        label: "创建旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "trackingTarget",
+        label: "追踪目标",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "projectileCamp",
+        label: "投射物阵营",
+        kind: "data-in",
+        valueType: "camp",
+      },
+    ],
+  },
+  {
+    id: "client.action.moveToPoint",
+    displayName: "定点位移",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "duration",
+        label: "位移时长",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "dampingDuration",
+        label: "位移衰减时长",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "speed",
+        label: "位移速度",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "targetPosition",
+        label: "位移目标位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "stopOnCollision",
+        label: "碰撞是否终止位移",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.action.restoreHp",
+    displayName: "恢复生命值",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "healAmount",
+        label: "恢复量",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "ignoreHealingAdjustments",
+        label: "是否忽略恢复调整效果",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次治疗的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次治疗的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+    ],
+  },
+  {
+    id: "client.action.cameraRaycastData",
+    displayName: "镜头朝向检测数据",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetType",
+        label: "目标类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "origin",
+        label: "出射位置",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "minDistance",
+        label: "最近距离",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "maxDistance",
+        label: "最远距离",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "targetRotation",
+        label: "目标旋转",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+      {
+        id: "targetPosition",
+        label: "目标位置",
+        kind: "data-out",
+        valueType: "vector3",
+      },
+    ],
+  },
+  {
+    id: "client.action.forceExitAim",
+    displayName: "强制退出瞄准状态",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+    ],
+  },
+  {
+    id: "client.action.setSelfAttackTarget",
+    displayName: "设置自身攻击目标",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "instantTurn",
+        label: "是否立即转向",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.action.attackBoxAtPosition",
+    displayName: "特定位置打攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      { id: "position", label: "位置", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "attackBoxShape",
+        label: "攻击盒类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "boxScale",
+        label: "攻击盒为长方体时的缩放",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "sphereRadius",
+        label: "攻击盒为球体时的半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorHeight",
+        label: "攻击盒为扇形时的高度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorAngle",
+        label: "攻击盒为扇形时的扇角度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorRadius",
+        label: "攻击盒为扇形时的扇半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorInnerRadius",
+        label: "攻击盒为扇形时的内半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorDirection",
+        label: "攻击盒为扇形时的检测方向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.rectangularAttackBoxAtPosition",
+    displayName: "特定位置打矩形攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      { id: "position", label: "位置", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "boxScale",
+        label: "攻击盒为长方体时的缩放",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.sphericalAttackBoxAtPosition",
+    displayName: "特定位置打球形攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      { id: "position", label: "位置", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "sphereRadius",
+        label: "攻击盒为球体时的半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.sectorAttackBoxAtPosition",
+    displayName: "特定位置打扇形攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      { id: "position", label: "位置", kind: "data-in", valueType: "vector3" },
+      { id: "rotation", label: "旋转", kind: "data-in", valueType: "vector3" },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "sectorHeight",
+        label: "攻击盒为扇形时的高度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorAngle",
+        label: "攻击盒为扇形时的扇角度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorRadius",
+        label: "攻击盒为扇形时的扇半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorInnerRadius",
+        label: "攻击盒为扇形时的内半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorDirection",
+        label: "攻击盒为扇形时的检测方向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.addUnitState",
+    displayName: "添加单位状态",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetEntity",
+        label: "施加目标",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "stackCount",
+        label: "层数",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "stateConfigId",
+        label: "单位状态配置ID",
+        kind: "data-in",
+        valueType: "configId",
+      },
+    ],
+  },
+  {
+    id: "client.action.notifyServerGraph",
+    displayName: "通知服务器节点图",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "str1", label: "字符串1", kind: "data-in", valueType: "string" },
+      { id: "str2", label: "字符串2", kind: "data-in", valueType: "string" },
+      { id: "str3", label: "字符串3", kind: "data-in", valueType: "string" },
+    ],
+  },
+  {
+    id: "client.action.playerTurn",
+    displayName: "玩家转向",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "turnMode", label: "转向模式", kind: "data-in", valueType: "enum" },
+    ],
+  },
+  {
+    id: "client.action.playerTurnToDirection",
+    displayName: "玩家转向指定朝向",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "direction", label: "朝向", kind: "data-in", valueType: "vector3" },
+    ],
+  },
+  {
+    id: "client.action.modifyAttackWeight",
+    displayName: "修改攻击权重",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "currentTargetWeight",
+        label: "当前攻击目标的权重",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "forceSelectOnce",
+        label: "是否强制选一次目标",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "client.action.removeUnitState",
+    displayName: "移除单位状态",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetEntity",
+        label: "移除目标",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "stateConfigId",
+        label: "单位状态配置ID",
+        kind: "data-in",
+        valueType: "configId",
+      },
+    ],
+  },
+  {
+    id: "client.action.removeCharacterDisturbDevice",
+    displayName: "移除指定角色扰动装置",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "deviceType",
+        label: "扰动装置类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+    ],
+  },
+  {
+    id: "client.action.attackBoxAtSocket",
+    displayName: "指定挂接点打攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "socketName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "socketOffset",
+        label: "挂接点偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "socketRotation",
+        label: "挂接点旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "attackBoxShape",
+        label: "攻击盒类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "boxScale",
+        label: "攻击盒为长方体时的缩放",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "sphereRadius",
+        label: "攻击盒为球体时的半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorHeight",
+        label: "攻击盒为扇形时的高度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorAngle",
+        label: "攻击盒为扇形时的扇角度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorRadius",
+        label: "攻击盒为扇形时的扇半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorInnerRadius",
+        label: "攻击盒为扇形时的内半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorDirection",
+        label: "攻击盒为扇形时的检测方向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+    {
+    id: "client.action.rectangularAttackBoxAtSocket",
+    displayName: "指定挂接点打矩形攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "socketName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "socketOffset",
+        label: "挂接点偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "socketRotation",
+        label: "挂接点旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "boxScale",
+        label: "攻击盒为长方体时的缩放",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+    {
+    id: "client.action.sphericalAttackBoxAtSocket",
+    displayName: "指定挂接点打球形攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "socketName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "socketOffset",
+        label: "挂接点偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "socketRotation",
+        label: "挂接点旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "sphereRadius",
+        label: "攻击盒为球体时的半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+    {
+    id: "client.action.sectorAttackBoxAtSocket",
+    displayName: "指定挂接点扇形打攻击盒",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "campFilter",
+        label: "目标阵营筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "socketName",
+        label: "挂接点名称",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "socketOffset",
+        label: "挂接点偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "socketRotation",
+        label: "挂接点旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "damageRatio",
+        label: "伤害系数",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "damageOffset",
+        label: "伤害增量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "entityTypeFilterList",
+        label: "攻击盒实体类型筛选列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "triggerType",
+        label: "触发类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitSceneFx",
+        label: "命中场景特效",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "sectorHeight",
+        label: "攻击盒为扇形时的高度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorAngle",
+        label: "攻击盒为扇形时的扇角度",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorRadius",
+        label: "攻击盒为扇形时的扇半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorInnerRadius",
+        label: "攻击盒为扇形时的内半径",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "sectorDirection",
+        label: "攻击盒为扇形时的检测方向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "hitLayerFilter",
+        label: "攻击层筛选",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "attackTags",
+        label: "攻击标签列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "elementType",
+        label: "元素类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "elementAttackEnhance",
+        label: "元素攻击强效",
+        kind: "data-in",
+        valueType: "float",
+      },
+      { id: "hitType", label: "打击类型", kind: "data-in", valueType: "enum" },
+      {
+        id: "attackType",
+        label: "攻击类型",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "interruptValue",
+        label: "打断值",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "absoluteDamage",
+        label: "是否是绝对伤害",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      { id: "hitFx", label: "命中特效", kind: "data-in", valueType: "int" },
+      {
+        id: "knockbackDirection",
+        label: "受击击退朝向",
+        kind: "data-in",
+        valueType: "enum",
+      },
+      {
+        id: "suppressFloatingText",
+        label: "是否屏蔽伤害跳字",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "hitSceneFxOffset",
+        label: "命中场景特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxRotation",
+        label: "命中场景特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitSceneFxScale",
+        label: "命中场景特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "hitFxOffset",
+        label: "命中特效偏移",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxRotation",
+        label: "命中特效旋转",
+        kind: "data-in",
+        valueType: "vector3",
+      },
+      {
+        id: "hitFxScale",
+        label: "命中特效缩放",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroMultiplier",
+        label: "本次攻击的仇恨倍率",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "aggroIncrement",
+        label: "本次攻击的仇恨增量",
+        kind: "data-in",
+        valueType: "int",
+      },
+      { id: "hitLevel", label: "受击等级", kind: "data-in", valueType: "enum" },
+      {
+        id: "horizontalImpulse",
+        label: "命中水平冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+      {
+        id: "verticalImpulse",
+        label: "命中垂直冲量",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.resetSkillTarget",
+    displayName: "重置技能目标",
+    category: "执行节点/角色技能",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+    ],
+  },
+
+  // ───────────────────────────── 02-通用 ─────────────────────────────
+  // 执行节点/通用
+  {
+    id: "client.action.setLocalVariable",
+    displayName: "设置局部变量",
+    category: "执行节点/通用",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "variableName",
+        label: "变量名",
+        kind: "data-in",
+        valueType: "string",
+      },
+      {
+        id: "variableValue",
+        label: "变量值",
+        kind: "data-in",
+        valueType: "any",
+        ui: { accessory: "gear" },
+      },
+    ],
+  },
+  {
+    id: "client.action.breakLoop",
+    displayName: "跳出循环",
+    category: "执行节点/通用",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+    ],
+  },
+  {
+    id: "client.action.loopFinite",
+    displayName: "有限循环",
+    category: "执行节点/通用",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "execIn", label: "执行", kind: "flow-in" },
+      { id: "breakIn", label: "跳出循环", kind: "flow-in", optional: true },
+      { id: "loopBody", label: "循环体", kind: "flow-out" },
+      { id: "loopComplete", label: "循环完成", kind: "flow-out" },
+      {
+        id: "startIndex",
+        label: "循环起始值",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "endIndex",
+        label: "循环终止值",
+        kind: "data-in",
+        valueType: "int",
+      },
+      {
+        id: "currentIndex",
+        label: "当前循环值",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 03-自定义仇恨 ─────────────────────────────
+  // 执行节点/自定义仇恨
+  {
+    id: "client.action.hate.modifyByRatio",
+    displayName: "按比例修改指定实体的仇恨值",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+      {
+        id: "owner",
+        label: "仇恨拥有者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "ratio",
+        label: "修改的仇恨值比例",
+        kind: "data-in",
+        valueType: "float",
+      },
+    ],
+  },
+  {
+    id: "client.action.hate.transferByRatio",
+    displayName: "按比例转移指定实体的仇恨值",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "target",
+        label: "转移目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "source",
+        label: "转移来源实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "owner",
+        label: "仇恨拥有者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "ratio", label: "转移比例", kind: "data-in", valueType: "float" },
+    ],
+  },
+  {
+    id: "client.action.hate.taunt",
+    displayName: "嘲讽目标",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "taunter",
+        label: "嘲讽者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+    ],
+  },
+  {
+    id: "client.action.hate.removeTargetFromList",
+    displayName: "将目标实体移除出仇恨列表",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+      {
+        id: "owner",
+        label: "仇恨拥有者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "client.action.hate.clearTargetList",
+    displayName: "清空指定实体的仇恨列表",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+    ],
+  },
+  {
+    id: "client.action.hate.setValue",
+    displayName: "设置指定实体的仇恨值",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+      {
+        id: "owner",
+        label: "仇恨拥有者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "value", label: "仇恨值", kind: "data-in", valueType: "int" },
+    ],
+  },
+  {
+    id: "client.action.hate.addValue",
+    displayName: "修改指定实体的仇恨值",
+    category: "执行节点/自定义仇恨",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      { id: "target", label: "目标实体", kind: "data-in", valueType: "entity" },
+      {
+        id: "owner",
+        label: "仇恨拥有者实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      { id: "delta", label: "仇恨值增量", kind: "data-in", valueType: "int" },
+    ],
+  },
+  // ───────────────────────────── 04-信号 ─────────────────────────────
+  // 执行节点/信号
+  {
+    id: "client.action.sendSignalToServer",
+    displayName: "向服务器节点图发送信号",
+    category: "执行节点/信号",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "signalName",
+        label: "信号名",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
+    ],
+  },
+  // 流程控制节点
+  // ───────────────────────────── 00-通用 ─────────────────────────────
+  // 流程控制节点/通用
+  {
+    id: "client.flow.branch.ifElse",
+    displayName: "双分支",
+    category: "流程控制节点/通用",
+    kind: "flow-control",
+    headerColor: FLOW_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      {
+        id: "condition",
+        label: "条件",
+        kind: "data-in",
+        valueType: "bool",
+        defaultValue: false,
+      },
+      { id: "true", label: "是", kind: "flow-out" },
+      { id: "false", label: "否", kind: "flow-out" },
     ],
   },
 ];

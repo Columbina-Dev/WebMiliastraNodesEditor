@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, CSSProperties, MouseEvent } from "react";
+import type { ChangeEvent, CSSProperties, MouseEvent, ReactNode } from "react";
 import JSZip from "jszip";
 
 import GraphCanvas from "./components/GraphCanvas";
@@ -33,6 +33,7 @@ import {
   normalizeProjectDocument,
   saveProjectToZip,
 } from "./utils/projectIO";
+import { exportGraphsToGil } from "./lib/gil/export";
 import VERSION_INFO from "./config/version";
 import type { AutoSaveEntry, LayoutState, StoredProject } from "./utils/storage";
 import {
@@ -53,7 +54,7 @@ import "./App.css";
 
 const AUTO_SAVE_INTERVAL = 30_000;
 const AUTO_SAVE_RECOVERY_THRESHOLD = 30_000;
-const GITHUB_PLACEHOLDER_URL = "https://github.com/Columbina-Dev/WebMiliastraNodesEditor";
+const GITHUB_URL = "https://github.com/Columbina-Dev/WebMiliastraNodesEditor";
 const APP_BASE_PATH = (import.meta.env.BASE_URL ?? "/").replace(/\/$/, "");
 const TUTORIAL_BASE_PATH = "/ys/ugc/tutorial";
 
@@ -69,13 +70,23 @@ const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
-const ICON_TAB_GRAPH = new URL("./assets/icons/graph.svg", import.meta.url).href;
+const ICON_TAB_GRAPH = new URL("./assets/icons/tab-graph.png", import.meta.url).href;
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
+const ICON_DOCK_COMMENT = new URL("./assets/icons/dock-comment.png", import.meta.url).href;
 const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
+
+type LightweightDialog = {
+  title: string;
+  message: ReactNode;
+  confirmLabel: string;
+  cancelLabel?: string;
+  onConfirm?: () => void;
+  onCancel?: () => void;
+};
 
 const sanitizeFileName = (name: string) => {
   const trimmed = name.trim();
@@ -317,6 +328,7 @@ const App = () => {
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<'window' | 'file' | null>(null);
+  const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
   const [saveAsDialog, setSaveAsDialog] = useState<{
@@ -853,7 +865,84 @@ const App = () => {
     }
   }, []);
 
-  const handleSaveGraphAs = useCallback(() => {
+  
+  const performGilExport = useCallback(
+    async (templateGil: ArrayBuffer) => {
+      if (!projectDocument) return;
+      const { document: normalized } = normalizeProjectDocument(projectDocument);
+      const { gilBuffer } = await exportGraphsToGil({
+        templateGil,
+        projectDocument: normalized,
+      });
+      const filename = `${sanitizeFileName(
+        projectName || normalized.manifest.project.name || 'project',
+      )}-${new Date().toISOString().replace(/[:.]/g, '-')}.gil`;
+      const blob = new Blob([gilBuffer], { type: 'application/octet-stream' });
+      const link = window.document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = filename;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+    [projectDocument, projectName],
+  );
+
+  const handleExportGil = useCallback(() => {
+    if (!projectDocument) {
+      setGilDialog({
+        title: "导出为.gil存档",
+        message: "当前没有打开的项目。",
+        confirmLabel: "关闭",
+        onConfirm: () => setGilDialog(null),
+      });
+      return;
+    }
+
+    const pickTemplateFile = () => {
+      const picker = window.document.createElement('input');
+      picker.type = 'file';
+      picker.accept = '.gil';
+      picker.onchange = async (event) => {
+        const file = (event.target as HTMLInputElement).files?.[0];
+        if (!file) return;
+        try {
+          await performGilExport(await file.arrayBuffer());
+        } catch (error) {
+          console.error(error);
+          setGilDialog({
+            title: "导出为.gil存档",
+            message: `导出失败：${error instanceof Error ? error.message : String(error)}`,
+            confirmLabel: "关闭",
+            onConfirm: () => setGilDialog(null),
+          });
+        } finally {
+          picker.value = '';
+        }
+      };
+      picker.click();
+    };
+
+    setGilDialog({
+      title: "导出为.gil存档",
+      message: (
+        <>
+          请选择一个.gil模板存档使用当前节点图数据。
+          <br /><br />
+          注意：此操作会覆盖所选.gil模板存档中的所有节点图数据！
+        </>
+      ),
+      confirmLabel: "选择.gil模板存档",
+      cancelLabel: "取消",
+      onConfirm: () => {
+        setGilDialog(null);
+        handleManualSave();
+        pickTemplateFile();
+      },
+      onCancel: () => setGilDialog(null),
+    });
+  }, [handleManualSave, performGilExport, projectDocument]);
+
+const handleSaveGraphAs = useCallback(() => {
     if (!projectDocument || !activeGraphId) {
       window.alert("当前没有打开的节点图。");
       return;
@@ -978,11 +1067,32 @@ const App = () => {
     const category =
       categoriesForTop.find((item) => item.key === saveAsDialog.categoryKey) ??
       categoriesForTop[0];
-    if (!category) {
-      setSaveAsError('未找到可用的分类');
+        if (!category) {
+      setSaveAsError('\u672a\u627e\u5230\u53ef\u7528\u7684\u5206\u7c7b');
       return;
     }
-    const groupsForCategory = projectDocument.manifest.groups.filter(
+    const sourceEnv = saveAsDialog.graph.environment;
+    const sourceTop = sourceEnv ? getEnvironmentTopFolder(sourceEnv) : saveAsDialog.topFolder;
+    if (sourceTop !== saveAsDialog.topFolder) {
+      setSaveAsError('\u5ba2\u6237\u7aef\u4e0e\u670d\u52a1\u5668\u7684\u8282\u70b9\u56fe\u4e0d\u80fd\u4e92\u76f8\u53e6\u5b58。');
+      return;
+    }
+    const sourceKind = sourceEnv ? clientKindFromEnvironment(sourceEnv) : null;
+    const targetKind =
+      saveAsDialog.topFolder === 'client'
+        ? category.key === 'boolean-filter'
+          ? 'boolean'
+          : category.key === 'integer-filter'
+            ? 'integer'
+            : category.key === 'skill'
+              ? 'skill'
+              : null
+        : null;
+    if (sourceKind && targetKind && sourceKind !== targetKind) {
+      setSaveAsError('\u4e0d\u540c\u7c7b\u578b\u7684\u5ba2\u6237\u7aef\u8282\u70b9\u56fe\u65e0\u6cd5\u4e92\u76f8\u53e6\u5b58。');
+      return;
+    }
+const groupsForCategory = projectDocument.manifest.groups.filter(
       (group) => group.topFolder === saveAsDialog.topFolder && group.categoryKey === category.key,
     );
     let targetGroupSlug = saveAsDialog.groupSlug;
@@ -1598,7 +1708,11 @@ const App = () => {
                   </button>
                   <button type="button" onClick={handleExportProject}>
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                    导出项目
+                    导出为.zip项目
+                  </button>
+                  <button type="button" onClick={handleExportGil}>
+                    <img src={ICON_EXPORT} alt="" aria-hidden="true" />
+                    导出为.gil存档
                   </button>
                 </div>
               )}
@@ -1610,7 +1724,7 @@ const App = () => {
           <button
             type="button"
             className="app__editor-icon-button app__editor-icon-button--github"
-            onClick={() => window.open(GITHUB_PLACEHOLDER_URL, '_blank', 'noopener')}
+            onClick={() => window.open(GITHUB_URL, '_blank', 'noopener')}
             aria-label="GitHub"
           >
             <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-hidden="true">
@@ -1696,9 +1810,12 @@ const App = () => {
                 onClick={handleCommentToggle}
                 title="注释模式"
               >
-                <svg className="action_dock__icon" viewBox="0 0 16 16" aria-hidden="true">
-                  <path d="M3 3h10a1 1 0 011 1v6.5a1 1 0 01-1 1H7.8l-2.3 2.2a.5.5 0 01-.8-.4V11.5H3a1 1 0 01-1-1V4a1 1 0 011-1z" fill="currentColor" />
-                </svg>
+                <img
+                  src={ICON_DOCK_COMMENT}
+                  alt=""
+                  aria-hidden="true"
+                  className="action_dock__icon-img"
+                />
                 <span className="sr-only">注释模式</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
@@ -1951,7 +2068,7 @@ const App = () => {
         onOpenProject={handleOpenProject}
       onDeleteProject={handleDeleteProject}
       onSaveAll={handleSaveAll}
-      githubUrl={GITHUB_PLACEHOLDER_URL}
+      githubUrl={GITHUB_URL}
       onOpenTutorial={handleOpenTutorial}
       onOpenEffects={handleOpenEffects}
     />
@@ -1992,6 +2109,51 @@ const App = () => {
             : view === 'notFound'
               ? renderNotFound()
               : renderHome()}
+      {gilDialog && (
+        <div
+          className="home__confirm-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => {
+            gilDialog.onCancel?.();
+            setGilDialog(null);
+          }}
+        >
+          <div
+            className="home__confirm"
+            role="document"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>{gilDialog.title}</h3>
+            <p>{gilDialog.message}</p>
+            <div className="home__confirm-actions">
+              <button
+                type="button"
+                className={gilDialog.cancelLabel ? '' : 'is-danger'}
+                onClick={() => {
+                  gilDialog.onConfirm?.();
+                  if (!gilDialog.onConfirm) {
+                    setGilDialog(null);
+                  }
+                }}
+              >
+                {gilDialog.confirmLabel}
+              </button>
+              {gilDialog.cancelLabel && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    gilDialog.onCancel?.();
+                    setGilDialog(null);
+                  }}
+                >
+                  {gilDialog.cancelLabel}
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
       <input
         type="file"
         accept=".zip,application/zip"
