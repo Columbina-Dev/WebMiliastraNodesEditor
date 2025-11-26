@@ -1,550 +1,544 @@
 ﻿服务器节点图可用
-action.printString,打印字符串
-action.setLocalVariable,设置局部变量
-action.loopFinite,有限循环
-action.breakLoop,跳出循环
-action.forwardEvent,转发事件
-action.list.sort,列表排序
-action.list.modify,对列表修改值
-action.list.insert,对列表插入值
-action.list.remove,对列表移除值
-action.list.iterate,列表迭代循环
-action.list.concat,拼接列表
-action.list.clear,清除列表
-action.setCustomVariable,设置自定义变量
-action.setGraphVariable,设置节点图变量
-action.setPresetState,设置预设状态
-action.createComponent,创建元件
-action.createComponentGroup,创建元件组
-action.createEntity,创建实体
-action.destroyEntity,销毁实体
-action.toggleModelVisibility,激活/关闭模型显示
-action.removeEntity,移除实体
-action.finishLevel,结算关卡
-action.setEnvironmentTime,设置当前环境时间
-action.setEnvironmentTimeRate,设置环境时间流逝速度
-action.modifyEntityFaction,修改实体阵营
-action.teleportPlayer,传送玩家
-action.updateEnvironmentConfig,修改环境配置
-action.knockdownAllPlayerCharacters,击倒玩家所有角色
-action.reviveAllPlayerCharacters,复苏玩家所有角色
-action.reviveCharacter,复苏角色
-action.unregisterRevivePoint,注销复苏点
-action.activateRevivePoint,激活复苏点
-action.setPlayerReviveCount,设置玩家剩余复苏次数
-action.setPlayerReviveDuration,设置玩家复苏耗时
-action.togglePlayerRevive,允许/禁止玩家复苏
-action.toggleNativeCollision,激活/关闭原生碰撞
-action.toggleNativeCollisionClimbable,激活/关闭原生碰撞可攀爬性
-action.toggleExtraCollision,激活/关闭额外碰撞
-action.toggleExtraCollisionClimbable,激活/关闭额外碰撞可攀爬性
-action.toggleCollisionTrigger,注册/关闭碰撞触发器
-action.combat.directHeal,直接恢复生命
-action.combat.attack,发起攻击
-action.combat.heal,恢复生命
-action.combat.loseHp,损失生命
-action.moverFixed.start,开启定点运动器
-action.moverBase.stopAndRemove,停止并删除基础运动器
-action.moverBase.resume,恢复基础运动器
-action.moverBase.pause,暂停基础运动器
-action.moverBase.activate,激活基础运动器
-action.moverBase.addLookAtTargetRot,添加朝向目标旋转型基础运动器
-action.moverBase.addUniformLinear,添加匀速直线型基础运动器
-action.moverBase.addUniformRotate,添加匀速旋转型基础运动器
-action.moverFollow.toggle,激活/关闭跟随运动器
-action.moverFollow.switchTargetByGuid,以GUID切换跟随运动器的目标
-action.moverFollow.switchTargetByEntity,以实体切换跟随运动器的目标
-action.projectile.create,创建投射物
-action.fx.clearByAsset,根据特效资产清除特效
-action.fx.clearLoop,清除循环特效
-action.fx.attachLoop,挂载循环特效
-action.fx.playTimed,播放限时特效
-action.timer.stop,终止定时器
-action.timer.resume,恢复定时器
-action.timer.pause,暂停定时器
-action.timer.start,启动定时器
-action.globalTimer.stop,终止全局计时器
-action.globalTimer.resume,恢复全局计时器
-action.globalTimer.pause,暂停全局计时器
-action.globalTimer.start,启动全局计时器
-action.globalTimer.modify,修改全局计时器
-action.camera.switchTemplate,切换主镜头模板
-action.playerDisturber.modify,修改角色扰动装置
-action.unitState.add,添加单位状态
-action.unitState.remove,移除单位状态
-action.tab.toggle,激活/关闭选项卡
-action.collisionSource.toggle,激活/关闭碰撞触发发源
-action.class.switch,更改玩家职业
-action.class.setLevel,更改玩家当前职业等级
-action.class.addExp,提升玩家当前职业经验
-action.uiGroup.enableFromLibrary,激活控件组库内界面控件组
-action.uiGroup.switchLayout,切换当前界面布局
-action.uiGroup.removeFromLibrary,移除控件组库内界面控件组
-action.uiGroup.modifyControl,修改界面布局内界面控件状态
-action.skill.init,初始化角色技能
-action.skill.add,添加角色技能
-action.skill.setCooldown,设置角色技能冷却
-action.skill.setResource,设置技能资源量
-action.skill.removeById,以ID删除角色技能
-action.skill.removeBySlot,以槽位删除角色技能
-action.skill.modifyCooldown,修改角色技能冷却
-action.skill.modifyResource,修改技能资源量
-action.skill.modifyCooldownByMaxPct,按最大冷却时间修改技能冷却百分比
-action.audio.play2DOnceForPlayer,玩家播放单次2D音效
-action.audio.togglePlayerBgm,启动/暂停玩家背景音乐
-action.audio.toggleSpecificPlayer,启动/暂停指定音效播放器
-action.audio.addPlayer,添加音效播放器
-action.audio.setPlayerBgmVolume,调整玩家背景音乐音量
-action.audio.tuneSpecificPlayer,调整指定音效播放器
-action.audio.closeSpecificPlayer,关闭指定音效播放器
-action.audio.modifyPlayerBgm,修改玩家背景音乐
-action.unitTags.clearAll,实体清空单位标签
-action.unitTags.add,实体添加单位标签
-action.unitTags.remove,实体移除单位标签
-action.hatred.taunt,嘲讽目标
-action.hatred.setValue,设置指定实体的仇恨值
-action.hatred.removeTarget,将目标实体移除出仇恨列表
-action.hatred.clearForTarget,清空指定目标的仇恨列表
-action.signal.send,发送信号
-action.nameplate.apply,设置实体生效铭牌
-action.textBubble.switchActive,切换生效的文本气泡
-action.cardPicker.invoke,唤起卡牌选择器
-action.cardPicker.close,关闭卡牌选择器
-action.cardPicker.randomizeList,随机卡牌选择器选择列表
-action.settlement.setPlayerSuccess,设置玩家结算成功状态
-action.settlement.setPlayerRankValue,设置玩家结算排名数值
-action.settlement.setPlayerScoreboardItem,设置玩家结算计分板展示数据
-action.settlement.setCampSuccess,设置阵营结算成功状态
-action.settlement.setCampRankValue,设置阵营结算排名数值
-action.light.toggleEntityLight,开关实体光源
-action.dict.clear,清空字典
-action.dict.setOrAdd,对字典设置或新增键值对
-action.dict.sortByValue,对字典按值排序
-action.dict.sortByKey,对字典按键排序
-action.dict.removeByKey,以键对字典移除键值对
-action.struct.modify,修改结构体
-action.shop.open,打开商店
-action.shop.removeCustomSellItemByIndex,从自定义商店出售表中移除商品
-action.shop.removeBuyItem,从物品收购表中移除物品
-action.shop.removeBackpackSellItem,从背包商店出售表中移除商品
-action.shop.close,关闭商店
-action.shop.addCustomSellItem,向自定义商店出售表中新增商品
-action.shop.addBuyItem,向物品收购表中新增物品
-action.shop.addBackpackSellItem,向背包商店出售表中新增商品
-action.shop.modifyCustomSellInfo,修改自定义商店商品出售信息
-action.shop.modifyBuyInfo,修改物品收购表中道具收购信息
-action.shop.modifyBackpackSellInfo,修改背包商店商品出售信息
-action.affix.remove,移除装备词条
-action.affix.modifyValue,修改装备词条值
-action.affix.addAtIndex,装备指定序号添加词条
-action.affix.add,装备添加词条
-action.loot.setDropContent,设置战利品掉落内容
-action.loot.setDropType,设置战利品掉落类型
-action.backpack.setDropItemCurrencyCount,设置背包掉落道具/货币数量
-action.backpack.setItemDropContent,设置背包道具掉落内容
-action.backpack.increaseMaxCapacity,增加背包最大容量
-action.loot.modifyCurrencyCountOnDropEntity,修改掉落物组件货币数量
-action.loot.modifyItemCountOnDropEntity,修改掉落物组件道具数量
-action.backpack.modifyCurrency,修改背包货币数量
-action.backpack.modifyItem,修改背包道具数量
-action.minimap.setVisibleMarkerPlayers,修改可见小地图标识的玩家列表
-action.minimap.setScale,修改小地图缩放
-action.minimap.setMarkerEnabledState,修改小地图标识生效状态
-action.minimap.setMarkerPlayerTag,修改小地图标识的玩家标记
-action.minimap.setTrackingMarkerPlayers,修改追踪小地图标识的玩家列表
-action.patrol.switchTemplate,切换造物巡逻模板
-action.leaderboard.setScoreInt,以整数设置玩家排行榜分数
-action.leaderboard.setScoreFloat,以浮点数设置玩家排行榜分数
-action.achievement.setProgressCount,设置成就进度计数
-action.achievement.changeProgressCount,变更成就进度计数
-action.scan.setActiveScanTagIndex,设置扫描组件的生效扫描标签序号
-action.scan.setTagRule,设置扫描标签的规则
-action.rank.setPlayerEscapeValidity,设置玩家逃跑合法性
-action.rank.setPlayerRankDeltaScore,设置玩家段位变化分数
-action.rank.switchActiveScoreGroup,切换玩家竞技段位生效的计分组
-action.placement.toggleGroup,激活/关闭实体布设组
-action.chat.setChannelEnabled,设置聊天频道开关
-action.chat.setPlayerCurrentChannel,设置玩家当前频道
-action.chat.modifyPlayerChannelPermission,修改玩家频道权限
-action.giftBox.consume,消耗礼盒
-event.graphVariableChanged,节点图变量变化时
-event.customVariableChanged,自定义变量变化时
-event.presetStateChanged,预设状态变化时
-event.characterMoveSpeedReached,角色移动速度达到条件时
-event.entityCreated,实体创建时
-event.entityDestroyed,实体销毁时
-event.entityRemovedOrDestroyed,实体移除/销毁时
-event.entityCampChanged,实体阵营变化时
-event.playerTeleportFinished,玩家传送完成时
-event.playerAbnormalDownAndRevived,玩家异常倒下并复苏时
-event.playerAllCharactersRevived,玩家所有角色复苏时
-event.playerAllCharactersDown,玩家所有角色倒下时
-event.characterRevived,角色复苏时
-event.characterDown,角色倒下时
-event.leaveCollisionTrigger,离开碰撞触发器时
-event.enterCollisionTrigger,进入碰撞触发器时
-event.healIssued,发起恢复生命值时
-event.enterInterruptible,进入易受打断状态时
-event.attackHit,攻击命中时
-event.attacked,受到攻击时
-event.healed,被恢复生命值时
-event.pathReachedWaypoint,路径到达路点时
-event.basicMoverStopped,基础运动器停止时
-event.hitCheckTriggered,命中检测触发时
-event.timerTriggered,定时器触发时
-event.globalTimerTriggered,全局计时器触发时
-event.uiControlGroupTriggered,界面控件组触发时
-event.elementReaction,发生元素反应事件时
-event.shieldAttacked,护盾受到攻击时
-event.unitStateEnded,单位状态结束时
-event.unitStateChanged,单位状态变更时
-event.tabSelected,选项卡选中时
-event.constructExitCombat,造物脱战时
-event.constructEnterCombat,造物入战时
-event.playerCareerRemoved,玩家职业解除时
-event.playerCareerLevelChanged,玩家职业等级变化时
-event.playerCareerChanged,玩家职业更改时
-event.skillNodeInvoked,技能节点调用时
-event.hatredTargetChanged,仇恨目标变化时
-event.selfExitCombat,自身脱战时
-event.selfEnterCombat,自身入战时
-event.signalListen,监听信号
-event.cardPickerCompleted,卡牌选择器完成时
-event.textBubbleCompleted,文本气泡完成时
-event.shopSellCustomItem,商店出售自定义商品时
-event.shopSellBackpackItem,商店出售背包物品时
-event.shopBuyItems,商店收购道具时
-event.equipmentInitialized,装备初始化时
-event.equipmentAffixValueChanged,装备的词条数值改变时
-event.equipmentEquipped,装备被穿戴时
-event.equipmentUnequipped,装备被卸下时
-event.backpackItemUsed,背包内道具被使用时
-event.backpackCurrencyChanged,背包货币数量变化时
-event.backpackItemAdded,背包道具新增时
-event.backpackItemCountChanged,背包道具数量变化时
-event.backpackItemLost,背包道具失去时
-event.constructReachedPatrolWaypoint,造物抵达巡逻路点时
-flow.branch.multi,多分支
-flow.branch.ifElse,双分支
-query.matchModeAndPlayerCount,查询对局游玩方式及人数
-query.getLocalVariable,获取局部变量
-query.vector3.up,三维向量：上方
-query.vector3.down,三维向量：下方
-query.vector3.forward,三维向量：前方
-query.vector3.back,三维向量：后方
-query.vector3.right,三维向量：右侧
-query.vector3.left,三维向量：左侧
-query.vector3.zero,三维向量：零向量
-query.pi,圆周率
-query.weightedRandomIndex,权重随机
-query.utcTimestamp,查询时间戳（UTC+0时区）
-query.serverTimezone,查询服务器时区
-query.randomInt,获取随机整数
-query.randomFloat,获取随机浮点数
-query.list.contains,列表是否包含该值
-query.list.findIndicesByValue,查找列表并返回值的序号
-query.list.getAt,获取列表对应值
-query.list.max,获取列表最大值
-query.list.min,获取列表最小值
-query.list.length,获取列表长度
-query.customVar.snapshot,查询自定义变量快照
-query.customVar.get,获取自定义变量
-query.graphVar.get,获取节点图变量
-query.presetState.get,获取预设状态
-query.entity.byGuid,以GUID查询实体
-query.guid.byEntity,以实体查询GUID
-query.entity.isAlive,查询实体是否在场
-query.character.moveSpeed,查询角色当前移动速度
-query.entities.getAll,获取场上所有实体
-query.entities.byComponentOnField,获取场上指定元件ID的实体
-query.entities.byTypeOnField,获取场上指定类型实体
-query.entity.transform,获取实体位置与旋转
-query.entity.elementStats,获取实体元素属性
-query.entity.upVector,获取实体向上向量
-query.entity.forwardVector,获取实体向前向量
-query.entity.rightVector,获取实体向右向量
-query.entity.ownedEntities,获取实体拥有的实体列表
-query.entity.type,获取实体类型
-query.entity.advancedStats,获取实体进阶属性
-query.entity.owner,获取拥有者实体
-query.entities.filterByComponentId,获取指定元件ID的实体列表
-query.entities.filterByType,获取指定类型的实体列表
-query.entities.filterByRange,获取指定范围的实体列表
-query.entities.filterByCamp,获取指定阵营的实体列表
-query.object.stats,获取物件属性
-query.entity.self,获取自身实体
-query.character.stats,获取角色属性
-query.level.environmentTime,查询当前环境时间
-query.level.gameElapsed,获取游戏已进行时间
-query.camp.ofEntity,查询实体阵营
-query.camp.isHostile,获取阵营是否敌对
-query.player.allCharactersDown,查询玩家角色是否全部倒下
-query.playerIndex.byGuid,根据玩家GUID获取玩家序号
-query.playerGuid.byIndex,根据玩家序号获取玩家GUID
-query.players.inField,获取在场玩家实体列表
-query.player.allCharacterEntities,获取指定玩家所有角色实体
-query.player.reviveRemaining,获取玩家剩余复苏次数
-query.player.reviveDuration,获取玩家复苏耗时
-query.player.inputDeviceType,获得玩家客户端输入设备类型
-query.player.nickname,获取玩家昵称
-query.player.ofCharacter,获取角色归属的玩家实体
-query.follower.target,获取跟随运动器的目标
-query.timer.globalCurrent,获取全局计时器当前时间
-query.ui.currentLayout,获取玩家当前界面布局
-query.creation.stats,获取造物属性
-query.creation.currentTarget,获取造物当前目标
-query.creation.defaultAggroList,获取默认模式的造物仇恨列表
-query.career.ofPlayer,查询玩家职业
-query.career.level,查询玩家职业的等级
-query.character.skill,查询角色技能
-query.unitState.slotIndexList,查询单位状态的槽位序号列表
-query.unitState.hasState,查询实体是否具有单位状态
-query.unitState.layerCountBySlot,根据槽位序号查询单位状态层数
-query.unitState.applierBySlot,根据槽位序号查询单位状态施加者
-query.tags.entitiesByUnitTagIndex,获取单位标签的实体列表
-query.tags.ofEntity,获取实体单位标签列表
-query.hatred.globalTransferMultiplier,查询全局仇恨转移倍率
-query.hatred.isInCombat,查询指定实体是否已入战
-query.hatred.multiplierOfEntity,查询指定实体的仇恨倍率
-query.hatred.valueOfEntity,查询指定实体的仇恨值
-query.hatred.ownersByTarget,获取以目标为仇恨目标的拥有者列表
-query.hatred.listOfEntity,获取指定实体的仇恨列表
-query.hatred.targetOfOwner,获取指定实体的仇恨目标
-query.hatred.ownersByListContainingTarget,获取目标所在仇恨列表的拥有者列表
-query.path.pointInfo,获取指定路径点信息
-query.preset.indicesByUnitTag,以单位标签获取预设点位列表
-query.preset.transformByIndex,查询预设点位置旋转
-query.settlement.playerSuccess,获取玩家结算成功状态
-query.settlement.playerRankValue,获取玩家结算排名数值
-query.settlement.campSuccess,获取阵营结算成功状态
-query.settlement.campRankValue,获取阵营结算排名数值
-query.dict.getByKey,以键查询字典值
-query.dict.containsValue,查询字典是否包含特定值
-query.dict.containsKey,查询字典是否包含特定键
-query.dict.length,查询字典长度
-query.dict.values,获取字典中值组成的列表
-query.dict.keys,获取字典中键组成的列表
-query.shop.purchaseInfo,查询商店商品收购信息
-query.shop.purchaseList,查询商店收购物品列表
-query.shop.backpackSellInfo,查询背包商店商品出售信息
-query.shop.backpackSellList,查询背包商店物品出售列表
-query.shop.customSellInfo,查询自定义商店商品出售信息
-query.shop.customSellList,查询自定义商店商品出售列表
-query.equip.tagList,查询装备标签列表
-query.equip.configIdByIndex,根据装备索引查询装备配置ID
-query.equip.entryList,获取装备词条列表
-query.equip.entryValue,获取装备词条数值
-query.equip.entryConfigId,获取装备词条配置ID
-query.drop.coinCount,获取凋落物组件货币数量
-query.reward.allCoins,获取战利品所有货币
-query.reward.allItems,获取战利品所有道具
-query.drop.allEquip,获取掉落物件所有装备
-query.drop.itemCount,获取掉落物组件道具数量
-query.backpack.capacity,获取背包容量
-query.backpack.basicItems,获取背包所有基础道具
-query.backpack.allEquip,获取背包所有装备
-query.backpack.allCoins,获取背包所有货币
-query.backpack.coinCount,获取背包货币数量
-query.backpack.itemCount,获取背包道具数量
-query.collisionTrigger.entitiesIn,获取碰撞触发器内所有实体
-query.minimap.markerInfo,查询指定小地图标识信息
-query.minimap.markerStates,获取实体的小地图标识状态
-query.creation.patrolTemplate,获取当前造物的巡逻模板
-query.achievement.isCompleted,查询成就是否完成
-query.scanTag.activeConfigId,获取当前生效的扫描标签配置ID
-query.rank.info,获取玩家段位信息
-query.rank.deltaScore,获取玩家段位变化分数
-query.rank.escapeLegal,获取玩家逃跑合法性
-query.entityLayoutGroups.active,查询当前激活的实体布设组列表
-query.giftBox.count,查询对应礼盒数量
-query.giftBox.consumeCount,查询对应礼盒消耗数量
-math.enumEquals,枚举是否相等
-math.list.assemble,拼装列表
-math.equals,是否相等
-math.typeCast,数据类型转换
-math.vector3.dot,三维向量内积
-math.vector3.sub,三维向量减法
-math.vector3.add,三维向量加法
-math.vector3.cross,三维向量外积
-math.vector3.angle,三维向量夹角
-math.vector3.normalize,三维向量归一化
-math.vector3.rotate,三维向量旋转
-math.vector3.magnitude,三维向量模运算
-math.vector3.scale,三维向量缩放
-math.vector3.distance,两坐标点距离
-math.mul,乘法运算
-math.cos,余弦函数
-math.sub,减法运算
-math.div,除法运算
-math.vector3.create,创建三维向量
-math.add,加法运算
-math.acos,反余弦函数
-math.atan,反正切函数
-math.asin,反正弦函数
-math.truncate,取整数运算
-math.sign,取符号运算
-math.max,取较大值
-math.min,取较小值
-math.shift.right,右移运算
-math.log,对数运算
-math.shift.left,左移运算
-math.pow,幂运算
-math.rad2deg,弧度转角度
-math.vector3.split,拆分三维向量
-math.bit.and,按位与
-math.bit.write,按位写入
-math.bit.not,按位取补
-math.bit.xor,按位异或
-math.bit.or,按位或
-math.bit.read,按位读出
-math.gt,数值大于
-math.gte,数值大于等于
-math.lt,数值小于
-math.lte,数值小于等于
-math.direction.rotate,方向向量旋转
-math.time.weekdayFromTimestamp,根据时间戳计算星期几
-math.time.formatFromTimestamp,根据时间戳计算格式化时间
-math.time.timestampFromFormat,根据格式化时间计算时间戳
-math.mod,模运算
-math.tan,正切函数
-math.sin,正弦函数
-math.sqrt,算术平方根运算
-math.abs,绝对值运算
-math.clamp,范围限制运算
-math.deg2rad,角度转弧度
-math.logic.and,逻辑与运算
-math.logic.xor,逻辑异或运算
-math.logic.or,逻辑或运算
-math.logic.not,逻辑非运算
-math.dict.create,建立字典
-math.dict.assemble,拼装字典
-math.struct.decompose,拆分结构体
-math.struct.assemble,拼装结构体
+1,action.printString,打印字符串,Print String
+19,action.setLocalVariable,设置局部变量,Set Local Variable
+5,action.loopFinite,有限循环,Finite Loop
+6,action.breakLoop,跳出循环,Break Loop
+190,action.forwardEvent,转发事件,Forwarding Event
+167,action.list.sort,列表排序,List Sorting
+160,action.list.modify,对列表修改值,Modify Value in List
+135,action.list.insert,对列表插入值,Insert Value Into List
+153,action.list.remove,对列表移除值,Remove Value From List
+509,action.list.iterate,列表迭代循环,List Iteration Loop
+100,action.list.concat,拼接列表,Concatenate List
+107,action.list.clear,清除列表,Clear List
+323,action.setCustomVariable,设置自定义变量,Set Custom Variable
+22,action.setGraphVariable,设置节点图变量,Set Node Graph Variable
+66,action.setPresetState,设置预设状态,Set Preset Status
+252,action.createComponent,创建元件,Create Prefab
+757,action.createComponentGroup,创建元件组,Create Prefab Group
+70,action.createEntity,创建实体,Create Entity
+69,action.destroyEntity,销毁实体,Destroy Entity
+308,action.toggleModelVisibility,激活/关闭模型显示,Activate/Disable Model Display
+372,action.removeEntity,移除实体,Remove Entity
+77,action.finishLevel,结算关卡,Settle Stage
+665,action.setEnvironmentTime,设置当前环境时间,Set Current Environment Time
+666,action.setEnvironmentTimeRate,设置环境时间流逝速度,Set Environment Time Passage Speed
+250,action.modifyEntityFaction,修改实体阵营,Modify Entity Faction
+288,action.teleportPlayer,传送玩家,Teleport Player
+763,action.updateEnvironmentConfig,修改环境配置,Modify environment settings
+282,action.knockdownAllPlayerCharacters,击倒玩家所有角色,Defeat All Player's Characters
+283,action.reviveAllPlayerCharacters,复苏玩家所有角色,Revive All Player's Characters
+279,action.reviveCharacter,复苏角色,Revive Character
+273,action.unregisterRevivePoint,注销复苏点,Deactivate Revive Point
+272,action.activateRevivePoint,激活复苏点,Activate Revive Point
+276,action.setPlayerReviveCount,设置玩家剩余复苏次数,Set Player Remaining Revives
+278,action.setPlayerReviveDuration,设置玩家复苏耗时,Set Player Revive Time
+274,action.togglePlayerRevive,允许/禁止玩家复苏,Allow/Forbid Player to Revive
+240,action.toggleNativeCollision,激活/关闭原生碰撞,Activate/Disable Native Collision
+241,action.toggleNativeCollisionClimbable,激活/关闭原生碰撞可攀爬性,Activate/Disable Native Collision Climbability
+242,action.toggleExtraCollision,激活/关闭额外碰撞,Activate/Disable Extra Collision
+243,action.toggleExtraCollisionClimbable,激活/关闭额外碰撞可攀爬性,Activate/Disable Extra Collision Climbability
+90,action.toggleCollisionTrigger,注册/关闭碰撞触发器,Activate/Disable Collision Trigger
+698,action.combat.directHeal,直接恢复生命,Recover HP Directly
+303,action.combat.attack,发起攻击,Initiate Attack
+583,action.combat.heal,恢复生命,Recover HP
+697,action.combat.loseHp,损失生命,HP Loss
+775,action.moverFixed.start,开启定点运动器,Activate Fixed-Point Motion Device
+86,action.moverBase.stopAndRemove,停止并删除基础运动器,Stop and Delete Basic Motion Device
+88,action.moverBase.resume,恢复基础运动器,Recover Basic Motion Device
+87,action.moverBase.pause,暂停基础运动器,Pause Basic Motion Device
+267,action.moverBase.activate,激活基础运动器,Activate Basic Motion Device
+520,action.moverBase.addLookAtTargetRot,添加朝向目标旋转型基础运动器,Add Target-Oriented Rotation-Based Motion Device
+84,action.moverBase.addUniformLinear,添加匀速直线型基础运动器,Add Uniform Basic Linear Motion Device
+85,action.moverBase.addUniformRotate,添加匀速旋转型基础运动器,Add Uniform Basic Rotation-Based Motion Device
+365,action.moverFollow.toggle,激活/关闭跟随运动器,Activate/Disable Follow Motion Device
+245,action.moverFollow.switchTargetByGuid,以GUID切换跟随运动器的目标,Switch Follow Motion Device Target by GUID
+668,action.moverFollow.switchTargetByEntity,以实体切换跟随运动器的目标,Switch Follow Motion Device Target by Entity
+256,action.projectile.create,创建投射物,Create Projectile
+473,action.fx.clearByAsset,根据特效资产清除特效,Clear Special Effects Based on Special Effect Assets
+95,action.fx.clearLoop,清除循环特效,Clear Looping Special Effect
+94,action.fx.attachLoop,挂载循环特效,Mount Looping Special Effect
+93,action.fx.playTimed,播放限时特效,Play Timed Effects
+82,action.timer.stop,终止定时器,Stop Timer
+81,action.timer.resume,恢复定时器,Resume Timer
+80,action.timer.pause,暂停定时器,Pause Timer
+79,action.timer.start,启动定时器,Start Timer
+313,action.globalTimer.stop,终止全局计时器,Stop Global Timer
+312,action.globalTimer.resume,恢复全局计时器,Recover Global Timer
+309,action.globalTimer.pause,暂停全局计时器,Pause Global Timer
+311,action.globalTimer.start,启动全局计时器,Start Global Timer
+314,action.globalTimer.modify,修改全局计时器,Modify Global Timer
+261,action.camera.switchTemplate,切换主镜头模板,Switch Main Camera Template
+302,action.playerDisturber.modify,修改角色扰动装置,Modifying Character Disruptor Device
+297,action.unitState.add,添加单位状态,Add Unit Status
+301,action.unitState.remove,移除单位状态,Remove Unit Status
+306,action.tab.toggle,激活/关闭选项卡,Activate/Disable Tab
+367,action.collisionSource.toggle,激活/关闭碰撞触发发源,Activate/Disable Collision Trigger Source
+389,action.class.switch,更改玩家职业,Change Player Class
+391,action.class.setLevel,更改玩家当前职业等级,Change Player's Current Class Level
+390,action.class.addExp,提升玩家当前职业经验,Increase Player's Current Class EXP
+383,action.uiGroup.enableFromLibrary,激活控件组库内界面控件组,Activate UI Control Group in Control Group Library
+382,action.uiGroup.switchLayout,切换当前界面布局,Switch Current Interface Layout
+521,action.uiGroup.removeFromLibrary,移除控件组库内界面控件组,Remove Interface Control Group From Control Group Library
+384,action.uiGroup.modifyControl,修改界面布局内界面控件状态,Modify UI Control Status Within the Interface Layout
+397,action.skill.init,初始化角色技能,Initialize Character Skill
+395,action.skill.add,添加角色技能,Add Character Skill
+739,action.skill.setCooldown,设置角色技能冷却,Set Character Skill CD
+394,action.skill.setResource,设置技能资源量,Set Skill Resource Amount
+396,action.skill.removeById,以ID删除角色技能,Delete Character Skill by ID
+399,action.skill.removeBySlot,以槽位删除角色技能,Delete Character Skill by Slot
+740,action.skill.modifyCooldown,修改角色技能冷却,Modify Character Skill CD
+393,action.skill.modifyResource,修改技能资源量,Modify Skill Resource Amount
+741,action.skill.modifyCooldownByMaxPct,按最大冷却时间修改技能冷却百分比,Modify Skill CD Percentage Based on Max CD
+598,action.audio.play2DOnceForPlayer,玩家播放单次2D音效,Player Plays One-Shot 2D Sound Effect
+595,action.audio.togglePlayerBgm,启动/暂停玩家背景音乐,Start/Pause Player Background Music
+592,action.audio.toggleSpecificPlayer,启动/暂停指定音效播放器,Start/Pause Specified Sound Effect Player
+594,action.audio.addPlayer,添加音效播放器,Add Sound Effect Player
+596,action.audio.setPlayerBgmVolume,调整玩家背景音乐音量,Adjust Player Background Music Volume
+593,action.audio.tuneSpecificPlayer,调整指定音效播放器,Adjust Specified Sound Effect Player
+591,action.audio.closeSpecificPlayer,关闭指定音效播放器,Close Specified Sound Effect Player
+597,action.audio.modifyPlayerBgm,修改玩家背景音乐,Modify Player Background Music
+588,action.unitTags.clearAll,实体清空单位标签,Clear Unit Tags from Entity
+586,action.unitTags.add,实体添加单位标签,Add Unit Tag to Entity
+587,action.unitTags.remove,实体移除单位标签,Remove Unit Tag from Entity
+602,action.hatred.taunt,嘲讽目标,Taunt Target
+599,action.hatred.setValue,设置指定实体的仇恨值,Set the Aggro Value of Specified Entity
+600,action.hatred.removeTarget,将目标实体移除出仇恨列表,Remove Target Entity From Aggro List
+601,action.hatred.clearForTarget,清空指定目标的仇恨列表,Clear Specified Target's Aggro List
+30000,action.signal.send,发送信号,Send Signal
+617,action.nameplate.apply,设置实体生效铭牌,Set Entity Active Nameplate
+631,action.textBubble.switchActive,切换生效的文本气泡,Switch Active Text Bubble
+632,action.cardPicker.invoke,唤起卡牌选择器,Invoke Deck Selector
+641,action.cardPicker.close,关闭卡牌选择器,Close Deck Selector
+743,action.cardPicker.randomizeList,随机卡牌选择器选择列表,Random Deck Selector Selection List
+652,action.settlement.setPlayerSuccess,设置玩家结算成功状态,Set Player Settlement Success Status
+650,action.settlement.setPlayerRankValue,设置玩家结算排名数值,Set Player Settlement Ranking Value
+647,action.settlement.setPlayerScoreboardItem,设置玩家结算计分板展示数据,Set Player Settlement Scoreboard Data Display
+656,action.settlement.setCampSuccess,设置阵营结算成功状态,Set Faction Settlement Success Status
+654,action.settlement.setCampRankValue,设置阵营结算排名数值,Set Faction Settlement Ranking Value
+667,action.light.toggleEntityLight,开关实体光源,Toggle Entity Light Source
+1718,action.dict.clear,清空字典,Clear Dictionary
+948,action.dict.setOrAdd,对字典设置或新增键值对,Set or Add Key Value Pairs to Dictionary
+1938,action.dict.sortByValue,对字典按值排序,Sort Dictionary by Value
+1928,action.dict.sortByKey,对字典按键排序,Sort Dictionary by Key
+1298,action.dict.removeByKey,以键对字典移除键值对,Remove Key Value Pairs from Dictionary by Key
+300004,action.struct.modify,修改结构体,Modify Structrure
+702,action.shop.open,打开商店,Open Shop
+711,action.shop.removeCustomSellItemByIndex,从自定义商店出售表中移除商品,Remove Item From Custom Shop Sales List
+713,action.shop.removeBuyItem,从物品收购表中移除物品,Remove item from purchase list
+712,action.shop.removeBackpackSellItem,从背包商店出售表中移除商品,Remove Item From Inventory Shop Sales List
+703,action.shop.close,关闭商店,Close Shop
+708,action.shop.addCustomSellItem,向自定义商店出售表中新增商品,Add New Item to Custom Shop Sales List
+710,action.shop.addBuyItem,向物品收购表中新增物品,Add Items to the Purchase List
+709,action.shop.addBackpackSellItem,向背包商店出售表中新增商品,Add New Item to Inventory Shop Sales List
+704,action.shop.modifyCustomSellInfo,修改自定义商店商品出售信息,Modify Custom Shop Item Sales Info
+707,action.shop.modifyBuyInfo,修改物品收购表中道具收购信息,Modify Item Purchase Info in the Purchase List
+706,action.shop.modifyBackpackSellInfo,修改背包商店商品出售信息,Modify Inventory Shop Item Sales Info
+673,action.affix.remove,移除装备词条,Remove Equipment Affix
+674,action.affix.modifyValue,修改装备词条值,Modify Equipment Affix Value
+742,action.affix.addAtIndex,装备指定序号添加词条,Add Affix to Equipment at Specified ID
+672,action.affix.add,装备添加词条,Add Affix to Equipment
+724,action.loot.setDropContent,设置战利品掉落内容,Set Loot Drop Content
+725,action.loot.setDropType,设置战利品掉落类型,Set Loot Drop Type
+687,action.backpack.setDropItemCurrencyCount,设置背包掉落道具/货币数量,Set Inventory Drop Items/Currency Amount
+720,action.backpack.setItemDropContent,设置背包道具掉落内容,Set Inventory Item Drop Contents
+685,action.backpack.increaseMaxCapacity,增加背包最大容量,Increase Maximum Inventory Capacity
+727,action.loot.modifyCurrencyCountOnDropEntity,修改掉落物组件货币数量,Modify Loot Component Currency Amount
+726,action.loot.modifyItemCountOnDropEntity,修改掉落物组件道具数量,Modify Loot Item Component Quantity
+688,action.backpack.modifyCurrency,修改背包货币数量,Modify Inventory Currency Quantity
+686,action.backpack.modifyItem,修改背包道具数量,Modify Inventory Item Quantity
+636,action.minimap.setVisibleMarkerPlayers,修改可见小地图标识的玩家列表,Modify Player List for Visible Mini-Map Markers
+634,action.minimap.setScale,修改小地图缩放,Modify Mini-Map Zoom
+635,action.minimap.setMarkerEnabledState,修改小地图标识生效状态,Modify Mini-Map Marker Activation Status
+640,action.minimap.setMarkerPlayerTag,修改小地图标识的玩家标记,Modify Player Markers on the Mini-Map
+637,action.minimap.setTrackingMarkerPlayers,修改追踪小地图标识的玩家列表,Modify Player List for Tracking Mini-Map Markers
+618,action.patrol.switchTemplate,切换造物巡逻模板,Switch Creation Patrol Template
+761,action.leaderboard.setScoreInt,以整数设置玩家排行榜分数,Set Player Leaderboard Score as an Integer
+762,action.leaderboard.setScoreFloat,以浮点数设置玩家排行榜分数,Set Player Leaderboard Score as a Float
+645,action.achievement.setProgressCount,设置成就进度计数,Set Achievement Progress Tally
+646,action.achievement.changeProgressCount,变更成就进度计数,Change Achievement Progress Tally
+736,action.scan.setActiveScanTagIndex,设置扫描组件的生效扫描标签序号,Set Scan Component's Active Scan Tag ID
+735,action.scan.setTagRule,设置扫描标签的规则,Set Scan Tag Rules
+661,action.rank.setPlayerEscapeValidity,设置玩家逃跑合法性,Set Player Escape Validity
+659,action.rank.setPlayerRankDeltaScore,设置玩家段位变化分数,Set Player Rank Score Change
+663,action.rank.switchActiveScoreGroup,切换玩家竞技段位生效的计分组,Switch the scoring group that affects player's competitive rank
+178,action.placement.toggleGroup,激活/关闭实体布设组,Activate/Disable Entity Deployment Group
+769,action.chat.setChannelEnabled,设置聊天频道开关,Set Chat Channel Switch
+771,action.chat.setPlayerCurrentChannel,设置玩家当前频道,Set Player's Current Channel
+770,action.chat.modifyPlayerChannelPermission,修改玩家频道权限,Modify Player Channel Permission
+772,action.giftBox.consume,消耗礼盒,Consume Gift Box
+351,event.graphVariableChanged,节点图变量变化时,When Node Graph Variable Changes
+36,event.customVariableChanged,自定义变量变化时,When Custom Variable Changes
+67,event.presetStateChanged,预设状态变化时,When Preset Status Changes
+946,event.characterMoveSpeedReached,角色移动速度达到条件时,When Character Movement SPD Meets Condition
+71,event.entityCreated,实体创建时,When Entity Is Created
+373,event.entityDestroyed,实体销毁时,When Entity Is Destroyed
+72,event.entityRemovedOrDestroyed,实体移除/销毁时,When Entity Is Removed/Destroyed
+251,event.entityCampChanged,实体阵营变化时,When Entity Faction Changes
+289,event.playerTeleportFinished,玩家传送完成时,When Player Teleport Completes
+285,event.playerAbnormalDownAndRevived,玩家异常倒下并复苏时,When Player Is Abnormally Downed and Revives
+286,event.playerAllCharactersRevived,玩家所有角色复苏时,When All Player's Characters Are Revived
+284,event.playerAllCharactersDown,玩家所有角色倒下时,When All Player's Characters Are Down
+281,event.characterRevived,角色复苏时,When Character Revives
+280,event.characterDown,角色倒下时,When the Character Is Down
+91,event.leaveCollisionTrigger,离开碰撞触发器时,When Exiting Collision Trigger
+92,event.enterCollisionTrigger,进入碰撞触发器时,When Entering Collision Trigger
+585,event.healIssued,发起恢复生命值时,When Initiating HP Recovery
+765,event.enterInterruptible,进入易受打断状态时,When Entering an Interruptible State
+305,event.attackHit,攻击命中时,When Attack Hits
+304,event.attacked,受到攻击时,When Attacked
+584,event.healed,被恢复生命值时,When HP Is Recovered
+177,event.pathReachedWaypoint,路径到达路点时,When Path Reaches Waypoint
+89,event.basicMoverStopped,基础运动器停止时,When Basic Motion Device Stops
+253,event.hitCheckTriggered,命中检测触发时,When On-Hit Detection Is Triggered
+83,event.timerTriggered,定时器触发时,When Timer Is Triggered
+315,event.globalTimerTriggered,全局计时器触发时,When Global Timer Is Triggered
+316,event.uiControlGroupTriggered,界面控件组触发时,When UI Control Group Is Triggered
+642,event.elementReaction,发生元素反应事件时,When Elemental Reaction Event Occurs
+643,event.shieldAttacked,护盾受到攻击时,When Shield Is Attacked
+299,event.unitStateEnded,单位状态结束时,When Unit Status Ends
+300,event.unitStateChanged,单位状态变更时,When Unit Status Changes
+307,event.tabSelected,选项卡选中时,When Tab Is Selected
+375,event.constructExitCombat,造物脱战时,When Creation Leaves Combat
+374,event.constructEnterCombat,造物入战时,When Creation Enters Combat
+764,event.playerCareerRemoved,玩家职业解除时,When Player Class Is Removed
+386,event.playerCareerLevelChanged,玩家职业等级变化时,When Player Class Level Changes
+385,event.playerCareerChanged,玩家职业更改时,When Player Class Changes
+392,event.skillNodeInvoked,技能节点调用时,When Skill Node Is Called
+611,event.hatredTargetChanged,仇恨目标变化时,When Aggro Target Changes
+613,event.selfExitCombat,自身脱战时,When Self Leaves Combat
+612,event.selfEnterCombat,自身入战时,When Self Enters Combat
+300001,event.signalListen,监听信号,Monitor Signal
+633,event.cardPickerCompleted,卡牌选择器完成时,When Deck Selector Is Complete
+679,event.textBubbleCompleted,文本气泡完成时,When Text Bubble Is Completed
+700,event.shopSellCustomItem,商店出售自定义商品时,When Custom Shop Item Is Sold
+701,event.shopSellBackpackItem,商店出售背包物品时,When Selling Inventory Items in the Shop
+705,event.shopBuyItems,商店收购道具时,When selling items to the shop
+694,event.equipmentInitialized,装备初始化时,When Equipment Is Initialized
+680,event.equipmentAffixValueChanged,装备的词条数值改变时,When Equipment Affix Value Changes
+695,event.equipmentEquipped,装备被穿戴时,When Equipment Is Equipped
+696,event.equipmentUnequipped,装备被卸下时,When Equipment Is Unequipped
+733,event.backpackItemUsed,背包内道具被使用时,When Items in the Inventory Are Used
+684,event.backpackCurrencyChanged,背包货币数量变化时,When the Quantity of Inventory Currency Changes
+681,event.backpackItemAdded,背包道具新增时,When Item Is Added to Inventory
+683,event.backpackItemCountChanged,背包道具数量变化时,When the Quantity of Inventory Item Changes
+682,event.backpackItemLost,背包道具失去时,When Item Is Lost From Inventory
+620,event.constructReachedPatrolWaypoint,造物抵达巡逻路点时,When Creation Reaches Patrol Waypoint
+3,flow.branch.multi,多分支,Multiple Branches
+2,flow.branch.ifElse,双分支,Double Branch
+766,query.matchModeAndPlayerCount,查询对局游玩方式及人数,Query Game Mode and Player Number
+18,query.getLocalVariable,获取局部变量,Get Local Variable
+193,query.vector3.up,三维向量：上方,3D Vector: Up
+194,query.vector3.down,三维向量：下方,3D Vector: Down
+197,query.vector3.forward,三维向量：前方,3D Vector: Forward
+198,query.vector3.back,三维向量：后方,3D Vector: Backward
+196,query.vector3.right,三维向量：右侧,3D Vector: Right
+195,query.vector3.left,三维向量：左侧,3D Vector: Left
+192,query.vector3.zero,三维向量：零向量,3D Vector: Zero Vector
+191,query.pi,圆周率,Pi (π)
+8,query.weightedRandomIndex,权重随机,Weighted Random
+755,query.utcTimestamp,查询时间戳（UTC+0时区）,Query Timestamp (UTC+0)
+756,query.serverTimezone,查询服务器时区,Query Server Time Zone
+257,query.randomInt,获取随机整数,Get Random Integer
+7,query.randomFloat,获取随机浮点数,Get Random Floating Point Number
+114,query.list.contains,列表是否包含该值,List Includes This Value
+121,query.list.findIndicesByValue,查找列表并返回值的序号,Search List and Return Value ID
+128,query.list.getAt,获取列表对应值,Get Corresponding Value From List
+149,query.list.max,获取列表最大值,Get Maximum Value from List
+151,query.list.min,获取列表最小值,Get Minimum Value From List
+142,query.list.length,获取列表长度,Get List Length
+3360,query.customVar.snapshot,查询自定义变量快照,Query Custom Variable Snapshot
+50,query.customVar.get,获取自定义变量,Get Custom Variable
+337,query.graphVar.get,获取节点图变量,Get Node Graph Variable
+68,query.presetState.get,获取预设状态,Get Preset Status
+75,query.entity.byGuid,以GUID查询实体,Query Entity by GUID
+76,query.guid.byEntity,以实体查询GUID,Query GUID by Entity
+507,query.entity.isAlive,查询实体是否在场,Query If Entity Is on the Field
+947,query.character.moveSpeed,查询角色当前移动速度,Query Character's Current Movement SPD
+318,query.entities.getAll,获取场上所有实体,Get All Entities on the Field
+320,query.entities.byComponentOnField,获取场上指定元件ID的实体,Get Entities With Specified Prefab on the Field
+319,query.entities.byTypeOnField,获取场上指定类型实体,Get Specified Type of Entities on the Field
+99,query.entity.transform,获取实体位置与旋转,Get Entity Location and Rotation
+671,query.entity.elementStats,获取实体元素属性,Get Entity Elemental Attribute
+518,query.entity.upVector,获取实体向上向量,Get Entity Upward Vector
+516,query.entity.forwardVector,获取实体向前向量,Get Entity Forward Vector
+517,query.entity.rightVector,获取实体向右向量,Get Entity Right Vector
+745,query.entity.ownedEntities,获取实体拥有的实体列表,Get List of Entities Owned by the Entity
+260,query.entity.type,获取实体类型,Get Entity Type
+670,query.entity.advancedStats,获取实体进阶属性,Get Entity Advanced Attribute
+744,query.entity.owner,获取拥有者实体,Get Owner Entity
+378,query.entities.filterByComponentId,获取指定元件ID的实体列表,Get Entity List by Specified Prefab
+377,query.entities.filterByType,获取指定类型的实体列表,Get Entity List by Specified Type
+380,query.entities.filterByRange,获取指定范围的实体列表,Get Entity List by Specified Range
+379,query.entities.filterByCamp,获取指定阵营的实体列表,Get Entity List by Specified Faction
+580,query.object.stats,获取物件属性,Get Object Attribute
+73,query.entity.self,获取自身实体,Get Self Entity
+738,query.character.stats,获取角色属性,Get Character Attribute
+664,query.level.environmentTime,查询当前环境时间,Query Current Environment Time
+290,query.level.gameElapsed,获取游戏已进行时间,Query Game Time Elapsed
+249,query.camp.ofEntity,查询实体阵营,Query Entity Faction
+614,query.camp.isHostile,获取阵营是否敌对,Query If Faction Is Hostile
+287,query.player.allCharactersDown,查询玩家角色是否全部倒下,Query If All Player Characters Are Down
+751,query.playerIndex.byGuid,根据玩家GUID获取玩家序号,Get Player ID by Player GUID
+750,query.playerGuid.byIndex,根据玩家序号获取玩家GUID,Get Player GUID by Player ID
+248,query.players.inField,获取在场玩家实体列表,Get List of Player Entities on the Field
+258,query.player.allCharacterEntities,获取指定玩家所有角色实体,Get All Character Entities of Specified Player
+275,query.player.reviveRemaining,获取玩家剩余复苏次数,Get Player Remaining Revives
+277,query.player.reviveDuration,获取玩家复苏耗时,Get Player Revive Time
+768,query.player.inputDeviceType,获得玩家客户端输入设备类型,Get Player Client Input Device Type
+767,query.player.nickname,获取玩家昵称,Get Player Nickname
+259,query.player.ofCharacter,获取角色归属的玩家实体,Get Player Entity to Which the Character Belongs
+246,query.follower.target,获取跟随运动器的目标,Get Follow Motion Device Target
+310,query.timer.globalCurrent,获取全局计时器当前时间,Get Current Global Timer Time
+317,query.ui.currentLayout,获取玩家当前界面布局,Get Player's Current UI Layout
+381,query.creation.stats,获取造物属性,Get Creation Attribute
+376,query.creation.currentTarget,获取造物当前目标,Get Creation's Current Target
+758,query.creation.defaultAggroList,获取默认模式的造物仇恨列表,Get Aggro List of Creation in Default Mode
+387,query.career.ofPlayer,查询玩家职业,Query Player Class
+388,query.career.level,查询玩家职业的等级,Query Player Class Level
+398,query.character.skill,查询角色技能,Query Character Skill
+748,query.unitState.slotIndexList,查询单位状态的槽位序号列表,List of Slot IDs Querying Unit Status
+508,query.unitState.hasState,查询实体是否具有单位状态,Query If Entity Has Unit Status
+746,query.unitState.layerCountBySlot,根据槽位序号查询单位状态层数,Query Unit Status Stacks by Slot ID
+747,query.unitState.applierBySlot,根据槽位序号查询单位状态施加者,Query Unit Status Applier by Slot ID
+590,query.tags.entitiesByUnitTagIndex,获取单位标签的实体列表,Get Entity List by Unit Tag
+589,query.tags.ofEntity,获取实体单位标签列表,Get Entity Unit Tag List
+605,query.hatred.globalTransferMultiplier,查询全局仇恨转移倍率,Query Global Aggro Transfer Multiplier
+610,query.hatred.isInCombat,查询指定实体是否已入战,Query if Specified Entity Is in Combat
+604,query.hatred.multiplierOfEntity,查询指定实体的仇恨倍率,Query the Aggro Multiplier of the Specified Entity
+603,query.hatred.valueOfEntity,查询指定实体的仇恨值,Query the Aggro Value of the Specified Entity
+608,query.hatred.ownersByTarget,获取以目标为仇恨目标的拥有者列表,Get List of Owners That Have the Target As Their Aggro Target
+609,query.hatred.listOfEntity,获取指定实体的仇恨列表,Get the Aggro List of the Specified Entity
+606,query.hatred.targetOfOwner,获取指定实体的仇恨目标,Get the Aggro Target of the Specified Entity
+607,query.hatred.ownersByListContainingTarget,获取目标所在仇恨列表的拥有者列表,Get List of Owners Who Have the Target in Their Aggro List
+621,query.path.pointInfo,获取指定路径点信息,Get Specified Waypoint Info
+271,query.preset.indicesByUnitTag,以单位标签获取预设点位列表,Get Preset Point List by Unit Tag
+270,query.preset.transformByIndex,查询预设点位置旋转,Query Preset Point Position Rotation
+653,query.settlement.playerSuccess,获取玩家结算成功状态,Get Player Settlement Success Status
+651,query.settlement.playerRankValue,获取玩家结算排名数值,Get Player Settlement Ranking Value
+657,query.settlement.campSuccess,获取阵营结算成功状态,Get Faction Settlement Success Status
+655,query.settlement.campRankValue,获取阵营结算排名数值,Get Faction Settlement Ranking Value
+1158,query.dict.getByKey,以键查询字典值,Query Dictionary Value by Key
+1438,query.dict.containsValue,查询字典是否包含特定值,Query If Dictionary Contains Specific Value
+1368,query.dict.containsKey,查询字典是否包含特定键,Query If Dictionary Contains Specific Key
+1648,query.dict.length,查询字典长度,Query Dictionary's Length
+1578,query.dict.values,获取字典中值组成的列表,Get List of Values from Dictionary
+1508,query.dict.keys,获取字典中键组成的列表,Get List of Keys from Dictionary
+719,query.shop.purchaseInfo,查询商店商品收购信息,Query Shop Item Purchase Info
+716,query.shop.purchaseList,查询商店收购物品列表,Query Shop Purchase Item List
+718,query.shop.backpackSellInfo,查询背包商店商品出售信息,Query Inventory Shop Item Sales Info
+715,query.shop.backpackSellList,查询背包商店物品出售列表,Query Inventory Shop Item Sales List
+717,query.shop.customSellInfo,查询自定义商店商品出售信息,Query Custom Shop Item Sales Info
+714,query.shop.customSellList,查询自定义商店商品出售列表,Query Custom Shop Item Sales List
+734,query.equip.tagList,查询装备标签列表,Query Equipment Tag List
+749,query.equip.configIdByIndex,根据装备索引查询装备配置ID,Query Equipment Config ID by Equipment ID
+675,query.equip.entryList,获取装备词条列表,Get Equipment Affix List
+677,query.equip.entryValue,获取装备词条数值,Get Equipment Affix Value
+676,query.equip.entryConfigId,获取装备词条配置ID,Get Equipment Affix Config ID
+729,query.drop.coinCount,获取凋落物组件货币数量,Get Loot Component Currency Quantity
+731,query.reward.allCoins,获取战利品所有货币,Get All Trophy Currency
+730,query.reward.allItems,获取战利品所有道具,Get All Trophy Items
+732,query.drop.allEquip,获取掉落物件所有装备,Get All Equipment from Loot Component
+728,query.drop.itemCount,获取掉落物组件道具数量,Get Loot Component Item Quantity
+689,query.backpack.capacity,获取背包容量,Get Inventory Capacity
+721,query.backpack.basicItems,获取背包所有基础道具,Get all basic items from Inventory
+723,query.backpack.allEquip,获取背包所有装备,Get all equipment from Inventory
+722,query.backpack.allCoins,获取背包所有货币,Get All Currency From Inventory
+691,query.backpack.coinCount,获取背包货币数量,Get Inventory Currency Quantity
+690,query.backpack.itemCount,获取背包道具数量,Get Inventory Item Quantity
+669,query.collisionTrigger.entitiesIn,获取碰撞触发器内所有实体,Get All Entities Within the Collision Trigger
+638,query.minimap.markerInfo,查询指定小地图标识信息,Query Specified Mini-Map Marker Information
+639,query.minimap.markerStates,获取实体的小地图标识状态,Get Entity's Mini-Map Marker Status
+619,query.creation.patrolTemplate,获取当前造物的巡逻模板,Get Current Creation's Patrol Template
+644,query.achievement.isCompleted,查询成就是否完成,Query If Achievement Is Completed
+737,query.scanTag.activeConfigId,获取当前生效的扫描标签配置ID,Get the Currently Active Scan Tag Config ID
+658,query.rank.info,获取玩家段位信息,Get Player Ranking Info
+660,query.rank.deltaScore,获取玩家段位变化分数,Get Player Rank Score Change
+662,query.rank.escapeLegal,获取玩家逃跑合法性,Get Player Escape Validity
+179,query.entityLayoutGroups.active,查询当前激活的实体布设组列表,Get Currently Active Entity Deployment Groups
+773,query.giftBox.count,查询对应礼盒数量,Query Corresponding Gift Box Quantity
+774,query.giftBox.consumeCount,查询对应礼盒消耗数量,Query Corresponding Gift Box Consumption
+0,math.enumEquals,枚举是否相等,Enumerations Equal
+0,math.list.assemble,拼装列表,Assembly List
+0,math.equals,是否相等,Equal
+0,math.typeCast,数据类型转换,Data Type Conversion
+0,math.vector3.dot,三维向量内积,3D Vector Dot Product
+0,math.vector3.sub,三维向量减法,3D Vector Subtraction
+0,math.vector3.add,三维向量加法,3D Vector Addition
+0,math.vector3.cross,三维向量外积,3D Vector Cross Product
+0,math.vector3.angle,三维向量夹角,3D Vector Angle
+0,math.vector3.normalize,三维向量归一化,3D Vector Normalization
+0,math.vector3.rotate,三维向量旋转,3D Vector Rotation
+0,math.vector3.magnitude,三维向量模运算,3D Vector Modulo Operation
+0,math.vector3.scale,三维向量缩放,3D Vector Zoom
+0,math.vector3.distance,两坐标点距离,Distance Between Two Coordinate Points
+0,math.mul,乘法运算,Multiplication
+0,math.cos,余弦函数,Cosine Function
+0,math.sub,减法运算,Subtraction
+0,math.div,除法运算,Division
+0,math.vector3.create,创建三维向量,Create 3D Vector
+0,math.add,加法运算,Addition
+0,math.acos,反余弦函数,Arccosine Function
+0,math.atan,反正切函数,Arctangent Function
+0,math.asin,反正弦函数,Arcsine Function
+0,math.truncate,取整数运算,Round to Integer Operation
+0,math.sign,取符号运算,Sign Operation
+0,math.max,取较大值,Take Larger Value
+0,math.min,取较小值,Take Smaller Value
+0,math.shift.right,右移运算,Right Shift Operation
+0,math.log,对数运算,Logarithm Operation
+0,math.shift.left,左移运算,Left Shift Operation
+0,math.pow,幂运算,Exponentiation
+0,math.rad2deg,弧度转角度,Radians to Degrees
+0,math.vector3.split,拆分三维向量,Split 3D Vector
+0,math.bit.and,按位与,Bitwise AND
+0,math.bit.write,按位写入,Write by bit
+0,math.bit.not,按位取补,Bitwise Complement
+0,math.bit.xor,按位异或,XOR (Exclusive OR)
+0,math.bit.or,按位或,Bitwise OR
+0,math.bit.read,按位读出,Read by bit
+0,math.gt,数值大于,Greater Than
+0,math.gte,数值大于等于,Greater Than or Equal To
+0,math.lt,数值小于,Less Than
+0,math.lte,数值小于等于,Less Than or Equal To
+0,math.direction.rotate,方向向量旋转,Direction Vector to Rotation
+0,math.time.weekdayFromTimestamp,根据时间戳计算星期几,Calculate Day of the Week From Timestamp
+0,math.time.formatFromTimestamp,根据时间戳计算格式化时间,Calculate Formatted Time From Timestamp
+0,math.time.timestampFromFormat,根据格式化时间计算时间戳,Calculate Timestamp From Formatted Time
+0,math.mod,模运算,Modulo Operation
+0,math.tan,正切函数,Tangent Function
+0,math.sin,正弦函数,Sine Function
+0,math.sqrt,算术平方根运算,Arithmetic Square Root Operation
+0,math.abs,绝对值运算,Absolute Value Operation
+0,math.clamp,范围限制运算,Range Limiting Operation
+0,math.deg2rad,角度转弧度,Degrees to Radians
+0,math.logic.and,逻辑与运算,Logical AND Operation
+0,math.logic.xor,逻辑异或运算,Logical XOR Operation
+0,math.logic.or,逻辑或运算,Logical OR Operation
+0,math.logic.not,逻辑非运算,Logical NOT Operation
+0,math.dict.create,建立字典,Create Dictionary
+0,math.dict.assemble,拼装字典,Assembly Dictionary
+0,math.struct.decompose,拆分结构体,Split Structure
+0,math.struct.assemble,拼装结构体,Assemble Structure
 客户端节点图可用
-event.graphStart,节点图开始
-flow.graphEndBoolean,节点图结束（布尔型）
-flow.graphEndInteger,节点图结束（整数）
-client.query.list.getValue,获取列表对应值
-client.query.list.length,获取列表长度
-client.query.list.max,获取列表最大值
-client.query.list.min,获取列表最小值
-client.query.raycast.filterList,获取射线筛选类型列表
-client.query.entity.typeList,获取实体类型列表
-client.query.list.contains,列表是否包含该值
-client.query.customVariable.get,获取自定义变量
-client.query.presetState.get,获取预设状态
-client.query.entity.isPresent,查询实体是否在场
-client.query.entity.getAttackTarget,获取单位攻击目标
-client.query.entity.getSocketPosition,获取目标挂接点位置
-client.query.entity.getSocketRotation,获取目标挂接点旋转
-client.query.player.isSelfInCombat,查询自身是否已入战
-client.query.player.getCurrentCharacter,获取当前角色
-client.query.character.getOwnerPlayer,获取角色归属的玩家实体
-client.query.player.listPresent,获取在场玩家实体列表
-client.query.player.getCharacter,获取指定玩家的角色实体
-client.query.raycast.getResult,获取射线检测结果
-client.query.getTargetEntity,获取目标实体
-client.query.getEntityType,获取实体的类型
-client.query.getEntityPosition,获取实体位置
-client.query.getEntityRotation,获取实体旋转
-client.query.getSelfEntity,获取自身实体
-client.query.filterEntitiesInBox,筛选方形范围内的实体列表
-client.query.filterEntitiesInSphere,筛选球体范围内的实体列表
-client.query.findEntityByGuid,以GUID查询实体
-client.query.getEntityCamp,查询实体阵营
-client.query.campsAreHostile,查询阵营是否敌对
-client.query.entityToGuid,以实体查询GUID
-client.query.getInputDeviceType,获得玩家客户端输入设备类型
-client.query.unitTagEntities,获取单位标签的实体列表
-client.query.entityUnitTagIndexes,获取实体的单位标签列表
-client.query.getLocalVariable,获取局部变量
-client.query.isEntityInCombat,查询指定实体是否入战
-client.query.entityHateList,获取指定实体的仇恨列表
-client.query.entityHateTarget,获取指定实体的仇恨目标
-client.query.getEntitiesInCollisionTrigger,获取碰撞触发器内所有实体
-client.query.getRaycastResult,获取射线检测结果
-client.query.scanAllValidObjects,获取扫描组件可扫描的所有合法对象
-client.query.scanCurrentHit,获取扫描组件当前扫描到的实体
-client.query.getEntityScanTag,获取实体当前生效的扫描标签
-client.query.getEntityScanState,获取实体扫描状态
-client.math.enumMatch,枚举匹配
-client.math.isEqual,是否相等
-client.math.typeCast,数据类型转换
-client.math.vector3.split,拆分三维向量
-client.math.vector3.directionToRotation,朝向转旋转
-client.math.math.multiply,乘法运算
-client.math.math.divide,除法运算
-client.math.sin,正弦函数
-client.math.cos,余弦函数
-client.math.tan,正切函数
-client.math.degToRad,角度转弧度
-client.math.radToDeg,弧度转角度
-client.math.vectorAdd,三维向量加法
-client.math.vectorSubtract,三维向量减法
-client.math.vectorDot,三维向量内积
-client.math.vectorCross,三维向量外积
-client.math.vectorNormalize,三维向量归一化
-client.math.arcCos,反余弦函数
-client.math.arcTan,反正切函数
-client.math.arcSin,反正弦函数
-client.math.directionVectorToRotation,方向向量转旋转
-client.math.randomInRange,获取随机数
-client.math.add,加法运算
-client.math.subtract,减法运算
-client.math.abs,绝对值运算
-client.math.logicalNot,逻辑非运算
-client.math.logicalOr,逻辑或运算
-client.math.logicalXor,逻辑异或运算
-client.math.logicalAnd,逻辑与运算
-client.math.normalizeVector3,三维向量归一化
-client.math.addVector3,三维向量加法
-client.math.angleBetweenVector3,三维向量夹角
-client.math.subtractVector3,三维向量减法
-client.math.vector3Length,三维向量模运算
-client.math.dotVector3,三维向量内积
-client.math.scaleVector3,三维向量缩放
-client.math.crossVector3,三维向量外积
-client.math.rotateVector3,三维向量旋转
-client.math.greaterThan,是否大于
-client.math.greaterOrEqual,是否大于等于
-client.math.lessThan,是否小于
-client.math.lessOrEqual,是否小于等于
-client.math.tan,正切函数
-client.math.makeVector3,创建三维向量
-client.math.assembleList,拼装列表
-client.action.iterateEntities,遍历实体列表
-client.action.playTimedEffect,播放限时特效
-client.action.fireProjectileAtPoint,定点发射投射物
-client.action.moveToPoint,定点位移
-client.action.restoreHp,恢复生命值
-client.action.cameraRaycastData,镜头朝向检测数据
-client.action.forceExitAim,强制退出瞄准状态
-client.action.setSelfAttackTarget,设置自身攻击目标
-client.action.attackBoxAtPosition,特定位置打攻击盒
-client.action.rectangularAttackBoxAtPosition,特定位置打矩形攻击盒
-client.action.sphericalAttackBoxAtPosition,特定位置打球形攻击盒
-client.action.sectorAttackBoxAtPosition,特定位置打扇形攻击盒
-client.action.addUnitState,添加单位状态
-client.action.notifyServerGraph,通知服务器节点图
-client.action.playerTurn,玩家转向
-client.action.playerTurnToDirection,玩家转向指定朝向
-client.action.modifyAttackWeight,修改攻击权重
-client.action.removeUnitState,移除单位状态
-client.action.removeCharacterDisturbDevice,移除指定角色扰动装置
-client.action.attackBoxAtSocket,指定挂接点打攻击盒
-client.action.rectangularAttackBoxAtSocket,指定挂接点打矩形攻击盒
-client.action.sphericalAttackBoxAtSocket,指定挂接点打球形攻击盒
-client.action.sectorAttackBoxAtSocket,指定挂接点扇形打攻击盒
-client.action.resetSkillTarget,重置技能目标
-client.action.setLocalVariable,设置局部变量
-client.action.breakLoop,跳出循环
-client.action.loopFinite,有限循环
-client.action.hate.modifyByRatio,按比例修改指定实体的仇恨值
-client.action.hate.transferByRatio,按比例转移指定实体的仇恨值
-client.action.hate.taunt,嘲讽目标
-client.action.hate.removeTargetFromList,将目标实体移除出仇恨列表
-client.action.hate.clearTargetList,清空指定实体的仇恨列表
-client.action.hate.setValue,设置指定实体的仇恨值
-client.action.hate.addValue,修改指定实体的仇恨值
-client.action.sendSignalToServer,向服务器节点图发送信号
-client.flow.branch.ifElse,双分支
+200042,event.graphStart,节点图开始,Node Graph Begins
+200000,flow.graphEndBoolean,节点图结束（布尔型）,Node Graph End (Boolean)
+0,flow.graphEndInteger,节点图结束（整数）,Node Graph End (Integer)
+0,client.query.list.getValue,获取列表对应值,Get Corresponding Value From List
+0,client.query.list.length,获取列表长度,Get List Length
+0,client.query.list.max,获取列表最大值,Get Maximum Value From List
+0,client.query.list.min,获取列表最小值,Get Minimum Value From List
+0,client.query.raycast.filterList,获取射线筛选类型列表,Get Ray Filter Type List
+0,client.query.entity.typeList,获取实体类型列表,Get Entity Type List
+0,client.query.list.contains,列表是否包含该值,List Includes This Value
+0,client.query.customVariable.get,获取自定义变量,Get Custom Variable
+0,client.query.presetState.get,获取预设状态,Get Preset Status
+200103,client.query.entity.isPresent,查询实体是否在场,Query If Entity Is on the Field
+200035,client.query.entity.getAttackTarget,获取单位攻击目标,Get Unit Attack Target
+0,client.query.entity.getSocketPosition,获取目标挂接点位置,Get Target Attachment Point Location
+0,client.query.entity.getSocketRotation,获取目标挂接点旋转,Get Target Attachment Point Rotation
+0,client.query.getTargetEntity,获取目标实体,Get Target Entity
+0,client.query.getEntityType,获取实体的类型,Get Entity‘s Type
+0,client.query.getEntityPosition,获取实体位置,Get Entity Location
+0,client.query.getEntityRotation,获取实体旋转,Get Entity Rotation
+200033,client.query.getSelfEntity,获取自身实体,Get Self Entity
+0,client.query.filterEntitiesInBox,筛选方形范围内的实体列表,Filter Entity List Within Square Range
+0,client.query.filterEntitiesInSphere,筛选球体范围内的实体列表,Filter Entity List Within Spherical Range
+0,client.query.findEntityByGuid,以GUID查询实体,Query Entity by GUID
+0,client.query.getEntityCamp,查询实体阵营,Query Entity Faction
+0,client.query.campsAreHostile,查询阵营是否敌对,Query If Faction Is Hostile
+0,client.query.player.isSelfInCombat,查询自身是否已入战,Query If Self Is in Combat
+0,client.query.player.getCurrentCharacter,获取当前角色,Get Current Character
+0,client.query.character.getOwnerPlayer,获取角色归属的玩家实体,Get Player Entity to Which the Character Belongs
+0,client.query.player.listPresent,获取在场玩家实体列表,Get List of Player Entities on the Field
+0,client.query.player.getCharacter,获取指定玩家的角色实体,Get Character Entity of Specified Player
+0,client.query.entityToGuid,以实体查询GUID,Query GUID by Entity
+0,client.query.getInputDeviceType,获得玩家客户端输入设备类型,Get Player Client Input Device Type
+0,client.query.unitTagEntities,获取单位标签的实体列表,Get Entity List by Unit Tag
+0,client.query.entityUnitTagIndexes,获取实体的单位标签列表,Get Entity's Unit Tag List
+0,client.query.getLocalVariable,获取局部变量,Get Local Variable
+0,client.query.isEntityInCombat,查询指定实体是否入战,Query if Specified Entity is in Combat
+0,client.query.entityHateList,获取指定实体的仇恨列表,Get the Aggro List of the Specified Entity
+0,client.query.entityHateTarget,获取指定实体的仇恨目标,Get the Aggro Target of the Specified Entity
+0,client.query.getEntitiesInCollisionTrigger,获取碰撞触发器内所有实体,Get All Entities Within the Collision Trigger
+0,client.query.getRaycastResult,获取射线检测结果,Get Ray Detection Result
+0,client.query.raycast.getResult,获取射线检测结果,Get Ray Detection Result
+0,client.query.scanAllValidObjects,获取扫描组件可扫描的所有合法对象,Get All Valid Entities That Are Scannable by Scan Component
+0,client.query.scanCurrentHit,获取扫描组件当前扫描到的实体,Get Entity Currently Scanned by Scan Component
+0,client.query.getEntityScanTag,获取实体当前生效的扫描标签,Get Entity's Current Active Scan Tags
+0,client.query.getEntityScanState,获取实体扫描状态,Get Entity's Scan Status
+0,client.math.enumMatch,枚举匹配,Enumeration Match
+0,client.math.isEqual,是否相等,Equal
+0,client.math.typeCast,数据类型转换,Data Type Conversion
+0,client.math.vector3.split,拆分三维向量,Split 3D Vector
+0,client.math.math.multiply,乘法运算,Multiplication
+0,client.math.math.divide,除法运算,Division
+0,client.math.sin,正弦函数,Sine Function
+0,client.math.cos,余弦函数,Cosine Function
+0,client.math.tan,正切函数,Tangent Function
+0,client.math.degToRad,角度转弧度,Degrees to Radians
+0,client.math.radToDeg,弧度转角度,Radians to Degrees
+0,client.math.arcCos,反余弦函数,Arccosine Function
+0,client.math.arcTan,反正切函数,Arctangent Function
+0,client.math.arcSin,反正弦函数,Arcsine Function
+0,client.math.directionVectorToRotation,方向向量转旋转,Direction Vector to Rotation
+0,client.math.randomInRange,获取随机数,Get Random Number
+0,client.math.add,加法运算,Addition
+0,client.math.subtract,减法运算,Subtraction
+0,client.math.abs,绝对值运算,Absolute Value Operation
+0,client.math.logicalNot,逻辑非运算,Logical NOT Operation
+0,client.math.logicalOr,逻辑或运算,Logical OR Operation
+0,client.math.logicalXor,逻辑异或运算,Logical XOR Operation
+0,client.math.logicalAnd,逻辑与运算,Logical AND Operation
+0,client.math.normalizeVector3,三维向量归一化,3D Vector Normalization
+0,client.math.addVector3,三维向量加法,3D Vector Addition
+0,client.math.angleBetweenVector3,三维向量夹角,3D Vector Angle
+0,client.math.subtractVector3,三维向量减法,3D Vector Subtraction
+0,client.math.vector3Length,三维向量模运算,3D Vector Modulo Operation
+0,client.math.dotVector3,三维向量内积,3D Vector Dot Product
+0,client.math.scaleVector3,三维向量缩放,3D Vector Zoom
+0,client.math.crossVector3,三维向量外积,3D Vector Cross Product
+0,client.math.rotateVector3,三维向量旋转,3D Vector Rotation
+0,client.math.greaterThan,是否大于,Greater Than
+0,client.math.greaterOrEqual,是否大于等于,Greater Than or Equal To
+0,client.math.lessThan,是否小于,Less Than
+0,client.math.lessOrEqual,是否小于等于,Less Than or Equal To
+0,client.math.tan,正切函数,Tangent Function
+0,client.math.makeVector3,创建三维向量,Create 3D Vector
+0,client.math.assembleList,拼装列表,Assembly List
+0,client.action.iterateEntities,遍历实体列表,Traverse Entity List
+0,client.action.playTimedEffect,播放限时特效,Play Timed Effects
+0,client.action.fireProjectileAtPoint,定点发射投射物,Fixed-Point Projectile Launch
+0,client.action.moveToPoint,定点位移,Fixed-Point Displacement
+0,client.action.restoreHp,恢复生命值,Recover HP
+0,client.action.cameraRaycastData,镜头朝向检测数据,Camera Orientation Detection Data
+0,client.action.forceExitAim,强制退出瞄准状态,Force Exit Aiming State
+0,client.action.setSelfAttackTarget,设置自身攻击目标,Set Own Attack Target
+0,client.action.attackBoxAtPosition,特定位置打攻击盒,Trigger Hitbox at Specific Location
+0,client.action.rectangularAttackBoxAtPosition,特定位置打矩形攻击盒,Trigger Rectangular Hitbox at Specific Location
+0,client.action.sphericalAttackBoxAtPosition,特定位置打球形攻击盒,Trigger Spherical Hitbox at Specific Location
+0,client.action.sectorAttackBoxAtPosition,特定位置打扇形攻击盒,Trigger Sector Hitbox at Specific Location
+0,client.action.addUnitState,添加单位状态,Add Unit Status
+0,client.action.notifyServerGraph,通知服务器节点图,Notify Server Node Graph
+0,client.action.playerTurn,玩家转向,Player Turning
+0,client.action.playerTurnToDirection,玩家转向指定朝向,Player Turns to Face Set Direction
+0,client.action.modifyAttackWeight,修改攻击权重,Modify Attack Weight
+0,client.action.removeUnitState,移除单位状态,Remove Unit Status
+0,client.action.removeCharacterDisturbDevice,移除指定角色扰动装置,Remove Specified Character Disruptor Device
+0,client.action.attackBoxAtSocket,指定挂接点打攻击盒,Trigger Hitbox at Specific Location
+0,client.action.rectangularAttackBoxAtSocket,指定挂接点打矩形攻击盒,Trigger Rectangular Hitbox at Specific Attachment Point
+0,client.action.sphericalAttackBoxAtSocket,指定挂接点打球形攻击盒,Trigger Spherical Hitbox at Specific Attachment Point
+0,client.action.sectorAttackBoxAtSocket,指定挂接点扇形打攻击盒,Trigger Sector Hitbox at Specific Attachment Point
+0,client.action.resetSkillTarget,重置技能目标,Reset Skill Target
+0,client.action.setLocalVariable,设置局部变量,Set Local Variable
+0,client.action.breakLoop,跳出循环,Break Loop
+0,client.action.loopFinite,有限循环,Finite Loop
+0,client.action.hate.modifyByRatio,按比例修改指定实体的仇恨值,Modify the Aggro Value of the Specified Entity Proportionally
+0,client.action.hate.transferByRatio,按比例转移指定实体的仇恨值,Transfer the Aggro Value of the Specified Entity Proportionally
+0,client.action.hate.taunt,嘲讽目标,Taunt Target
+0,client.action.hate.removeTargetFromList,将目标实体移除出仇恨列表,Remove Target Entity From Aggro List
+0,client.action.hate.clearTargetList,清空指定实体的仇恨列表,Clear the Aggro List of the Specified Entity
+0,client.action.hate.setValue,设置指定实体的仇恨值,Set the Aggro Value of the Specified Entity
+200084,client.action.hate.addValue,修改指定实体的仇恨值,Modify the Aggro Value of the Specified Entity
+0,client.action.sendSignalToServer,向服务器节点图发送信号,Send Signal to Server Node Graph
+0,client.flow.branch.ifElse,双分支,Double Branch

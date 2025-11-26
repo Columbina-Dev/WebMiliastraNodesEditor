@@ -4096,6 +4096,29 @@ export const nodeDefinitions: NodeDefinition[] = [
     ],
   },
 
+  // ───────────────────────────── 35-结构体 ─────────────────────────────
+  // 执行节点/结构体
+  {
+    id: "action.struct.modify",
+    displayName: "修改结构体",
+    displayNameEN: "Modify Structrure",
+    officialID: 300004, // Dynamic ID
+    category: "执行节点/结构体",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+      {
+        id: "targetStruct",
+        label: "目标结构体",
+        kind: "data-in",
+        valueType: "any",
+        ui: { accessory: "gear" },
+      },
+    ],
+  },
+
   // ───────────────────────────── 36-商店 ─────────────────────────────
   // 执行节点/商店
   {
