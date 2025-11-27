@@ -114,7 +114,7 @@
   border-radius: 8px;
   border: 1px solid transparent;
   background: #1f2738;
-  cursor: pointer;
+  cursor: var(--cursor-pointer);
   display: flex;
   justify-content: space-between;
   align-items: center;

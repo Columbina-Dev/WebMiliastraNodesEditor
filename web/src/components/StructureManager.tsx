@@ -188,6 +188,10 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   const [infoDialog, setInfoDialog] = useState<{ title: string; message: string } | null>(null);
   const initialStructCreatedRef = useRef<Record<StructKind, boolean>>({ basic: false, runtime: false });
   const copyToastTimerRef = useRef<number | null>(null);
+  const actionsMenuRef = useRef<HTMLDivElement | null>(null);
+  const actionsToggleRef = useRef<HTMLButtonElement | null>(null);
+  const rowDragIndexRef = useRef<number | null>(null);
+  const [openRowMenu, setOpenRowMenu] = useState<number | null>(null);
   const updateSelectedGroup = useCallback(
     (slug: string) =>
       setSelectedGroupByKind((prev) => ({
@@ -347,6 +351,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     return normalizeStructDoc(base, selectedStructEntry.structId, kind);
   }, [activeKind, projectDocument, selectedStructEntry]);
   const fields = useMemo(() => (draft && Array.isArray(draft.value) ? draft.value : []), [draft]);
+  const [structNameInput, setStructNameInput] = useState('');
 
   useEffect(() => {
     if (!selectedStruct) {
@@ -356,9 +361,37 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       return;
     }
     setDraft(selectedStruct);
+    setStructNameInput(selectedStruct.name ?? '');
     historyRef.current = [];
     futureRef.current = [];
   }, [selectedStruct]);
+
+  useEffect(() => {
+    if (!showActionsMenu) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as Node | null;
+      if (
+        actionsMenuRef.current?.contains(target) ||
+        actionsToggleRef.current?.contains(target)
+      ) {
+        return;
+      }
+      setShowActionsMenu(false);
+    };
+    window.addEventListener('click', handleClick, { capture: true });
+    return () => window.removeEventListener('click', handleClick, { capture: true });
+  }, [showActionsMenu]);
+
+  useEffect(() => {
+    if (openRowMenu === null) return;
+    const handleClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest('.struct-editor__row-menu')) return;
+      setOpenRowMenu(null);
+    };
+    window.addEventListener('click', handleClick, { capture: true });
+    return () => window.removeEventListener('click', handleClick, { capture: true });
+  }, [openRowMenu]);
 
   const pushHistory = useCallback(
     (snapshot: StructDocument) => {
@@ -542,7 +575,11 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   const handleRenameStruct = useCallback(
     (name: string) => {
       const trimmed = name.trim();
-      if (!trimmed || !draft) return;
+      if (!draft) return;
+      if (!trimmed) {
+        setStructNameInput(draft.name);
+        return;
+      }
       applyDraftUpdate((doc) => ({ ...doc, name: trimmed }));
     },
     [applyDraftUpdate, draft],
@@ -868,6 +905,30 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     [applyDraftUpdate],
   );
 
+  const handleFieldDrop = useCallback(
+    (targetIndex: number) => {
+      const sourceIndex = rowDragIndexRef.current;
+      rowDragIndexRef.current = null;
+      if (sourceIndex == null || sourceIndex === targetIndex) return;
+      applyDraftUpdate((doc) => {
+        const current = Array.isArray(doc.value) ? doc.value : [];
+        if (
+          sourceIndex < 0 ||
+          sourceIndex >= current.length ||
+          targetIndex < 0 ||
+          targetIndex >= current.length
+        ) {
+          return doc;
+        }
+        const next = [...current];
+        const [item] = next.splice(sourceIndex, 1);
+        next.splice(targetIndex, 0, item);
+        return { ...doc, value: next };
+      });
+    },
+    [applyDraftUpdate],
+  );
+
   const handleFieldCopy = useCallback(
     (entry: StructEntry) => {
       setFieldClipboard(JSON.parse(JSON.stringify(entry)) as StructEntry);
@@ -1028,6 +1089,24 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   const renderValueInput = (entry: StructEntry, index: number) => {
     const { param_type } = entry;
+    if (param_type === 'Bool') {
+      const value = String((entry.value as { value: string }).value ?? 'False');
+      return (
+        <select
+          value={value}
+          onChange={(event) =>
+            handleFieldChange(index, (prev) => ({
+              ...prev,
+              value: { param_type: prev.value.param_type, value: event.target.value },
+            }))
+          }
+        >
+          <option value="True">True</option>
+          <option value="False">False</option>
+        </select>
+      );
+    }
+
     if (param_type === 'Vector3') {
       const parts = parseVector((entry.value as { value: string }).value);
       return renderVectorFields(parts, (axisIndex, value) => {
@@ -1388,7 +1467,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         </div>
         <div className="structure-manager__footer">
           <button type="button" className="structure-manager__action" onClick={handleCreateStruct}>
-            + 创建结构体
+            创建结构体
           </button>
           <button type="button" className="structure-manager__action" onClick={onRequestSave}>
             <img src={ICON_SAVE} alt="" aria-hidden="true" />
@@ -1403,9 +1482,14 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
             <header className="struct-editor__header">
               <div className="struct-editor__title">
                 <input
-                  value={draft.name}
-                  onChange={(event) => handleRenameStruct(event.target.value)}
-                  onBlur={(event) => handleRenameStruct(event.target.value)}
+                  value={structNameInput}
+                  onChange={(event) => setStructNameInput(event.target.value)}
+                  onBlur={(event) => handleRenameStruct(structNameInput)}
+                  onKeyDown={(event) => {
+                    if (event.key === 'Enter') {
+                      event.currentTarget.blur();
+                    }
+                  }}
                 />
                 <div className="struct-editor__config-block">
                   <span className="struct-editor__config">配置ID: {selectedStructEntry.structId}</span>
@@ -1428,7 +1512,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                     setShowActionsMenu((prev) => !prev);
                   }}
                 >
-                  <img src={ICON_MORE} alt="更多" aria-hidden="true" />
+                  <img src={ICON_MORE} alt="更多操作" aria-hidden="true" />
                 </button>
                 {showActionsMenu && (
                   <div
@@ -1462,6 +1546,15 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   key={`${entry.key}-${index}`}
                   className="struct-editor__row"
                   onMouseDown={(event) => event.stopPropagation()}
+                  draggable
+                  onDragStart={() => {
+                    rowDragIndexRef.current = index;
+                  }}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={() => handleFieldDrop(index)}
+                  onDragEnd={() => {
+                    rowDragIndexRef.current = null;
+                  }}
                 >
                   <div className="struct-editor__index">
                     <span>{index + 1}</span>
@@ -1470,20 +1563,12 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                       className="struct-editor__more"
                       onClick={(event) => {
                         event.stopPropagation();
-                        if (typeof window !== 'undefined' && window.document) {
-                          window.document
-                            .querySelectorAll('.struct-editor__row-menu.is-open')
-                            .forEach((el) => el.classList.remove('is-open'));
-                        }
-                        const menu = event.currentTarget.nextElementSibling as HTMLElement | null;
-                        if (menu) {
-                          menu.classList.add('is-open');
-                        }
+                        setOpenRowMenu(index);
                       }}
                     >
                       <img src={ICON_MORE} alt="" aria-hidden="true" />
                     </button>
-                    <div className="struct-editor__row-menu">
+                    <div className={classNames('struct-editor__row-menu', { 'is-open': openRowMenu === index })}>
                       <button type="button" onClick={() => handleFieldCopy(entry)}>
                         复制
                       </button>
