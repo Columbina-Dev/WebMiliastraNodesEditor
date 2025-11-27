@@ -21,11 +21,7 @@ import {
   slugifyGroupName,
   upsertManifestGroup,
   resolveStructLocation,
-  upsertStructManifestEntry,
-  removeStructManifestEntry,
   upsertStructManifestGroup,
-  attachStructToDocument,
-  detachStructFromDocument,
 } from '../utils/project';
 const EXPLORER_LABEL: Record<ProjectTopFolder, string> = {
   server: '服务器节点图资源管理器',

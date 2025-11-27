@@ -22,7 +22,6 @@ import {
   DEFAULT_STRUCT_KIND,
   type StructKind,
   type StructManifestGroup,
-  type StructParamType,
 } from '../types/struct';
 
 const INVALID_PATH_CHARS = /[\\:*?"<>|]/g;
@@ -492,6 +491,7 @@ export interface ResolveStructLocationOptions {
 export interface ResolvedStructLocation {
   groupSlug: string;
   groupName: string;
+  structType: StructKind;
   normalizedPath: string;
   issues: string[];
 }

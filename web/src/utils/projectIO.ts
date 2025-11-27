@@ -18,7 +18,7 @@ import {
   type ProjectManifestGraph,
   type ProjectManifestGroup,
 } from '../types/project';
-import type { StructDocument, StructManifestEntry, StructManifestGroup } from '../types/struct';
+import type { StructDocument, StructManifestEntry, StructManifestGroup, StructKind } from '../types/struct';
 import {
   DEFAULT_STRUCT_GROUP_NAME,
   DEFAULT_STRUCT_GROUP_SLUG,
@@ -339,6 +339,7 @@ export const loadProjectFromZip = async (
       locationPath: string;
       groupSlug: string;
       groupName: string;
+      structType: StructKind;
       document: StructDocument;
     }
   >();
