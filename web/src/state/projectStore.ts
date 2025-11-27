@@ -28,8 +28,8 @@ import {
   detachStructFromDocument,
 } from '../utils/project';
 const EXPLORER_LABEL: Record<ProjectTopFolder, string> = {
-  server: '·þÎñÆ÷½ÚµãÍ¼×ÊÔ´¹ÜÀíÆ÷',
-  client: '¿Í»§¶Ë½ÚµãÍ¼×ÊÔ´¹ÜÀíÆ÷',
+  server: 'æœåŠ¡å™¨èŠ‚ç‚¹å›¾èµ„æºç®¡ç†å™¨',
+  client: 'å®¢æˆ·ç«¯èŠ‚ç‚¹å›¾èµ„æºç®¡ç†å™¨',
 };
 export type ExplorerTabId = `explorer:${ProjectTopFolder}`;
 export type GraphTabId = `graph:${string}`;
@@ -67,7 +67,7 @@ const createExplorerTab = (topFolder: ProjectTopFolder): ExplorerTab => ({
 const createStructTab = (): StructTab => ({
   id: STRUCT_TAB_ID,
   type: 'struct',
-  label: '½á¹¹Ìå¹ÜÀí',
+  label: 'ç»“æž„ä½“ç®¡ç†å™¨',
 });
 const DEFAULT_EXPLORER_ORDER: ProjectTopFolder[] = ['server', 'client'];
 interface ProjectWorkspaceState {
@@ -111,7 +111,7 @@ interface ProjectWorkspaceState {
 const createInitialState = (): ProjectWorkspaceState => ({
   document: null,
   projectId: null,
-  projectName: 'Î´ÃüÃûÏîÄ¿',
+  projectName: 'Î´Ä¿',
   openTabs: DEFAULT_EXPLORER_ORDER.map((folder) => createExplorerTab(folder)),
   activeTabId: buildExplorerTabId('server'),
   activeGraphId: null,
@@ -180,7 +180,7 @@ const refreshGraphTabLabels = (
     } satisfies GraphTab;
   });
 };
-const DEFAULT_NEW_GROUP_NAME = 'ÐÂ½¨ÎÄ¼þ¼Ð';
+const DEFAULT_NEW_GROUP_NAME = 'Â½Ä¼';
 const getCategoryDefinition = (topFolder: ProjectTopFolder, categoryKey: string) => {
   const definition = PROJECT_CATEGORY_BY_KEY.get(categoryKey);
   if (!definition || definition.topFolder !== topFolder) {
@@ -271,7 +271,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
   setProjectName: (name) => {
     const document = get().document;
     if (!document) return;
-    const nextName = sanitizeName(name, 'Î´ÃüÃûÏîÄ¿');
+    const nextName = sanitizeName(name, 'Î´Ä¿');
     const nextDocument: ProjectDocument = {
       manifest: {
         ...document.manifest,
@@ -771,7 +771,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       nextDocument.manifest,
       topFolder,
       categoryKey,
-      `${sourceGroup.groupName} ¸±±¾`,
+      `${sourceGroup.groupName} `,
     );
     let createdSlug: string | null = newGroupSlug;
     upsertManifestGroup(nextDocument.manifest, {
@@ -931,7 +931,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         item.groupSlug === groupSlug,
     );
     if (!group) {
-      window.alert('Î´ÕÒµ½Ö¸¶¨µÄÎÄ¼þ¼Ð¡£');
+      window.alert('Î´ÒµÖ¸Ä¼Ð¡');
       return;
     }
     const entries = projectDocument.manifest.graphs.filter((entry) => {
@@ -945,7 +945,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       );
     });
     if (!entries.length) {
-      window.alert('¸ÃÎÄ¼þ¼ÐÎª¿Õ£¬ÔÝÎÞ¿Éµ¼³öµÄ½ÚµãÍ¼¡£');
+      window.alert('Ä¼ÎªÕ£Þ¿ÉµÄ½ÚµÍ¼');
       return;
     }
     const zip = new JSZip();

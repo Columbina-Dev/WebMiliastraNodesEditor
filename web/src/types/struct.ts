@@ -88,6 +88,7 @@ export interface StructManifestEntry {
 export interface StructManifestGroup {
   groupSlug: string;
   groupName: string;
+  structType?: StructKind;
   sortOrder?: number;
 }
 

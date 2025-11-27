@@ -172,18 +172,21 @@ export const ensureStructManifestGroups = (manifest: ProjectManifest) => {
   }
   const known = new Map<string, StructManifestGroup>();
   manifest.structGroups.forEach((group) => {
-    known.set(structGroupKey(group), group);
+    known.set(`${group.structType ?? DEFAULT_STRUCT_KIND}:${structGroupKey(group)}`, group);
   });
-  const baseKey = structGroupKey({ groupSlug: DEFAULT_STRUCT_GROUP_SLUG });
-  if (!known.has(baseKey)) {
-    const entry: StructManifestGroup = {
-      groupSlug: DEFAULT_STRUCT_GROUP_SLUG,
-      groupName: DEFAULT_STRUCT_GROUP_NAME,
-      sortOrder: 0,
-    };
-    manifest.structGroups.push(entry);
-    known.set(baseKey, entry);
-  }
+  (['basic', 'runtime'] as StructKind[]).forEach((kind) => {
+    const baseKey = `${kind}:${structGroupKey({ groupSlug: DEFAULT_STRUCT_GROUP_SLUG })}`;
+    if (!known.has(baseKey)) {
+      const entry: StructManifestGroup = {
+        groupSlug: DEFAULT_STRUCT_GROUP_SLUG,
+        groupName: DEFAULT_STRUCT_GROUP_NAME,
+        structType: kind,
+        sortOrder: 0,
+      };
+      manifest.structGroups!.push(entry);
+      known.set(baseKey, entry);
+    }
+  });
   manifest.structGroups = manifest.structGroups.map((group, index) => {
     const originalSlug = (group.groupSlug ?? '').trim();
     const normalizedSlugInput = originalSlug
@@ -197,11 +200,12 @@ export const ensureStructManifestGroups = (manifest: ProjectManifest) => {
       sanitizedName === DEFAULT_STRUCT_GROUP_NAME;
     const normalizedSlug = shouldUseDefault
       ? DEFAULT_STRUCT_GROUP_SLUG
-      : (normalizedSlugInput || slugifyStructGroupName(sanitizedName));
+      : normalizedSlugInput || slugifyStructGroupName(sanitizedName);
     return {
       ...group,
       groupSlug: normalizedSlug,
       groupName: shouldUseDefault ? DEFAULT_STRUCT_GROUP_NAME : sanitizedName,
+      structType: group.structType ?? DEFAULT_STRUCT_KIND,
       sortOrder: group.sortOrder ?? index,
     };
   });
@@ -260,12 +264,13 @@ export const buildGraphPath = (location: ProjectGraphLocation, graphId: string) 
   return `${location.topFolder}/${location.categoryDirectory}/${groupSegment}/${safeId}${GRAPH_FILE_EXTENSION}`;
 };
 
-export const buildStructPath = (groupSlug: string, structId: string) => {
+export const buildStructPath = (structType: StructKind, groupSlug: string, structId: string) => {
   const safeId = sanitizePathSegment(structId, structId || 'struct');
   const safeGroup = groupSlug
     ? sanitizePathSegment(groupSlug, DEFAULT_STRUCT_GROUP_SLUG)
     : DEFAULT_STRUCT_GROUP_SLUG;
-  return `struct/${safeGroup || DEFAULT_STRUCT_GROUP_SLUG}/${safeId}${STRUCT_FILE_EXTENSION}`;
+  const typeSegment = structType === 'runtime' ? 'save' : 'basic';
+  return `struct/${typeSegment}/${safeGroup || DEFAULT_STRUCT_GROUP_SLUG}/${safeId}${STRUCT_FILE_EXTENSION}`;
 };
 
 export interface ProjectGroupDescriptor {
@@ -333,6 +338,7 @@ export interface ParsedGraphPathResult {
 export interface ParsedStructPathResult {
   groupSlug: string;
   groupName: string;
+  structType: StructKind;
   fileStem: string;
 }
 
@@ -387,13 +393,15 @@ export const parseStructPath = (path: string): ParsedStructPathResult | null => 
   if (!path) return null;
   const normalized = path.replace(/\\/g, '/').replace(/^\/+/, '').replace(/\/{2,}/g, '/');
   const segments = normalized.split('/').filter(Boolean);
-  if (segments.length !== 3) {
+  if (segments.length !== 4) {
     return null;
   }
-  const [rootSegment, groupSegment, fileName] = segments;
+  const [rootSegment, typeSegment, groupSegment, fileName] = segments;
   if (rootSegment !== 'struct') {
     return null;
   }
+  const structType: StructKind =
+    typeSegment === 'save' ? 'runtime' : 'basic';
   if (!fileName.toLowerCase().endsWith(STRUCT_FILE_EXTENSION)) {
     return null;
   }
@@ -414,7 +422,7 @@ export const parseStructPath = (path: string): ParsedStructPathResult | null => 
       ? DEFAULT_STRUCT_GROUP_SLUG
       : sanitizedSegment || DEFAULT_STRUCT_GROUP_SLUG;
   const groupName = deriveStructGroupNameFromSlug(groupSlug);
-  return { groupSlug, groupName, fileStem: stem };
+  return { groupSlug, groupName, structType, fileStem: stem };
 };
 
 export interface ResolveGraphLocationOptions {
@@ -478,6 +486,7 @@ export const resolveGraphLocation = (
 export interface ResolveStructLocationOptions {
   groupNameHint?: string;
   preferredGroupSlug?: string;
+  structType?: StructKind;
 }
 
 export interface ResolvedStructLocation {
@@ -496,10 +505,11 @@ export const resolveStructLocation = (
   if (path) {
     const parsed = parseStructPath(path);
     if (parsed) {
-      const normalizedPath = buildStructPath(parsed.groupSlug, structId);
+      const normalizedPath = buildStructPath(parsed.structType, parsed.groupSlug, structId);
       return {
         groupSlug: parsed.groupSlug,
         groupName: parsed.groupName,
+        structType: parsed.structType,
         normalizedPath,
         issues,
       };
@@ -514,10 +524,12 @@ export const resolveStructLocation = (
     groupName === DEFAULT_STRUCT_GROUP_NAME
       ? DEFAULT_STRUCT_GROUP_SLUG
       : slugifyStructGroupName(groupName);
-  const normalizedPath = buildStructPath(groupSlug, structId);
+  const structType: StructKind = options.structType ?? DEFAULT_STRUCT_KIND;
+  const normalizedPath = buildStructPath(structType, groupSlug, structId);
   return {
     groupSlug,
     groupName,
+    structType,
     normalizedPath,
     issues,
   };

@@ -289,7 +289,6 @@ const App = () => {
   const setProjectName = useProjectStore((state) => state.setProjectName);
   const setManifestEntry = useProjectStore((state) => state.setManifestEntry);
   const markGraphDirty = useProjectStore((state) => state.markGraphDirty);
-  const markStructDirty = useProjectStore((state) => state.markStructDirty);
   const createGroup = useProjectStore((state) => state.createGroup);
 
   const graphName = useGraphStore((state) => state.name);

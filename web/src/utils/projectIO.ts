@@ -41,7 +41,6 @@ import {
   parseStructPath,
   resolveStructLocation,
   upsertStructManifestGroup,
-  upsertStructManifestEntry,
   deriveStructGroupNameFromSlug,
   slugifyStructGroupName,
 } from './project';
@@ -148,11 +147,13 @@ const sanitizeStructManifest = (
   const resolved = resolveStructLocation(structId, entry.path, {
     groupNameHint: entry.groupName ?? entry.groupSlug,
     preferredGroupSlug: entry.groupSlug,
+    structType: entry.structType ?? structDoc?.struct_type ?? structDoc?.struct_ype ?? DEFAULT_STRUCT_KIND,
   });
   ensureStructManifestGroups(document.manifest);
   upsertStructManifestGroup(document.manifest, {
     groupSlug: resolved.groupSlug,
     groupName: resolved.groupName,
+    structType: resolved.structType,
   });
   const normalized: StructManifestEntry = {
     structId,
@@ -160,7 +161,7 @@ const sanitizeStructManifest = (
     path: resolved.normalizedPath,
     groupName: entry.groupName ?? resolved.groupName,
     groupSlug: entry.groupSlug ?? resolved.groupSlug,
-    structType: entry.structType ?? structDoc?.struct_type ?? structDoc?.struct_ype ?? DEFAULT_STRUCT_KIND,
+    structType: resolved.structType,
     createdAt: entry.createdAt,
     updatedAt: entry.updatedAt,
   };
@@ -365,20 +366,24 @@ export const loadProjectFromZip = async (
         let locationPath: string;
         let groupSlug = DEFAULT_STRUCT_GROUP_SLUG;
         let groupName = DEFAULT_STRUCT_GROUP_NAME;
+        let structType = DEFAULT_STRUCT_KIND;
         if (parsedPath) {
           structId = parsedPath.fileStem;
           groupSlug = parsedPath.groupSlug;
           groupName = parsedPath.groupName;
-          locationPath = buildStructPath(parsedPath.groupSlug, structId);
+          structType = parsedPath.structType;
+          locationPath = buildStructPath(structType, parsedPath.groupSlug, structId);
           upsertStructManifestGroup(document.manifest, {
             groupSlug: parsedPath.groupSlug,
             groupName: parsedPath.groupName,
+            structType,
           });
         } else {
           structId = createStructId();
-          const fallback = resolveStructLocation(structId, undefined);
+          const fallback = resolveStructLocation(structId, undefined, { structType });
           groupSlug = fallback.groupSlug;
           groupName = fallback.groupName;
+          structType = fallback.structType;
           locationPath = fallback.normalizedPath;
           warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallback.normalizedPath}`);
         }
@@ -388,6 +393,7 @@ export const loadProjectFromZip = async (
           locationPath,
           groupSlug,
           groupName,
+          structType,
           document: structDocument,
         });
       } else {
@@ -547,7 +553,7 @@ export const loadProjectFromZip = async (
     document.structs![structId] = cloneStructDocument(payload.document);
     const sanitized = sanitizeStructManifest(
       structId,
-      { path: payload.locationPath, groupName: payload.groupName, groupSlug: payload.groupSlug },
+      { path: payload.locationPath, groupName: payload.groupName, groupSlug: payload.groupSlug, structType: payload.structType },
       document,
     );
     document.manifest.structures?.push(sanitized);
@@ -585,7 +591,8 @@ export const saveProjectToZip = async (
       `${definition.topFolder}/${definition.directory}/${DEFAULT_GROUP_SLUG}/`,
     );
   }
-  outputZip.folder(`struct/${DEFAULT_STRUCT_GROUP_SLUG}/`);
+  outputZip.folder(`struct/basic/${DEFAULT_STRUCT_GROUP_SLUG}/`);
+  outputZip.folder(`struct/save/${DEFAULT_STRUCT_GROUP_SLUG}/`);
 
   const timestamp = options.timestamp ?? new Date().toISOString();
 
