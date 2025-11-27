@@ -1,4 +1,4 @@
-﻿import JSZip from 'jszip';
+import JSZip from 'jszip';
 import { create } from 'zustand';
 import { GRAPH_SCHEMA_VERSION } from '../types/node';
 import type { GraphDocument } from '../types/node';
@@ -9,15 +9,19 @@ import {
   type ProjectManifestGraph,
   type ProjectTopFolder,
 } from '../types/project';
+import type { StructDocument, StructManifestEntry } from '../types/struct';
 import {
   buildGraphPath,
   createProjectId,
   ensureManifestGroups,
+  ensureStructManifestGroups,
   removeManifestGroup,
   resolveGraphLocation,
   sanitizeName,
   slugifyGroupName,
   upsertManifestGroup,
+  resolveStructLocation,
+  upsertStructManifestGroup,
 } from '../utils/project';
 const EXPLORER_LABEL: Record<ProjectTopFolder, string> = {
   server: '服务器节点图资源管理器',
@@ -25,10 +29,12 @@ const EXPLORER_LABEL: Record<ProjectTopFolder, string> = {
 };
 export type ExplorerTabId = `explorer:${ProjectTopFolder}`;
 export type GraphTabId = `graph:${string}`;
-export type TabId = ExplorerTabId | GraphTabId;
+export type StructTabId = 'structs';
+export type TabId = ExplorerTabId | GraphTabId | StructTabId;
 const buildExplorerTabId = (topFolder: ProjectTopFolder): ExplorerTabId =>
   `explorer:${topFolder}`;
 const buildGraphTabId = (graphId: string): GraphTabId => `graph:${graphId}`;
+export const STRUCT_TAB_ID: StructTabId = 'structs';
 export interface ExplorerTab {
   id: ExplorerTabId;
   type: 'explorer';
@@ -42,12 +48,22 @@ export interface GraphTab {
   label: string;
   topFolder: ProjectTopFolder;
 }
-export type ProjectTab = ExplorerTab | GraphTab;
+export interface StructTab {
+  id: StructTabId;
+  type: 'struct';
+  label: string;
+}
+export type ProjectTab = ExplorerTab | GraphTab | StructTab;
 const createExplorerTab = (topFolder: ProjectTopFolder): ExplorerTab => ({
   id: buildExplorerTabId(topFolder),
   type: 'explorer',
   topFolder,
   label: EXPLORER_LABEL[topFolder],
+});
+const createStructTab = (): StructTab => ({
+  id: STRUCT_TAB_ID,
+  type: 'struct',
+  label: '结构体管理器',
 });
 const DEFAULT_EXPLORER_ORDER: ProjectTopFolder[] = ['server', 'client'];
 interface ProjectWorkspaceState {
@@ -57,7 +73,9 @@ interface ProjectWorkspaceState {
   openTabs: ProjectTab[];
   activeTabId: TabId | null;
   activeGraphId: string | null;
+  activeStructId: string | null;
   dirtyGraphIds: Record<string, true>;
+  dirtyStructIds: Record<string, true>;
   setDocument: (document: ProjectDocument) => void;
   updateDocument: (updater: (document: ProjectDocument) => ProjectDocument | void) => void;
   setProjectName: (name: string) => void;
@@ -65,11 +83,17 @@ interface ProjectWorkspaceState {
   removeManifestEntry: (graphId: string) => void;
   setGraphDocument: (graphId: string, document: GraphDocument) => void;
   removeGraphDocument: (graphId: string) => void;
+  setStructManifestEntry: (entry: StructManifestEntry) => void;
+  removeStructManifestEntry: (structId: string) => void;
+  setStructDocument: (structId: string, document: StructDocument) => void;
+  removeStructDocument: (structId: string) => void;
   openExplorer: (topFolder: ProjectTopFolder) => void;
+  openStructManager: () => void;
   openGraphTab: (graphId: string) => void;
   closeTab: (tabId: TabId) => void;
   activateTab: (tabId: TabId) => void;
   markGraphDirty: (graphId: string, dirty?: boolean) => void;
+  markStructDirty: (structId: string, dirty?: boolean) => void;
   createGroup: (
     topFolder: ProjectTopFolder,
     categoryKey: string,
@@ -83,11 +107,13 @@ interface ProjectWorkspaceState {
 const createInitialState = (): ProjectWorkspaceState => ({
   document: null,
   projectId: null,
-  projectName: '未命名项目',
+  projectName: 'δĿ',
   openTabs: DEFAULT_EXPLORER_ORDER.map((folder) => createExplorerTab(folder)),
   activeTabId: buildExplorerTabId('server'),
   activeGraphId: null,
+  activeStructId: null,
   dirtyGraphIds: {},
+  dirtyStructIds: {},
   setDocument: () => undefined,
   updateDocument: () => undefined,
   setProjectName: () => undefined,
@@ -95,11 +121,17 @@ const createInitialState = (): ProjectWorkspaceState => ({
   removeManifestEntry: () => undefined,
   setGraphDocument: () => undefined,
   removeGraphDocument: () => undefined,
+  setStructManifestEntry: () => undefined,
+  removeStructManifestEntry: () => undefined,
+  setStructDocument: () => undefined,
+  removeStructDocument: () => undefined,
   openExplorer: () => undefined,
+  openStructManager: () => undefined,
   openGraphTab: () => undefined,
   closeTab: () => undefined,
   activateTab: () => undefined,
   markGraphDirty: () => undefined,
+  markStructDirty: () => undefined,
   createGroup: () => null,
   duplicateGroup: () => null,
   deleteGroup: () => undefined,
@@ -115,9 +147,10 @@ const ensureExplorerTabs = (tabs: ProjectTab[]): ProjectTab[] => {
       byId.set(id, createExplorerTab(folder));
     }
   });
-  return DEFAULT_EXPLORER_ORDER.map((folder) => byId.get(buildExplorerTabId(folder))!).concat(
-    tabs.filter((tab) => tab.type === 'graph'),
-  );
+  const explorerTabs = DEFAULT_EXPLORER_ORDER.map((folder) => byId.get(buildExplorerTabId(folder))!);
+  const structTabs = tabs.filter((tab): tab is StructTab => tab.type === 'struct');
+  const graphTabs = tabs.filter((tab) => tab.type === 'graph');
+  return explorerTabs.concat(structTabs, graphTabs);
 };
 const refreshGraphTabLabels = (
   tabs: ProjectTab[],
@@ -143,7 +176,7 @@ const refreshGraphTabLabels = (
     } satisfies GraphTab;
   });
 };
-const DEFAULT_NEW_GROUP_NAME = '新建文件夹';
+const DEFAULT_NEW_GROUP_NAME = '½ļ';
 const getCategoryDefinition = (topFolder: ProjectTopFolder, categoryKey: string) => {
   const definition = PROJECT_CATEGORY_BY_KEY.get(categoryKey);
   if (!definition || definition.topFolder !== topFolder) {
@@ -188,6 +221,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
   ...createInitialState(),
   setDocument: (document) => {
     ensureManifestGroups(document.manifest);
+    ensureStructManifestGroups(document.manifest);
     const projectId = document.manifest.project.id;
     const projectName = document.manifest.project.name;
     set(() => ({
@@ -197,7 +231,9 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       openTabs: DEFAULT_EXPLORER_ORDER.map((folder) => createExplorerTab(folder)),
       activeTabId: buildExplorerTabId('server'),
       activeGraphId: null,
+      activeStructId: null,
       dirtyGraphIds: {},
+      dirtyStructIds: {},
     }));
   },
   updateDocument: (updater) => {
@@ -209,12 +245,16 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         project: { ...current.manifest.project },
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...current.graphs },
+      structs: current.structs ? { ...current.structs } : {},
     };
     const result = updater(draft);
     const next = (result as ProjectDocument | undefined) ?? draft;
     ensureManifestGroups(next.manifest);
+    ensureStructManifestGroups(next.manifest);
     const projectId = next.manifest.project.id;
     const projectName = next.manifest.project.name;
     set((state) => ({
@@ -227,17 +267,21 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
   setProjectName: (name) => {
     const document = get().document;
     if (!document) return;
-    const nextName = sanitizeName(name, '未命名项目');
+    const nextName = sanitizeName(name, 'δĿ');
     const nextDocument: ProjectDocument = {
       manifest: {
         ...document.manifest,
         project: { ...document.manifest.project, name: nextName },
         graphs: document.manifest.graphs.map((entry) => ({ ...entry })),
         groups: document.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (document.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...document.graphs },
+      structs: document.structs ? { ...document.structs } : {},
     };
     ensureManifestGroups(nextDocument.manifest);
+    ensureStructManifestGroups(nextDocument.manifest);
     set((state) => ({
       document: nextDocument,
       projectId: nextDocument.manifest.project.id,
@@ -260,8 +304,11 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         project: { ...document.manifest.project },
         graphs,
         groups: document.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (document.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...document.graphs },
+      structs: document.structs ? { ...document.structs } : {},
     };
     const { location } = resolveGraphLocation(entry.graphId, entry.path, {
       groupNameHint: entry.groupName,
@@ -291,11 +338,15 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
           .filter((entry) => entry.graphId !== graphId)
           .map((entry) => ({ ...entry })),
         groups: document.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (document.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...document.graphs },
+      structs: document.structs ? { ...document.structs } : {},
     };
     delete nextDocument.graphs[graphId];
     ensureManifestGroups(nextDocument.manifest);
+    ensureStructManifestGroups(nextDocument.manifest);
     set((state) => {
       const nextTabs = ensureExplorerTabs(
         state.openTabs.filter((tab) => tab.id !== buildGraphTabId(graphId)),
@@ -338,10 +389,14 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         ...current.manifest,
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: nextGraphs,
+      structs: current.structs ? { ...current.structs } : {},
     };
     ensureManifestGroups(nextDocument.manifest);
+    ensureStructManifestGroups(nextDocument.manifest);
     set((state) => ({
       document: nextDocument,
       openTabs: refreshGraphTabLabels(ensureExplorerTabs(state.openTabs), nextDocument),
@@ -357,10 +412,14 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         ...current.manifest,
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: nextGraphs,
+      structs: current.structs ? { ...current.structs } : {},
     };
     ensureManifestGroups(nextDocument.manifest);
+    ensureStructManifestGroups(nextDocument.manifest);
     set((state) => ({
       document: nextDocument,
       openTabs: refreshGraphTabLabels(
@@ -369,6 +428,128 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       ),
     }));
   },
+  setStructManifestEntry: (entry) => {
+    const document = get().document;
+    if (!document) return;
+    const structures =
+      document.manifest.structures?.map((item) =>
+        item.structId === entry.structId ? entry : { ...item },
+      ) ?? [entry];
+    if (!structures.some((item) => item.structId === entry.structId)) {
+      structures.push(entry);
+    }
+    const nextDocument: ProjectDocument = {
+      manifest: {
+        ...document.manifest,
+        project: { ...document.manifest.project },
+        graphs: document.manifest.graphs.map((item) => ({ ...item })),
+        groups: document.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures,
+      },
+      graphs: { ...document.graphs },
+      structs: document.structs ? { ...document.structs } : {},
+    };
+    const resolved = resolveStructLocation(entry.structId, entry.path, {
+      groupNameHint: entry.groupName,
+      preferredGroupSlug: entry.groupSlug,
+    });
+    upsertStructManifestGroup(nextDocument.manifest, {
+      groupSlug: resolved.groupSlug,
+      groupName: resolved.groupName,
+    });
+    ensureStructManifestGroups(nextDocument.manifest);
+    set((state) => ({
+      document: nextDocument,
+      projectId: nextDocument.manifest.project.id,
+      projectName: nextDocument.manifest.project.name,
+      openTabs: refreshGraphTabLabels(ensureExplorerTabs(state.openTabs), nextDocument),
+    }));
+  },
+  removeStructManifestEntry: (structId) => {
+    const document = get().document;
+    if (!document) return;
+    const nextDocument: ProjectDocument = {
+      manifest: {
+        ...document.manifest,
+        project: { ...document.manifest.project },
+        graphs: document.manifest.graphs.map((entry) => ({ ...entry })),
+        groups: document.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (document.manifest.structures ?? []).filter(
+          (item) => item.structId !== structId,
+        ),
+      },
+      graphs: { ...document.graphs },
+      structs: document.structs ? { ...document.structs } : {},
+    };
+    delete nextDocument.structs?.[structId];
+    ensureStructManifestGroups(nextDocument.manifest);
+    set((state) => {
+      const nextDirty = { ...state.dirtyStructIds };
+      delete nextDirty[structId];
+      return {
+        document: nextDocument,
+        projectId: nextDocument.manifest.project.id,
+        projectName: nextDocument.manifest.project.name,
+        openTabs: refreshGraphTabLabels(ensureExplorerTabs(state.openTabs), nextDocument),
+        dirtyStructIds: nextDirty,
+        activeStructId:
+          state.activeStructId === structId ? null : state.activeStructId,
+      };
+    });
+  },
+  setStructDocument: (structId, structDocument) => {
+    const current = get().document;
+    if (!current) return;
+    const nextStructs = { ...(current.structs ?? {}), [structId]: structDocument };
+    const nextDocument: ProjectDocument = {
+      manifest: {
+        ...current.manifest,
+        graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
+        groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
+      },
+      graphs: { ...current.graphs },
+      structs: nextStructs,
+    };
+    ensureStructManifestGroups(nextDocument.manifest);
+    set((state) => ({
+      document: nextDocument,
+      openTabs: refreshGraphTabLabels(ensureExplorerTabs(state.openTabs), nextDocument),
+    }));
+  },
+  removeStructDocument: (structId) => {
+    const current = get().document;
+    if (!current || !current.structs) return;
+    const nextStructs = { ...current.structs };
+    delete nextStructs[structId];
+    const nextDocument: ProjectDocument = {
+      manifest: {
+        ...current.manifest,
+        graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
+        groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).filter(
+          (entry) => entry.structId !== structId,
+        ),
+      },
+      graphs: { ...current.graphs },
+      structs: nextStructs,
+    };
+    ensureStructManifestGroups(nextDocument.manifest);
+    set((state) => {
+      const nextDirty = { ...state.dirtyStructIds };
+      delete nextDirty[structId];
+      return {
+        document: nextDocument,
+        openTabs: refreshGraphTabLabels(ensureExplorerTabs(state.openTabs), nextDocument),
+        dirtyStructIds: nextDirty,
+        activeStructId: state.activeStructId === structId ? null : state.activeStructId,
+      };
+    });
+  },
   openExplorer: (topFolder) => {
     const id = buildExplorerTabId(topFolder);
     set((state) => ({
@@ -376,6 +557,20 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       activeTabId: id,
       activeGraphId: null,
     }));
+  },
+  openStructManager: () => {
+    set((state) => {
+      let tabs = ensureExplorerTabs(state.openTabs);
+      const hasStruct = tabs.some((tab) => tab.id === STRUCT_TAB_ID);
+      if (!hasStruct) {
+        tabs = ensureExplorerTabs([...tabs, createStructTab()]);
+      }
+      return {
+        openTabs: tabs,
+        activeTabId: STRUCT_TAB_ID,
+        activeGraphId: null,
+      };
+    });
   },
   openGraphTab: (graphId) => {
     const document = get().document;
@@ -415,36 +610,60 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
     }
     set((state) => {
       const target = state.openTabs.find((tab) => tab.id === tabId);
-      if (!target || target.type !== 'graph') {
+      if (!target) {
         return state;
       }
-      const nextTabs = ensureExplorerTabs(
-        state.openTabs.filter((tab) => tab.id !== tabId),
-      );
-      const nextDirty = { ...state.dirtyGraphIds };
-      delete nextDirty[target.graphId];
-      let nextActiveTabId = state.activeTabId;
-      let nextActiveGraphId = state.activeGraphId;
-      if (state.activeTabId === tabId) {
-        const fallback =
-          nextTabs.find((tab) => tab.type === 'graph') ??
-          nextTabs.find((tab) => tab.id === buildExplorerTabId('server')) ??
-          nextTabs[0] ??
-          null;
-        if (fallback) {
-          nextActiveTabId = fallback.id;
-          nextActiveGraphId = fallback.type === 'graph' ? fallback.graphId : null;
-        } else {
-          nextActiveTabId = null;
-          nextActiveGraphId = null;
+      if (target.type === 'graph') {
+        const nextTabs = ensureExplorerTabs(
+          state.openTabs.filter((tab) => tab.id !== tabId),
+        );
+        const nextDirty = { ...state.dirtyGraphIds };
+        delete nextDirty[target.graphId];
+        let nextActiveTabId = state.activeTabId;
+        let nextActiveGraphId = state.activeGraphId;
+        if (state.activeTabId === tabId) {
+          const fallback =
+            nextTabs.find((tab) => tab.type === 'graph') ??
+            nextTabs.find((tab) => tab.id === buildExplorerTabId('server')) ??
+            nextTabs[0] ?? 
+            null;
+          if (fallback) {
+            nextActiveTabId = fallback.id;
+            nextActiveGraphId = fallback.type === 'graph' ? fallback.graphId : null;
+          } else {
+            nextActiveTabId = null;
+            nextActiveGraphId = null;
+          }
         }
+        return {
+          openTabs: nextTabs,
+          activeTabId: nextActiveTabId,
+          activeGraphId: nextActiveGraphId,
+          dirtyGraphIds: nextDirty,
+        } as ProjectWorkspaceState;
       }
-      return {
-        openTabs: nextTabs,
-        activeTabId: nextActiveTabId,
-        activeGraphId: nextActiveGraphId,
-        dirtyGraphIds: nextDirty,
-      } as ProjectWorkspaceState;
+      if (target.type === 'struct') {
+        const nextTabs = ensureExplorerTabs(
+          state.openTabs.filter((tab) => tab.id !== tabId),
+        );
+        let nextActiveTabId = state.activeTabId;
+        let nextActiveGraphId = state.activeGraphId;
+        if (state.activeTabId === tabId) {
+          const fallback =
+            nextTabs.find((tab) => tab.type === 'graph') ??
+            nextTabs.find((tab) => tab.id === buildExplorerTabId('server')) ??
+            nextTabs[0] ?? null;
+          nextActiveTabId = fallback ? fallback.id : null;
+          nextActiveGraphId = fallback && fallback.type === 'graph' ? fallback.graphId : null;
+        }
+        return {
+          openTabs: nextTabs,
+          activeTabId: nextActiveTabId,
+          activeGraphId: nextActiveGraphId,
+          activeStructId: state.activeStructId === target.id ? null : state.activeStructId,
+        } as ProjectWorkspaceState;
+      }
+      return state;
     });
   },
   activateTab: (tabId) => {
@@ -454,6 +673,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       return {
         activeTabId: tabId,
         activeGraphId: tab.type === 'graph' ? tab.graphId : null,
+        activeStructId: state.activeStructId,
       };
     });
   },
@@ -470,6 +690,17 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       };
     });
   },
+  markStructDirty: (structId, dirty = true) => {
+    set((state) => {
+      const next = { ...state.dirtyStructIds };
+      if (dirty) {
+        next[structId] = true;
+      } else {
+        delete next[structId];
+      }
+      return { dirtyStructIds: next };
+    });
+  },
   createGroup: (topFolder, categoryKey, requestedName) => {
     const current = get().document;
     if (!current) return null;
@@ -481,8 +712,11 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         project: { ...current.manifest.project },
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...current.graphs },
+      structs: current.structs ? { ...current.structs } : {},
     };
     const { groupName, groupSlug } = generateUniqueGroupInfo(
       nextDocument.manifest,
@@ -523,14 +757,17 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         project: { ...current.manifest.project },
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...current.graphs },
+      structs: current.structs ? { ...current.structs } : {},
     };
     const { groupName, groupSlug: newGroupSlug } = generateUniqueGroupInfo(
       nextDocument.manifest,
       topFolder,
       categoryKey,
-      `${sourceGroup.groupName} 副本`,
+      `${sourceGroup.groupName} `,
     );
     let createdSlug: string | null = newGroupSlug;
     upsertManifestGroup(nextDocument.manifest, {
@@ -614,8 +851,11 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         project: { ...current.manifest.project },
         graphs: current.manifest.graphs.map((entry) => ({ ...entry })),
         groups: current.manifest.groups.map((group) => ({ ...group })),
+        structGroups: (current.manifest.structGroups ?? []).map((group) => ({ ...group })),
+        structures: (current.manifest.structures ?? []).map((entry) => ({ ...entry })),
       },
       graphs: { ...current.graphs },
+      structs: current.structs ? { ...current.structs } : {},
     };
     const removedGraphIds: string[] = [];
     nextDocument.manifest.graphs = nextDocument.manifest.graphs.filter((entry) => {
@@ -637,6 +877,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
     });
     removeManifestGroup(nextDocument.manifest, topFolder, categoryKey, groupSlug);
     ensureManifestGroups(nextDocument.manifest);
+    ensureStructManifestGroups(nextDocument.manifest);
     set((state) => {
       const nextDirty = { ...state.dirtyGraphIds };
       removedGraphIds.forEach((id) => delete nextDirty[id]);
@@ -686,7 +927,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         item.groupSlug === groupSlug,
     );
     if (!group) {
-      window.alert('未找到指定的文件夹。');
+      window.alert('δҵָļС');
       return;
     }
     const entries = projectDocument.manifest.graphs.filter((entry) => {
@@ -700,7 +941,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       );
     });
     if (!entries.length) {
-      window.alert('该文件夹为空，暂无可导出的节点图。');
+      window.alert('ļΪգ޿ɵĽڵͼ');
       return;
     }
     const zip = new JSZip();

@@ -20,12 +20,19 @@
 - `web/public/tutorial/` - 本地存储的官方综合指南HTML文件及目录JSON。
 - `web/src/external/` - 一些已授权的第三方资源，目前含有特效预览（原网址：[https://ys.keqizu.com/](https://ys.keqizu.com/)）
 
+## 仓库分支相关
+| 分支名 | 说明 | 版本号示例 |
+| :---: | :--- | :---: |
+| [main](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/main) | 主分支，稳定版。约等于原神REL版本。 | v1.0.0 |
+| [beta](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/beta) | 测试分支，会尽量保证 `npm run build` 可正常运行。不会有存档更新适配。重要项目请尽量使用正式版编辑器。 | v1.0.50 |
+| [canary](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/canary) | 小更新分支，任何小更新将推送到此分支。`npm run build` 可能会报错，没有公测地址。 | v1.0.49.C1 |
+
 ## 快速上手
 
 ### 使用已搭建版本
 
 正式版 https://miliastra.columbina.dev/ 。  
-测试版（不定时启用。不稳定，请定时备份文件！） https://beta.miliastra.columbina.dev/ 。
+测试版 https://beta.miliastra.columbina.dev/ 。
 
 ### 本地搭建
 
