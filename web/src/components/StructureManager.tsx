@@ -1,0 +1,1349 @@
+import classNames from 'classnames';
+import JSZip from 'jszip';
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type DragEvent,
+} from 'react';
+import { useProjectStore } from '../state/projectStore';
+import type { ProjectDocument } from '../types/project';
+import {
+  DEFAULT_STRUCT_GROUP_NAME,
+  DEFAULT_STRUCT_GROUP_SLUG,
+  STRUCT_KIND_LABELS,
+  STRUCT_PARAM_OPTIONS,
+  type StructDocument,
+  type StructEntry,
+  type StructKind,
+  type StructParamType,
+  type StructValue,
+  type StructDictValuePayload,
+} from '../types/struct';
+import {
+  buildStructPath,
+  createStructId,
+  deriveStructGroupNameFromSlug,
+  ensureStructManifestGroups,
+  slugifyStructGroupName,
+} from '../utils/project';
+import './StructureManager.css';
+
+const ICON_SAVE = new URL('../assets/icons/save.png', import.meta.url).href;
+const ICON_MORE = new URL('../assets/icons/more.png', import.meta.url).href;
+const ICON_SEARCH = new URL('../assets/icons/search.svg', import.meta.url).href;
+
+interface StructureManagerProps {
+  projectDocument: ProjectDocument | null;
+  dirtyStructIds: Record<string, true>;
+  onRequestSave: () => void;
+}
+
+type ContextMenuState =
+  | null
+  | { type: 'group'; groupSlug: string; x: number; y: number }
+  | { type: 'struct'; structId: string; x: number; y: number }
+  | { type: 'empty'; x: number; y: number };
+
+type FieldClipboard = StructEntry | null;
+
+const HISTORY_LIMIT = 80;
+
+const cloneStruct = (doc: StructDocument): StructDocument =>
+  JSON.parse(JSON.stringify(doc));
+
+const defaultValueForType = (paramType: StructParamType): StructValue => {
+  if (paramType.endsWith('List') && paramType !== 'DictList' && paramType !== 'StructList') {
+    return { param_type: paramType, value: [] };
+  }
+  switch (paramType) {
+    case 'String':
+    case 'Int32':
+    case 'ConfigReference':
+    case 'EntityReference':
+    case 'Guid':
+    case 'Entity':
+    case 'Army':
+      return { param_type: paramType, value: '0' };
+    case 'Float':
+      return { param_type: paramType, value: '0.00' };
+    case 'Bool':
+      return { param_type: paramType, value: 'False' };
+    case 'Vector3':
+      return { param_type: paramType, value: '0,0,0' };
+    case 'Struct':
+      return { param_type: paramType, value: { structId: null } };
+    case 'StructList':
+      return { param_type: paramType, value: [] };
+    case 'Dict':
+      return {
+        param_type: paramType,
+        value: {
+          type: 'Dict',
+          key_type: 'String',
+          value_type: 'String',
+          value: [],
+        } satisfies StructDictValuePayload,
+      };
+    case 'DictList':
+      return {
+        param_type: paramType,
+        value: [],
+      };
+    default:
+      return { param_type: paramType, value: '' };
+  }
+};
+
+const normalizeStructDoc = (
+  doc: StructDocument,
+  structId: string,
+  kind: StructKind,
+): StructDocument => {
+  const cloned = cloneStruct(doc);
+  cloned.struct_type = cloned.struct_type ?? cloned.struct_ype ?? kind;
+  cloned.struct_ype = cloned.struct_type;
+  cloned.config_id = cloned.config_id ?? structId;
+  cloned.value = Array.isArray(cloned.value)
+    ? cloned.value.map((entry) => ({
+        key: entry.key ?? '',
+        param_type: entry.param_type,
+        value: entry.value ?? defaultValueForType(entry.param_type),
+      }))
+    : [];
+  return cloned;
+};
+
+const containsSelfReference = (doc: StructDocument, structId: string): boolean => {
+  const scanValue = (value: StructValue): boolean => {
+    if (value.param_type === 'Struct') {
+      const v = (value as { value: { structId?: string | null } }).value;
+      return v?.structId === structId;
+    }
+    if (value.param_type === 'StructList' && Array.isArray(value.value)) {
+      return (value.value as (string | null)[]).some((item) => item === structId);
+    }
+    if (value.param_type === 'Dict') {
+      const payload = value.value as StructDictValuePayload;
+      return Array.isArray(payload.value)
+        ? payload.value.some((item) => scanValue(item.value as StructValue))
+        : false;
+    }
+    if (typeof value.value === 'object' && value.value && Array.isArray((value as { value: unknown }).value)) {
+      return (value.value as StructValue[]).some((item) => scanValue(item));
+    }
+    return false;
+  };
+  return doc.value.some((entry) => scanValue(entry.value));
+};
+
+const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: StructureManagerProps) => {
+  const updateDocument = useProjectStore((state) => state.updateDocument);
+  const setStructDocument = useProjectStore((state) => state.setStructDocument);
+  const setStructManifestEntry = useProjectStore((state) => state.setStructManifestEntry);
+  const removeStructManifestEntry = useProjectStore((state) => state.removeStructManifestEntry);
+  const markStructDirty = useProjectStore((state) => state.markStructDirty);
+
+  const [activeKind, setActiveKind] = useState<StructKind>('basic');
+  const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_STRUCT_GROUP_SLUG);
+  const [selectedStructId, setSelectedStructId] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [draft, setDraft] = useState<StructDocument | null>(null);
+  const [history, setHistory] = useState<StructDocument[]>([]);
+  const [future, setFuture] = useState<StructDocument[]>([]);
+  const [clipboard, setClipboard] = useState<StructDocument | null>(null);
+  const [fieldClipboard, setFieldClipboard] = useState<FieldClipboard>(null);
+  const [contextMenu, setContextMenu] = useState<ContextMenuState>(null);
+  const [moveTargetStruct, setMoveTargetStruct] = useState<string | null>(null);
+  const [selfRefError, setSelfRefError] = useState(false);
+  const dropInfoRef = useRef<{ type: 'group' | 'struct'; id: string } | null>(null);
+  const importInputRef = useRef<HTMLInputElement | null>(null);
+  const importStructInputRef = useRef<HTMLInputElement | null>(null);
+
+  const structGroups = useMemo(() => {
+    if (!projectDocument) return [];
+    ensureStructManifestGroups(projectDocument.manifest);
+    const groups = projectDocument.manifest.structGroups ?? [];
+    return [...groups].sort((a, b) => {
+      const orderA = a.sortOrder ?? 0;
+      const orderB = b.sortOrder ?? 0;
+      if (orderA !== orderB) return orderA - orderB;
+      return a.groupName.localeCompare(b.groupName, 'zh-CN');
+    });
+  }, [projectDocument]);
+
+  const groupMap = useMemo(
+    () => new Map(structGroups.map((group) => [group.groupSlug, group])),
+    [structGroups],
+  );
+
+  useEffect(() => {
+    if (!structGroups.length) return;
+    const exists = structGroups.some((group) => group.groupSlug === selectedGroup);
+    if (!exists) {
+      setSelectedGroup(structGroups[0].groupSlug ?? DEFAULT_STRUCT_GROUP_SLUG);
+    }
+  }, [selectedGroup, structGroups]);
+
+  const structEntries = useMemo(() => {
+    if (!projectDocument) return [];
+    const entries = projectDocument.manifest.structures ?? [];
+    return entries.filter(
+      (entry) => (entry.structType ?? 'basic') === activeKind,
+    );
+  }, [activeKind, projectDocument]);
+
+  const structsByGroup = useMemo(() => {
+    const map = new Map<string, typeof structEntries>();
+    structEntries.forEach((entry) => {
+      const slug = entry.groupSlug || DEFAULT_STRUCT_GROUP_SLUG;
+      const list = map.get(slug) ?? [];
+      list.push(entry);
+      map.set(slug, list);
+    });
+    for (const list of map.values()) {
+      list.sort((a, b) => a.name.localeCompare(b.name, 'zh-CN'));
+    }
+    return map;
+  }, [structEntries]);
+
+  const visibleStructs = useMemo(() => {
+    const list = structsByGroup.get(selectedGroup) ?? [];
+    const term = searchTerm.trim().toLowerCase();
+    if (!term) return list;
+    return list.filter((entry) => entry.name.toLowerCase().includes(term));
+  }, [searchTerm, selectedGroup, structsByGroup]);
+
+  useEffect(() => {
+    if (visibleStructs.length === 0) {
+      setSelectedStructId(null);
+      setDraft(null);
+      setHistory([]);
+      setFuture([]);
+      return;
+    }
+    const exists = visibleStructs.some((entry) => entry.structId === selectedStructId);
+    if (!exists) {
+      setSelectedStructId(visibleStructs[0].structId);
+    }
+  }, [selectedStructId, visibleStructs]);
+
+  const selectedStructEntry = useMemo(
+    () => structEntries.find((entry) => entry.structId === selectedStructId) ?? null,
+    [selectedStructId, structEntries],
+  );
+
+  const selectedStruct = useMemo(() => {
+    if (!projectDocument || !selectedStructId) return null;
+    const base = projectDocument.structs?.[selectedStructId];
+    if (!base) return null;
+    return normalizeStructDoc(base, selectedStructId, activeKind);
+  }, [activeKind, projectDocument, selectedStructId]);
+
+  useEffect(() => {
+    if (!selectedStruct) {
+      setDraft(null);
+      setHistory([]);
+      setFuture([]);
+      return;
+    }
+    setDraft(selectedStruct);
+    setHistory([]);
+    setFuture([]);
+  }, [selectedStruct]);
+
+  const pushHistory = useCallback(
+    (snapshot: StructDocument) => {
+      setHistory((prev) => {
+        const next = [...prev, snapshot];
+        if (next.length > HISTORY_LIMIT) {
+          next.shift();
+        }
+        return next;
+      });
+      setFuture([]);
+    },
+    [],
+  );
+
+  const applyDraftUpdate = useCallback(
+    (updater: (doc: StructDocument) => StructDocument) => {
+      setDraft((current) => {
+        if (!current) return current;
+        const next = updater(cloneStruct(current));
+        pushHistory(current);
+        return next;
+      });
+    },
+    [pushHistory],
+  );
+
+  const handleUndo = useCallback(() => {
+    setHistory((prev) => {
+      if (!prev.length || !draft) return prev;
+      const previous = prev[prev.length - 1];
+      setFuture((next) => [draft, ...next].slice(0, HISTORY_LIMIT));
+      setDraft(previous);
+      return prev.slice(0, -1);
+    });
+  }, [draft]);
+
+  const handleRedo = useCallback(() => {
+    setFuture((prev) => {
+      if (!prev.length || !draft) return prev;
+      const [next, ...rest] = prev;
+      setHistory((hist) => [...hist, draft].slice(-HISTORY_LIMIT));
+      setDraft(next);
+      return rest;
+    });
+  }, [draft]);
+
+  useEffect(() => {
+    const handleKey = (event: KeyboardEvent) => {
+      if (event.ctrlKey || event.metaKey) {
+        if (event.key === 'z' || event.key === 'Z') {
+          event.preventDefault();
+          if (event.shiftKey) {
+            handleRedo();
+          } else {
+            handleUndo();
+          }
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKey);
+    return () => window.removeEventListener('keydown', handleKey);
+  }, [handleRedo, handleUndo]);
+
+  const lastPersistedRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (!draft || !selectedStructId) return;
+    const fingerprint = JSON.stringify({
+      id: selectedStructId,
+      group: selectedGroup,
+      kind: activeKind,
+      draft,
+    });
+    if (lastPersistedRef.current === fingerprint) {
+      return;
+    }
+    lastPersistedRef.current = fingerprint;
+    const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+    const entry = selectedStructEntry ?? {
+      structId: selectedStructId,
+      name: draft.name,
+      groupSlug: selectedGroup,
+      groupName,
+      path: buildStructPath(selectedGroup, selectedStructId),
+      structType: draft.struct_type ?? draft.struct_ype ?? activeKind,
+    };
+    const normalizedEntry = {
+      ...entry,
+      name: draft.name,
+      groupSlug: selectedGroup,
+      groupName,
+      path: buildStructPath(selectedGroup, selectedStructId),
+      structType: draft.struct_type ?? draft.struct_ype ?? activeKind,
+      updatedAt: new Date().toISOString(),
+    };
+    setStructDocument(selectedStructId, normalizeStructDoc(draft, selectedStructId, activeKind));
+    setStructManifestEntry(normalizedEntry);
+    markStructDirty(selectedStructId, true);
+    setSelfRefError(containsSelfReference(draft, selectedStructId));
+  }, [
+    activeKind,
+    draft,
+    groupMap,
+    markStructDirty,
+    selectedGroup,
+    selectedStructEntry,
+    selectedStructId,
+    setStructDocument,
+    setStructManifestEntry,
+  ]);
+
+  const handleCreateStruct = useCallback(() => {
+    const structId = createStructId();
+    const structDoc: StructDocument = {
+      type: 'Struct',
+      struct_type: activeKind,
+      struct_ype: activeKind,
+      name: '结构体',
+      config_id: structId,
+      value: [],
+    };
+    const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+    const entry = {
+      structId,
+      name: structDoc.name,
+      groupSlug: selectedGroup,
+      groupName,
+      path: buildStructPath(selectedGroup, structId),
+      structType: activeKind,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    setStructDocument(structId, structDoc);
+    setStructManifestEntry(entry);
+    markStructDirty(structId, true);
+    setSelectedStructId(structId);
+  }, [
+    activeKind,
+    groupMap,
+    markStructDirty,
+    selectedGroup,
+    setStructDocument,
+    setStructManifestEntry,
+  ]);
+
+  const handleDeleteStruct = useCallback(
+    (structId: string) => {
+      if (!projectDocument) return;
+      removeStructManifestEntry(structId);
+      if (projectDocument.structs?.[structId]) {
+        updateDocument((draftDoc) => {
+          if (!draftDoc.structs) return;
+          delete draftDoc.structs[structId];
+        });
+      }
+      if (selectedStructId === structId) {
+        setSelectedStructId(null);
+        setDraft(null);
+      }
+    },
+    [projectDocument, removeStructManifestEntry, selectedStructId, updateDocument],
+  );
+
+  const handleRenameStruct = useCallback(
+    (name: string) => {
+      const trimmed = name.trim();
+      if (!trimmed || !draft) return;
+      applyDraftUpdate((doc) => ({ ...doc, name: trimmed }));
+    },
+    [applyDraftUpdate, draft],
+  );
+
+  const handleCreateGroup = useCallback(() => {
+    const nextName = window.prompt('输入页签名称', '自定义页签');
+    if (!nextName) return;
+    updateDocument((draftDoc) => {
+      ensureStructManifestGroups(draftDoc.manifest);
+      const slug = slugifyStructGroupName(nextName);
+      if (!draftDoc.manifest.structGroups?.some((group) => group.groupSlug === slug)) {
+        draftDoc.manifest.structGroups?.push({
+          groupSlug: slug,
+          groupName: nextName,
+          sortOrder: (draftDoc.manifest.structGroups?.length ?? 0),
+        });
+      }
+    });
+  }, [updateDocument]);
+
+  const handleRenameGroup = useCallback(
+    (groupSlug: string) => {
+      const nextName = window.prompt('输入新的页签名称', groupMap.get(groupSlug)?.groupName ?? '');
+      if (!nextName) return;
+      updateDocument((draftDoc) => {
+        ensureStructManifestGroups(draftDoc.manifest);
+        const target = draftDoc.manifest.structGroups?.find((group) => group.groupSlug === groupSlug);
+        if (target) {
+          target.groupName = nextName;
+        }
+        const groupName = nextName;
+        draftDoc.manifest.structures = (draftDoc.manifest.structures ?? []).map((entry) =>
+          entry.groupSlug === groupSlug ? { ...entry, groupName } : entry,
+        );
+      });
+    },
+    [groupMap, updateDocument],
+  );
+
+  const handleDeleteGroup = useCallback(
+    (groupSlug: string) => {
+      if (groupSlug === DEFAULT_STRUCT_GROUP_SLUG) return;
+      updateDocument((draftDoc) => {
+        ensureStructManifestGroups(draftDoc.manifest);
+        draftDoc.manifest.structGroups =
+          (draftDoc.manifest.structGroups ?? []).filter((group) => group.groupSlug !== groupSlug);
+        draftDoc.manifest.structures = (draftDoc.manifest.structures ?? []).map((entry) =>
+          entry.groupSlug === groupSlug
+            ? {
+                ...entry,
+                groupSlug: DEFAULT_STRUCT_GROUP_SLUG,
+                groupName: DEFAULT_STRUCT_GROUP_NAME,
+                path: buildStructPath(DEFAULT_STRUCT_GROUP_SLUG, entry.structId),
+              }
+            : entry,
+        );
+      });
+      if (selectedGroup === groupSlug) {
+        setSelectedGroup(DEFAULT_STRUCT_GROUP_SLUG);
+      }
+    },
+    [selectedGroup, updateDocument],
+  );
+
+  const handleExportGroup = useCallback(
+    async (groupSlug: string) => {
+      if (!projectDocument) return;
+      const groupStructs = (projectDocument.manifest.structures ?? []).filter(
+        (entry) => entry.groupSlug === groupSlug && entry.structType === activeKind,
+      );
+      if (!groupStructs.length) {
+        window.alert('该页签下没有结构体');
+        return;
+      }
+      const zip = new JSZip();
+      for (const entry of groupStructs) {
+        const structDoc = projectDocument.structs?.[entry.structId];
+        if (!structDoc) continue;
+        zip.file(entry.path, JSON.stringify(structDoc, null, 2));
+      }
+      const blob = await zip.generateAsync({ type: 'blob' });
+      const link = window.document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = `${deriveStructGroupNameFromSlug(groupSlug)}-${groupSlug}.zip`;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    },
+    [activeKind, projectDocument],
+  );
+
+  const handleCopyStruct = useCallback(() => {
+    if (!draft) return;
+    setClipboard(cloneStruct(draft));
+  }, [draft]);
+
+  const handlePasteStruct = useCallback(() => {
+    if (!clipboard || !selectedStructId) return;
+    applyDraftUpdate(() => normalizeStructDoc(clipboard, selectedStructId, activeKind));
+  }, [activeKind, applyDraftUpdate, clipboard, selectedStructId]);
+
+  const handleExportVariables = useCallback(() => {
+    if (!draft) return;
+    const blob = new Blob([JSON.stringify(draft.value, null, 2)], {
+      type: 'application/json',
+    });
+    const link = window.document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${draft.name || 'struct'}-vars.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [draft]);
+
+  const handleImportVariables = useCallback(() => {
+    importStructInputRef.current?.click();
+  }, []);
+
+  const handleImportVariablesFile = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file || !draft) return;
+      try {
+        const text = await file.text();
+        const parsed = JSON.parse(text) as StructEntry['value'][];
+        applyDraftUpdate((doc) => ({ ...doc, value: parsed as unknown as StructEntry[] }));
+      } catch (error) {
+        console.error(error);
+        window.alert('导入失败，请检查JSON格式');
+      } finally {
+        event.target.value = '';
+      }
+    },
+    [applyDraftUpdate, draft],
+  );
+
+  const handleImportStructs = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const files = Array.from(event.target.files ?? []);
+      event.target.value = '';
+      if (!files.length) return;
+      const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+      for (const file of files) {
+        try {
+          const text = await file.text();
+          const parsed = JSON.parse(text) as StructDocument;
+          if (parsed.type !== 'Struct') continue;
+          const structId = createStructId();
+          const docNormalized = normalizeStructDoc(parsed, structId, activeKind);
+          const entry = {
+            structId,
+            name: docNormalized.name,
+            groupSlug: selectedGroup,
+            groupName,
+            path: buildStructPath(selectedGroup, structId),
+            structType: activeKind,
+            createdAt: new Date().toISOString(),
+            updatedAt: new Date().toISOString(),
+          };
+          setStructDocument(structId, docNormalized);
+          setStructManifestEntry(entry);
+          markStructDirty(structId, true);
+          setSelectedStructId(structId);
+        } catch (error) {
+          console.error(error);
+          window.alert(`导入失败：${String(error)}`);
+        }
+      }
+    },
+    [
+      activeKind,
+      groupMap,
+      markStructDirty,
+      selectedGroup,
+      setStructDocument,
+      setStructManifestEntry,
+    ],
+  );
+
+  const handleExportStruct = useCallback(() => {
+    if (!draft || !selectedStructId) return;
+    const blob = new Blob([JSON.stringify(draft, null, 2)], { type: 'application/json' });
+    const link = window.document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `${draft.name || selectedStructId}.json`;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [draft, selectedStructId]);
+
+  const startMoveStruct = useCallback((structId: string) => {
+    setMoveTargetStruct(structId);
+  }, []);
+
+  const handleMoveStructConfirm = useCallback(
+    (targetGroup: string) => {
+      if (!moveTargetStruct) return;
+      const entry = structEntries.find((item) => item.structId === moveTargetStruct);
+      if (!entry) return;
+      const groupName = groupMap.get(targetGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+      const nextEntry = {
+        ...entry,
+        groupSlug: targetGroup,
+        groupName,
+        path: buildStructPath(targetGroup, moveTargetStruct),
+      };
+      setStructManifestEntry(nextEntry);
+      markStructDirty(moveTargetStruct, true);
+      if (targetGroup !== selectedGroup) {
+        setSelectedStructId(null);
+      }
+      setMoveTargetStruct(null);
+    },
+    [groupMap, markStructDirty, selectedGroup, setStructManifestEntry, structEntries, moveTargetStruct],
+  );
+
+  const handleAddField = useCallback(() => {
+    applyDraftUpdate((doc) => {
+      const nextIndex = (doc.value?.length ?? 0) + 1;
+      const entry: StructEntry = {
+        key: `新增变量${nextIndex}`,
+        param_type: 'String',
+        value: defaultValueForType('String'),
+      };
+      return { ...doc, value: [...doc.value, entry] };
+    });
+  }, [applyDraftUpdate]);
+
+  const handleRemoveField = useCallback(
+    (index: number) => {
+      applyDraftUpdate((doc) => {
+        const next = [...doc.value];
+        next.splice(index, 1);
+        return { ...doc, value: next };
+      });
+    },
+    [applyDraftUpdate],
+  );
+
+  const handleFieldChange = useCallback(
+    (index: number, updater: (entry: StructEntry) => StructEntry) => {
+      applyDraftUpdate((doc) => {
+        const next = [...doc.value];
+        next[index] = updater(next[index]);
+        return { ...doc, value: next };
+      });
+    },
+    [applyDraftUpdate],
+  );
+
+  const handleFieldMove = useCallback(
+    (index: number, delta: number) => {
+      applyDraftUpdate((doc) => {
+        const next = [...doc.value];
+        const targetIndex = index + delta;
+        if (targetIndex < 0 || targetIndex >= next.length) return doc;
+        const [item] = next.splice(index, 1);
+        next.splice(targetIndex, 0, item);
+        return { ...doc, value: next };
+      });
+    },
+    [applyDraftUpdate],
+  );
+
+  const handleFieldCopy = useCallback(
+    (entry: StructEntry) => {
+      setFieldClipboard(cloneStruct({ type: 'Struct', name: '', value: [entry] } as unknown as StructDocument).value[0]);
+    },
+    [],
+  );
+
+  const handleFieldPaste = useCallback(
+    (index: number) => {
+      if (!fieldClipboard) return;
+      handleFieldChange(index, () => cloneStruct({ type: 'Struct', name: '', value: [fieldClipboard] } as unknown as StructDocument).value[0]);
+    },
+    [fieldClipboard, handleFieldChange],
+  );
+
+  const handleAddListItem = useCallback(
+    (index: number) => {
+      handleFieldChange(index, (entry) => {
+        const isStructList = entry.param_type === 'StructList';
+        const value = Array.isArray(entry.value.value) ? [...(entry.value.value as unknown[])] : [];
+        value.push(isStructList ? null : '');
+        return {
+          ...entry,
+          value: { param_type: entry.value.param_type, value },
+        };
+      });
+    },
+    [handleFieldChange],
+  );
+
+  const handleListItemChange = useCallback(
+    (fieldIndex: number, itemIndex: number, nextValue: string | null) => {
+      handleFieldChange(fieldIndex, (entry) => {
+        const list = Array.isArray(entry.value.value) ? [...(entry.value.value as unknown[])] : [];
+        list[itemIndex] = nextValue;
+        return {
+          ...entry,
+          value: { ...entry.value, value: list },
+        };
+      });
+    },
+    [handleFieldChange],
+  );
+
+  const handleRemoveListItem = useCallback(
+    (fieldIndex: number, itemIndex: number) => {
+      handleFieldChange(fieldIndex, (entry) => {
+        const list = Array.isArray(entry.value.value) ? [...(entry.value.value as unknown[])] : [];
+        list.splice(itemIndex, 1);
+        return {
+          ...entry,
+          value: { ...entry.value, value: list },
+        };
+      });
+    },
+    [handleFieldChange],
+  );
+
+  const handleDictChange = useCallback(
+    (fieldIndex: number, updater: (payload: StructDictValuePayload) => StructDictValuePayload) => {
+      handleFieldChange(fieldIndex, (entry) => {
+        const payload = (entry.value.value ?? defaultValueForType('Dict').value) as StructDictValuePayload;
+        return {
+          ...entry,
+          value: { ...entry.value, value: updater(payload) },
+        };
+      });
+    },
+    [handleFieldChange],
+  );
+
+  const closeContextMenu = useCallback(() => setContextMenu(null), []);
+
+  useEffect(() => {
+    const closeMenu = () => {
+      setContextMenu(null);
+      if (typeof window !== 'undefined' && window.document) {
+        window.document
+          .querySelectorAll('.struct-editor__row-menu.is-open')
+          .forEach((el) => el.classList.remove('is-open'));
+      }
+    };
+    window.addEventListener('click', closeMenu);
+    return () => window.removeEventListener('click', closeMenu);
+  }, []);
+
+  const handleGroupDrop = (event: DragEvent<HTMLButtonElement>, targetSlug: string) => {
+    event.preventDefault();
+    const source = dropInfoRef.current;
+    dropInfoRef.current = null;
+    if (!source || source.type !== 'group' || source.id === targetSlug) return;
+    const ordered = [...structGroups];
+    const sourceIndex = ordered.findIndex((group) => group.groupSlug === source.id);
+    const targetIndex = ordered.findIndex((group) => group.groupSlug === targetSlug);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    const [item] = ordered.splice(sourceIndex, 1);
+    ordered.splice(targetIndex, 0, item);
+    updateDocument((draftDoc) => {
+      draftDoc.manifest.structGroups = ordered.map((group, index) => ({
+        ...group,
+        sortOrder: index,
+      }));
+      ensureStructManifestGroups(draftDoc.manifest);
+    });
+  };
+
+  const handleStructDrop = (event: DragEvent<HTMLDivElement>, targetId: string) => {
+    event.preventDefault();
+    const source = dropInfoRef.current;
+    dropInfoRef.current = null;
+    if (!source || source.type !== 'struct' || source.id === targetId) return;
+    const list = structsByGroup.get(selectedGroup);
+    if (!list) return;
+    const ordered = [...list];
+    const sourceIndex = ordered.findIndex((item) => item.structId === source.id);
+    const targetIndex = ordered.findIndex((item) => item.structId === targetId);
+    if (sourceIndex < 0 || targetIndex < 0) return;
+    const [item] = ordered.splice(sourceIndex, 1);
+    ordered.splice(targetIndex, 0, item);
+    updateDocument((draftDoc) => {
+      const orderMap = new Map(ordered.map((entry, idx) => [entry.structId, idx]));
+      draftDoc.manifest.structures = (draftDoc.manifest.structures ?? []).slice().sort((a, b) => {
+        const orderA = orderMap.has(a.structId) ? orderMap.get(a.structId)! : Number.MAX_SAFE_INTEGER;
+        const orderB = orderMap.has(b.structId) ? orderMap.get(b.structId)! : Number.MAX_SAFE_INTEGER;
+        return orderA - orderB;
+      });
+    });
+  };
+
+  const renderValueInput = (entry: StructEntry, index: number) => {
+    const { param_type } = entry;
+    if (param_type === 'Dict') {
+      const payload = (entry.value.value as StructDictValuePayload) ?? defaultValueForType('Dict').value;
+      return (
+        <div className="struct-editor__dict">
+          <div className="struct-editor__dict-row">
+            <label>键类型</label>
+            <select
+              value={payload.key_type}
+              onChange={(event) =>
+                handleDictChange(index, (prev) => ({ ...prev, key_type: event.target.value as StructDictValuePayload['key_type'] }))
+              }
+            >
+              {['String', 'Int32', 'Entity', 'Guid', 'ConfigReference', 'EntityReference', 'Army'].map((option) => (
+                <option key={option} value={option}>
+                  {STRUCT_PARAM_OPTIONS.find((opt) => opt.value === option)?.label ?? option}
+                </option>
+              ))}
+            </select>
+            <label>值类型</label>
+            <select
+              value={payload.value_type}
+              onChange={(event) =>
+                handleDictChange(index, (prev) => ({ ...prev, value_type: event.target.value as StructParamType }))
+              }
+            >
+              {STRUCT_PARAM_OPTIONS.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div className="struct-editor__dict-list">
+            {(payload.value ?? []).map((item, itemIndex) => (
+              <div key={`${item.key}-${itemIndex}`} className="struct-editor__dict-item">
+                <input
+                  value={item.key ?? ''}
+                  onChange={(event) =>
+                    handleDictChange(index, (prev) => {
+                      const nextList = [...(prev.value ?? [])];
+                      nextList[itemIndex] = { ...nextList[itemIndex], key: event.target.value };
+                      return { ...prev, value: nextList };
+                    })
+                  }
+                  placeholder="键"
+                />
+                <input
+                  value={(item.value as { value?: unknown })?.value ?? (item.value as unknown as string) ?? ''}
+                  onChange={(event) =>
+                    handleDictChange(index, (prev) => {
+                      const nextList = [...(prev.value ?? [])];
+                      nextList[itemIndex] = {
+                        ...nextList[itemIndex],
+                        value: {
+                          param_type: payload.value_type,
+                          value: event.target.value,
+                        },
+                      };
+                      return { ...prev, value: nextList };
+                    })
+                  }
+                  placeholder="值"
+                />
+                <button
+                  type="button"
+                  className="struct-editor__list-remove"
+                  onClick={() =>
+                    handleDictChange(index, (prev) => {
+                      const nextList = [...(prev.value ?? [])];
+                      nextList.splice(itemIndex, 1);
+                      return { ...prev, value: nextList };
+                    })
+                  }
+                >
+                  删除
+                </button>
+              </div>
+            ))}
+            <button
+              type="button"
+              className="struct-editor__list-add"
+              onClick={() =>
+                handleDictChange(index, (prev) => ({
+                  ...prev,
+                  value: [...(prev.value ?? []), { key: '', value: { param_type: payload.value_type, value: '' } }],
+                }))
+              }
+            >
+              添加键值
+            </button>
+          </div>
+        </div>
+      );
+    }
+
+    if (param_type === 'Struct') {
+      const availableStructs = structEntries.filter((item) => item.structId !== selectedStructId);
+      return (
+        <select
+          value={(entry.value as { value: { structId: string | null } }).value?.structId ?? ''}
+          onChange={(event) =>
+            handleFieldChange(index, (prev) => ({
+              ...prev,
+              value: { param_type: prev.value.param_type, value: { structId: event.target.value || null } },
+            }))
+          }
+        >
+          <option value="">未初始化</option>
+          {availableStructs.map((item) => (
+            <option key={item.structId} value={item.structId}>
+              {item.name}
+            </option>
+          ))}
+        </select>
+      );
+    }
+
+    if (param_type === 'StructList' || param_type.endsWith('List')) {
+      const list = Array.isArray(entry.value.value) ? (entry.value.value as (string | null)[]) : [];
+      return (
+        <div className="struct-editor__list">
+          <div className="struct-editor__list-header">
+            <span>列表项</span>
+            <button type="button" onClick={() => handleAddListItem(index)}>
+              +
+            </button>
+          </div>
+          <div className="struct-editor__list-body">
+            {list.map((value, itemIndex) => (
+              <div className="struct-editor__list-row" key={`${itemIndex}-${value}`}>
+                <input
+                  value={value ?? ''}
+                  onChange={(event) => handleListItemChange(index, itemIndex, event.target.value)}
+                  onBlur={(event) => handleListItemChange(index, itemIndex, event.target.value)}
+                />
+                <button
+                  type="button"
+                  className="struct-editor__list-remove"
+                  onClick={() => handleRemoveListItem(index, itemIndex)}
+                >
+                  删除
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      );
+    }
+
+    return (
+      <input
+        value={(entry.value.value as string) ?? ''}
+        onChange={(event) =>
+          handleFieldChange(index, (prev) => ({
+            ...prev,
+            value: { param_type: prev.value.param_type, value: event.target.value },
+          }))
+        }
+        onBlur={(event) =>
+          handleFieldChange(index, (prev) => ({
+            ...prev,
+            value: { param_type: prev.value.param_type, value: event.target.value },
+          }))
+        }
+      />
+    );
+  };
+
+  const renderContextMenu = () => {
+    if (!contextMenu) return null;
+    if (contextMenu.type === 'group') {
+      return (
+        <div
+          className="struct-manager__menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button type="button" onClick={() => { handleRenameGroup(contextMenu.groupSlug); closeContextMenu(); }}>重命名</button>
+          <button type="button" onClick={() => { handleDeleteGroup(contextMenu.groupSlug); closeContextMenu(); }}>解散页签</button>
+          <button type="button" onClick={() => { handleExportGroup(contextMenu.groupSlug); closeContextMenu(); }}>导出</button>
+        </div>
+      );
+    }
+    if (contextMenu.type === 'struct') {
+      return (
+        <div
+          className="struct-manager__menu"
+          style={{ left: contextMenu.x, top: contextMenu.y }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); closeContextMenu(); }}>打开</button>
+          <button type="button" onClick={() => { setMoveTargetStruct(contextMenu.structId); closeContextMenu(); }}>更改页签</button>
+          <button type="button" onClick={() => { handleDeleteStruct(contextMenu.structId); closeContextMenu(); }} className="is-danger">删除</button>
+          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleCopyStruct(); closeContextMenu(); }}>复制</button>
+          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handlePasteStruct(); closeContextMenu(); }}>粘贴</button>
+          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleExportVariables(); closeContextMenu(); }}>导出变量</button>
+          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleImportVariables(); closeContextMenu(); }}>导入变量</button>
+        </div>
+      );
+    }
+    return (
+      <div
+        className="struct-manager__menu"
+        style={{ left: contextMenu.x, top: contextMenu.y }}
+        onClick={(event) => event.stopPropagation()}
+      >
+        <button type="button" onClick={() => { handleCreateStruct(); closeContextMenu(); }}>新建结构体</button>
+        <button type="button" onClick={() => { importInputRef.current?.click(); closeContextMenu(); }}>导入结构体</button>
+        <button type="button" onClick={() => { handleCreateGroup(); closeContextMenu(); }}>新建页签</button>
+        <button type="button" onClick={() => { /* 导入页签 */ closeContextMenu(); }}>导入页签</button>
+      </div>
+    );
+  };
+
+  return (
+    <div className="structure-manager" onContextMenu={(event) => event.preventDefault()}>
+      <input
+        ref={importInputRef}
+        type="file"
+        accept=".json,application/json"
+        multiple
+        hidden
+        onChange={handleImportStructs}
+      />
+      <input
+        ref={importStructInputRef}
+        type="file"
+        accept=".json,application/json"
+        hidden
+        onChange={handleImportVariablesFile}
+      />
+      <div className="structure-manager__sidebar">
+        <div className="structure-manager__tabs">
+          {(['basic', 'runtime'] as StructKind[]).map((kind) => (
+            <button
+              key={kind}
+              type="button"
+              className={classNames('structure-manager__tab', { 'is-active': activeKind === kind })}
+              onClick={() => setActiveKind(kind)}
+            >
+              {STRUCT_KIND_LABELS[kind]}
+            </button>
+          ))}
+        </div>
+        <div className="structure-manager__search">
+          <img src={ICON_SEARCH} alt="" aria-hidden="true" />
+          <input
+            type="text"
+            placeholder="搜索结构体"
+            value={searchTerm}
+            onChange={(event) => setSearchTerm(event.target.value)}
+          />
+        </div>
+        <div
+          className="structure-manager__groups"
+          onContextMenu={(event) => {
+            event.preventDefault();
+            setContextMenu({ type: 'empty', x: event.clientX, y: event.clientY });
+          }}
+        >
+          {structGroups.map((group) => {
+            const isActive = group.groupSlug === selectedGroup;
+            return (
+              <button
+                key={group.groupSlug}
+                type="button"
+                draggable
+                onDragStart={() => {
+                  dropInfoRef.current = { type: 'group', id: group.groupSlug };
+                }}
+                onDragOver={(event) => event.preventDefault()}
+                onDrop={(event) => handleGroupDrop(event, group.groupSlug)}
+                className={classNames('structure-manager__group', { 'is-active': isActive })}
+                onClick={() => setSelectedGroup(group.groupSlug)}
+                onContextMenu={(event) => {
+                  event.preventDefault();
+                  setContextMenu({
+                    type: 'group',
+                    groupSlug: group.groupSlug,
+                    x: event.clientX,
+                    y: event.clientY,
+                  });
+                }}
+              >
+                <span>{group.groupName}</span>
+              </button>
+            );
+          })}
+        </div>
+        <div
+          className="structure-manager__list"
+          onContextMenu={(event) => {
+            event.preventDefault();
+            setContextMenu({ type: 'empty', x: event.clientX, y: event.clientY });
+          }}
+        >
+          {visibleStructs.length === 0 ? (
+            <div className="structure-manager__empty">暂无结构体</div>
+          ) : (
+            visibleStructs.map((entry) => {
+              const isActive = entry.structId === selectedStructId;
+              const isDirty = Boolean(dirtyStructIds[entry.structId]);
+              return (
+                <div
+                  key={entry.structId}
+                  draggable
+                  onDragStart={() => {
+                    dropInfoRef.current = { type: 'struct', id: entry.structId };
+                  }}
+                  onDragOver={(event) => event.preventDefault()}
+                  onDrop={(event) => handleStructDrop(event, entry.structId)}
+                  className={classNames('structure-manager__list-item', { 'is-active': isActive })}
+                  onClick={() => setSelectedStructId(entry.structId)}
+                  onContextMenu={(event) => {
+                    event.preventDefault();
+                    setContextMenu({
+                      type: 'struct',
+                      structId: entry.structId,
+                      x: event.clientX,
+                      y: event.clientY,
+                    });
+                  }}
+                >
+                  <span>{entry.name}</span>
+                  {isDirty && <span className="structure-manager__dirty">*</span>}
+                </div>
+              );
+            })
+          )}
+        </div>
+        <div className="structure-manager__footer">
+          <button type="button" className="structure-manager__action" onClick={handleCreateStruct}>
+            + 创建结构体
+          </button>
+          <button type="button" className="structure-manager__action" onClick={onRequestSave}>
+            <img src={ICON_SAVE} alt="" aria-hidden="true" />
+            全部应用
+          </button>
+        </div>
+      </div>
+
+      <div className="structure-manager__editor">
+        {draft && selectedStructEntry ? (
+          <>
+            <header className="struct-editor__header">
+              <div className="struct-editor__title">
+                <input
+                  value={draft.name}
+                  onChange={(event) => handleRenameStruct(event.target.value)}
+                  onBlur={(event) => handleRenameStruct(event.target.value)}
+                />
+                <span className="struct-editor__config">配置ID: {selectedStructEntry.structId}</span>
+              </div>
+              <div className="struct-editor__actions">
+                <button type="button" onClick={handleCopyStruct}>
+                  复制
+                </button>
+                <button type="button" onClick={handlePasteStruct}>
+                  粘贴
+                </button>
+                <button type="button" onClick={handleExportVariables}>
+                  导出变量
+                </button>
+                <button type="button" onClick={handleImportVariables}>
+                  导入变量
+                </button>
+                <button
+                  type="button"
+                  className="is-danger"
+                  onClick={() => handleDeleteStruct(selectedStructEntry.structId)}
+                >
+                  删除
+                </button>
+                <button type="button" onClick={handleExportStruct}>
+                  导出结构体
+                </button>
+                <button type="button" onClick={() => startMoveStruct(selectedStructEntry.structId)}>
+                  更改页签
+                </button>
+              </div>
+            </header>
+
+            <div className="struct-editor__body">
+              {draft.value.map((entry, index) => (
+                <div
+                  key={`${entry.key}-${index}`}
+                  className="struct-editor__row"
+                  onMouseDown={(event) => event.stopPropagation()}
+                >
+                  <div className="struct-editor__index">
+                    <span>{index + 1}</span>
+                    <button
+                      type="button"
+                      className="struct-editor__more"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (typeof window !== 'undefined' && window.document) {
+                          window.document
+                            .querySelectorAll('.struct-editor__row-menu.is-open')
+                            .forEach((el) => el.classList.remove('is-open'));
+                        }
+                        const menu = event.currentTarget.nextElementSibling as HTMLElement | null;
+                        if (menu) {
+                          menu.classList.add('is-open');
+                        }
+                      }}
+                    >
+                      <img src={ICON_MORE} alt="" aria-hidden="true" />
+                    </button>
+                    <div className="struct-editor__row-menu">
+                      <button type="button" onClick={() => handleFieldCopy(entry)}>
+                        复制
+                      </button>
+                      <button type="button" onClick={() => handleFieldPaste(index)}>
+                        粘贴
+                      </button>
+                      <button type="button" className="is-danger" onClick={() => handleRemoveField(index)}>
+                        删除
+                      </button>
+                      <button type="button" onClick={() => handleFieldMove(index, -1)}>
+                        向上移动
+                      </button>
+                      <button type="button" onClick={() => handleFieldMove(index, 1)}>
+                        向下移动
+                      </button>
+                    </div>
+                  </div>
+                  <input
+                    className="struct-editor__name"
+                    value={entry.key}
+                    onChange={(event) =>
+                      handleFieldChange(index, (prev) => ({ ...prev, key: event.target.value }))
+                    }
+                    onBlur={(event) =>
+                      handleFieldChange(index, (prev) => ({ ...prev, key: event.target.value }))
+                    }
+                  />
+                  <select
+                    className="struct-editor__type"
+                    value={entry.param_type}
+                    onChange={(event) =>
+                      handleFieldChange(index, (prev) => ({
+                        ...prev,
+                        param_type: event.target.value as StructParamType,
+                        value: defaultValueForType(event.target.value as StructParamType),
+                      }))
+                    }
+                  >
+                    {STRUCT_PARAM_OPTIONS.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </select>
+                  <div className="struct-editor__value">{renderValueInput(entry, index)}</div>
+                </div>
+              ))}
+              <div className="struct-editor__add-row">
+                <button type="button" onClick={handleAddField}>
+                  + 新增变量
+                </button>
+              </div>
+            </div>
+          </>
+        ) : (
+          <div className="struct-editor__empty">请选择结构体以开始编辑</div>
+        )}
+      </div>
+
+      {contextMenu && renderContextMenu()}
+
+      {moveTargetStruct && (
+        <div
+          className="home__confirm-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setMoveTargetStruct(null)}
+        >
+          <div className="home__confirm" role="document" onClick={(event) => event.stopPropagation()}>
+            <h3>更改页签</h3>
+            <div className="struct-move__list">
+              {structGroups.map((group) => (
+                <label key={group.groupSlug} className="struct-move__option">
+                  <input
+                    type="radio"
+                    name="move-group"
+                    value={group.groupSlug}
+                    defaultChecked={group.groupSlug === selectedGroup}
+                  />
+                  <span>{group.groupName}</span>
+                </label>
+              ))}
+            </div>
+            <div className="home__confirm-actions">
+              <button type="button" onClick={() => setMoveTargetStruct(null)}>
+                取消
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  const checked = typeof window !== 'undefined'
+                    ? window.document.querySelector<HTMLInputElement>('input[name="move-group"]:checked')
+                    : null;
+                  handleMoveStructConfirm(checked?.value ?? selectedGroup);
+                  setMoveTargetStruct(null);
+                }}
+              >
+                确认
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selfRefError && (
+        <div className="home__confirm-backdrop" role="alertdialog" aria-modal="true">
+          <div className="home__confirm" role="document">
+            <h3>错误</h3>
+            <p>当前结构体存在非法结构，无法保存。</p>
+            <div className="home__confirm-actions">
+              <button type="button" onClick={() => setSelfRefError(false)}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default StructureManager;

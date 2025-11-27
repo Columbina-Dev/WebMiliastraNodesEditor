@@ -5,6 +5,7 @@ import JSZip from "jszip";
 import GraphCanvas from "./components/GraphCanvas";
 import HomePage from "./components/HomePage";
 import ResourceExplorer from "./components/ResourceExplorer";
+import StructureManager from "./components/StructureManager";
 import TutorialPage, { type TutorialRoute } from "./components/TutorialPage";
 import EffectsPage from "./components/EffectsPage";
 import NodeInspector from "./components/NodeInspector";
@@ -13,6 +14,7 @@ import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
 import type { GraphDocument, GraphEnvironment } from "./types/node";
 import { GRAPH_SCHEMA_VERSION } from "./types/node";
+import type { StructDocument } from "./types/struct";
 import { DEFAULT_GROUP_NAME, DEFAULT_GROUP_SLUG, PROJECT_CATEGORIES_BY_TOP, type ProjectDocument, type ProjectTopFolder } from "./types/project";
 import {
   buildGraphPath,
@@ -71,6 +73,7 @@ const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
 const ICON_TAB_GRAPH = new URL("./assets/icons/tab-graph.png", import.meta.url).href;
+const ICON_STRUCT = new URL("./assets/icons/struct.png", import.meta.url).href;
 const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
@@ -197,12 +200,17 @@ const fingerprintGraphDocument = (doc: GraphDocument) =>
       typeof doc.executionIntervalSeconds === 'number' ? doc.executionIntervalSeconds : null,
   });
 
+const fingerprintStructDocument = (doc: StructDocument) => JSON.stringify(doc);
+
 const fingerprintProjectDocument = (document: ProjectDocument) => {
   const manifestFingerprint = JSON.stringify(document.manifest);
   const graphFingerprints = Object.entries(document.graphs)
     .map(([graphId, graphDoc]) => [graphId, fingerprintGraphDocument(graphDoc)] as const)
     .sort((a, b) => a[0].localeCompare(b[0]));
-  return JSON.stringify({ manifest: manifestFingerprint, graphs: graphFingerprints });
+  const structFingerprints = Object.entries(document.structs ?? {})
+    .map(([structId, structDoc]) => [structId, fingerprintStructDocument(structDoc as StructDocument)] as const)
+    .sort((a, b) => a[0].localeCompare(b[0]));
+  return JSON.stringify({ manifest: manifestFingerprint, graphs: graphFingerprints, structs: structFingerprints });
 };
 
 const resolveGraphEnvironment = (
@@ -267,10 +275,12 @@ const App = () => {
   const activeTabId = useProjectStore((state) => state.activeTabId);
   const activeGraphId = useProjectStore((state) => state.activeGraphId);
   const dirtyGraphIds = useProjectStore((state) => state.dirtyGraphIds);
+  const dirtyStructIds = useProjectStore((state) => state.dirtyStructIds);
 
   const setDocument = useProjectStore((state) => state.setDocument);
   const updateDocument = useProjectStore((state) => state.updateDocument);
   const openExplorer = useProjectStore((state) => state.openExplorer);
+  const openStructManager = useProjectStore((state) => state.openStructManager);
   const openGraphTab = useProjectStore((state) => state.openGraphTab);
   const closeTab = useProjectStore((state) => state.closeTab);
   const activateTab = useProjectStore((state) => state.activateTab);
@@ -279,6 +289,7 @@ const App = () => {
   const setProjectName = useProjectStore((state) => state.setProjectName);
   const setManifestEntry = useProjectStore((state) => state.setManifestEntry);
   const markGraphDirty = useProjectStore((state) => state.markGraphDirty);
+  const markStructDirty = useProjectStore((state) => state.markStructDirty);
   const createGroup = useProjectStore((state) => state.createGroup);
 
   const graphName = useGraphStore((state) => state.name);
@@ -834,6 +845,9 @@ const App = () => {
     Object.keys(store.dirtyGraphIds).forEach((id) => {
       store.markGraphDirty(id, false);
     });
+    Object.keys(store.dirtyStructIds ?? {}).forEach((id) => {
+      store.markStructDirty(id, false);
+    });
     autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
     showSaveToast("已保存到浏览器本地存储");
   }, [refreshHistory, showSaveToast, updateDocument]);
@@ -1247,9 +1261,13 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
 
   const handleTabClose = useCallback(
     (tabId: TabId) => {
+      const targetTab = openTabs.find((tab) => tab.id === tabId);
+      if (targetTab?.type === 'struct' && Object.keys(dirtyStructIds).length > 0) {
+        handleManualSave();
+      }
       closeTab(tabId);
     },
-    [closeTab],
+    [closeTab, dirtyStructIds, handleManualSave, openTabs],
   );
 
   const handleOpenExplorerTab = useCallback(
@@ -1259,6 +1277,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     },
     [openExplorer],
   );
+  const handleOpenStructTab = useCallback(() => {
+    openStructManager();
+    setOpenMenu(null);
+  }, [openStructManager]);
 
   const handleGraphNameChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
@@ -1532,6 +1554,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   }, [activeTabId, openTabs]);
 
   const isGraphTab = activeTab?.type === 'graph';
+  const isStructTab = activeTab?.type === 'struct';
   const activeTabType = activeTab?.type ?? null;
   const explorerTopFolder: ProjectTopFolder =
     activeTab?.type === 'explorer' ? activeTab.topFolder : 'server';
@@ -1542,7 +1565,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
       if (event.key !== 's' && event.key !== 'S') return;
       event.preventDefault();
       if (view !== 'editor') return;
-      if (isGraphTab || activeTabType === 'explorer') {
+      if (isGraphTab || activeTabType === 'explorer' || activeTabType === 'struct') {
         handleManualSave();
       }
     };
@@ -1569,13 +1592,15 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     <div className="app__tabs">
       {openTabs.map((tab: ProjectTab) => {
         const isActive = tab.id === activeTabId;
-        const isDirty = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
-        const iconSrc =
-          tab.type === 'explorer'
-            ? tab.topFolder === 'server'
-              ? ICON_TAB_SERVER
-              : ICON_TAB_CLIENT
-            : ICON_TAB_GRAPH;
+        const isDirtyGraph = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
+        const isDirtyStruct = tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
+        const isDirty = isDirtyGraph || isDirtyStruct;
+        let iconSrc = ICON_TAB_GRAPH;
+        if (tab.type === 'explorer') {
+          iconSrc = tab.topFolder === 'server' ? ICON_TAB_SERVER : ICON_TAB_CLIENT;
+        } else if (tab.type === 'struct') {
+          iconSrc = ICON_STRUCT;
+        }
         return (
           <button
             key={tab.id}
@@ -1592,7 +1617,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               {tab.label}
               {isDirty && <span className="app__tab-dirty">*</span>}
             </span>
-            {tab.type === "graph" && (
+            {(tab.type === "graph" || tab.type === "struct") && (
               <span
                 role="button"
                 aria-label={`关闭 ${tab.label}`}
@@ -1681,6 +1706,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                     <img src={ICON_TAB_CLIENT} alt="" aria-hidden="true" />
                     客户端节点图资源管理器
                   </button>
+                  <button type="button" onClick={handleOpenStructTab}>
+                    <img src={ICON_STRUCT} alt="" aria-hidden="true" />
+                    结构体管理器
+                  </button>
                   <button type="button" onClick={handleGoHome}>
                     <img src={ICON_BACK} alt="" aria-hidden="true" />
                     返回主页
@@ -1764,6 +1793,12 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             <GraphCanvas isMobileMode={isMobileMode} />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
           </>
+        ) : isStructTab ? (
+          <StructureManager
+            projectDocument={projectDocument}
+            dirtyStructIds={dirtyStructIds}
+            onRequestSave={handleManualSave}
+          />
         ) : (
           <ResourceExplorer
             topFolder={explorerTopFolder}

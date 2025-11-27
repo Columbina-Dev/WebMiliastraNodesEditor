@@ -18,10 +18,17 @@ import {
   type ProjectManifestGraph,
   type ProjectManifestGroup,
 } from '../types/project';
+import type { StructDocument, StructManifestEntry, StructManifestGroup } from '../types/struct';
+import {
+  DEFAULT_STRUCT_GROUP_NAME,
+  DEFAULT_STRUCT_GROUP_SLUG,
+  DEFAULT_STRUCT_KIND,
+} from '../types/struct';
 import {
   buildGraphPath,
   createEmptyProjectDocument,
   createProjectId,
+  createStructId,
   deriveGroupNameFromSlug,
   parseGraphPath,
   resolveGraphLocation,
@@ -29,6 +36,14 @@ import {
   slugifyGroupName,
   ensureManifestGroups,
   upsertManifestGroup,
+  buildStructPath,
+  ensureStructManifestGroups,
+  parseStructPath,
+  resolveStructLocation,
+  upsertStructManifestGroup,
+  upsertStructManifestEntry,
+  deriveStructGroupNameFromSlug,
+  slugifyStructGroupName,
 } from './project';
 import { graphDocumentSchema } from './validation';
 import {
@@ -79,6 +94,21 @@ const cloneGraphDocument = (doc: GraphDocument): GraphDocument => ({
   executionIntervalSeconds: doc.executionIntervalSeconds,
 });
 
+const cloneStructDocument = (doc: StructDocument): StructDocument => ({
+  type: 'Struct',
+  struct_type: doc.struct_type ?? doc.struct_ype ?? DEFAULT_STRUCT_KIND,
+  struct_ype: doc.struct_ype ?? doc.struct_type ?? DEFAULT_STRUCT_KIND,
+  name: sanitizeName(doc.name, '结构体'),
+  config_id: doc.config_id,
+  value: Array.isArray(doc.value)
+    ? doc.value.map((entry) => ({
+        key: sanitizeName(entry.key, entry.key ?? '变量'),
+        param_type: entry.param_type,
+        value: entry.value ? JSON.parse(JSON.stringify(entry.value)) : { param_type: entry.param_type, value: null },
+      }))
+    : [],
+});
+
 const sanitizeManifestGraph = (
   graphId: string,
   entry: Partial<ProjectManifestGraph>,
@@ -108,6 +138,35 @@ const sanitizeManifestGraph = (
   return normalized;
 };
 
+const sanitizeStructManifest = (
+  structId: string,
+  entry: Partial<StructManifestEntry>,
+  document: ProjectDocument,
+) => {
+  const structDoc = document.structs?.[structId];
+  const fallbackName = structDoc ? structDoc.name : '未命名结构体';
+  const resolved = resolveStructLocation(structId, entry.path, {
+    groupNameHint: entry.groupName ?? entry.groupSlug,
+    preferredGroupSlug: entry.groupSlug,
+  });
+  ensureStructManifestGroups(document.manifest);
+  upsertStructManifestGroup(document.manifest, {
+    groupSlug: resolved.groupSlug,
+    groupName: resolved.groupName,
+  });
+  const normalized: StructManifestEntry = {
+    structId,
+    name: sanitizeName(entry.name ?? fallbackName, fallbackName),
+    path: resolved.normalizedPath,
+    groupName: entry.groupName ?? resolved.groupName,
+    groupSlug: entry.groupSlug ?? resolved.groupSlug,
+    structType: entry.structType ?? structDoc?.struct_type ?? structDoc?.struct_ype ?? DEFAULT_STRUCT_KIND,
+    createdAt: entry.createdAt,
+    updatedAt: entry.updatedAt,
+  };
+  return normalized;
+};
+
 export interface NormalizeProjectResult {
   document: ProjectDocument;
   warnings: string[];
@@ -125,8 +184,11 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
       },
       graphs: [],
       groups: [],
+      structGroups: [],
+      structures: [],
     },
     graphs: {},
+    structs: {},
   };
 
   if (Array.isArray(document.manifest.groups)) {
@@ -135,9 +197,20 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
     });
   }
   ensureManifestGroups(normalized.manifest);
+  if (Array.isArray(document.manifest.structGroups)) {
+    (document.manifest.structGroups as StructManifestGroup[]).forEach((group) => {
+      upsertStructManifestGroup(normalized.manifest, group);
+    });
+  }
+  ensureStructManifestGroups(normalized.manifest);
 
   for (const [graphId, graphDoc] of Object.entries(document.graphs)) {
     normalized.graphs[graphId] = cloneGraphDocument(graphDoc);
+  }
+  if (document.structs) {
+    for (const [structId, structDoc] of Object.entries(document.structs)) {
+      normalized.structs![structId] = cloneStructDocument(structDoc);
+    }
   }
 
   const seen = new Set<string>();
@@ -158,7 +231,26 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
     normalized.manifest.graphs.push(sanitized);
   }
 
+  const seenStructs = new Set<string>();
+  for (const entry of document.manifest.structures ?? []) {
+    if (!entry?.structId) continue;
+    if (normalized.structs && !normalized.structs[entry.structId]) {
+      warnings.push(`结构体 ${entry.structId} 缺少对应 JSON 数据，已跳过。`);
+      continue;
+    }
+    const sanitized = sanitizeStructManifest(entry.structId, entry, normalized);
+    normalized.manifest.structures?.push(sanitized);
+    seenStructs.add(entry.structId);
+  }
+
+  for (const structId of Object.keys(normalized.structs ?? {})) {
+    if (seenStructs.has(structId)) continue;
+    const sanitized = sanitizeStructManifest(structId, {}, normalized);
+    normalized.manifest.structures?.push(sanitized);
+  }
+
   ensureManifestGroups(normalized.manifest);
+  ensureStructManifestGroups(normalized.manifest);
 
   return { document: normalized, warnings };
 };
@@ -204,6 +296,7 @@ export const loadProjectFromZip = async (
       appVersion: manifestData?.appVersion ?? options.fallbackAppVersion,
     },
     graphs: {},
+    structs: {},
   };
   if (Array.isArray(manifestData?.groups)) {
     (manifestData.groups as ProjectManifestGroup[]).forEach((group) => {
@@ -211,11 +304,22 @@ export const loadProjectFromZip = async (
     });
   }
   ensureManifestGroups(document.manifest);
+  if (Array.isArray(manifestData?.structGroups)) {
+    (manifestData.structGroups as StructManifestGroup[]).forEach((group) => {
+      upsertStructManifestGroup(document.manifest, group);
+    });
+  }
+  ensureStructManifestGroups(document.manifest);
 
   const manifsetEntries: Array<Partial<ProjectManifestGraph>> = Array.isArray(
     manifestData?.graphs,
   )
     ? manifestData?.graphs ?? []
+    : [];
+  const manifestStructEntries: Array<Partial<StructManifestEntry>> = Array.isArray(
+    manifestData?.structures,
+  )
+    ? (manifestData?.structures as StructManifestEntry[])
     : [];
 
   const availableGraphFiles = new Map<
@@ -227,6 +331,16 @@ export const loadProjectFromZip = async (
       document: GraphDocument;
     }
   >();
+  const availableStructFiles = new Map<
+    string,
+    {
+      path: string;
+      locationPath: string;
+      groupSlug: string;
+      groupName: string;
+      document: StructDocument;
+    }
+  >();
 
   const fileEntries = Object.entries(zip.files);
   for (const [rawPath, zipObject] of fileEntries) {
@@ -234,96 +348,135 @@ export const loadProjectFromZip = async (
     const normalizedPath = rawPath.replace(/^\/+/, '');
     if (normalizedPath === 'manifest.json') continue;
     if (!normalizedPath.endsWith('.json')) continue;
-    if (!normalizedPath.startsWith('server/') && !normalizedPath.startsWith('client/')) {
-      continue;
-    }
+    const isGraphPath =
+      normalizedPath.startsWith('server/') || normalizedPath.startsWith('client/');
+    const isStructPath = normalizedPath.startsWith('struct/');
+    if (!isGraphPath && !isStructPath) continue;
 
     try {
       const content = await zipObject.async('string');
-      const parsed = graphDocumentSchema.parse(JSON.parse(content));
-      const declaredEnvironment = isGraphEnvironmentValue(parsed.environment)
-        ? normalizeGraphEnvironment(parsed.environment)
-        : undefined;
-      const normalizedComments: GraphComment[] = [];
-      if (Array.isArray(parsed.comments)) {
-        for (const comment of parsed.comments) {
-          const nodeId = (comment.nodeId ?? '').trim();
-          if (!nodeId) continue;
-          const commentId =
-            comment.id && comment.id.trim().length > 0 ? comment.id : nanoid();
-          normalizedComments.push({
-            id: commentId,
-            nodeId,
-            text: comment.text ?? '',
-            pinned: Boolean(comment.pinned),
-            collapsed: Boolean(comment.collapsed),
-          });
+      if (isStructPath) {
+        const parsed = JSON.parse(content) as StructDocument;
+        if (!parsed || parsed.type !== 'Struct') {
+          throw new Error('文件不是有效的结构体 JSON');
         }
-      }
-      const parsedPath = parseGraphPath(normalizedPath);
-      let graphId: string;
-      let locationPath: string;
-      let groupName = DEFAULT_GROUP_NAME;
-      let location: ReturnType<typeof resolveGraphLocation>['location'];
-      if (parsedPath) {
-        graphId = parsedPath.fileStem;
-        groupName = parsedPath.location.groupName;
-        locationPath = buildGraphPath(parsedPath.location, graphId);
-        location = parsedPath.location;
-        upsertManifestGroup(document.manifest, {
-          topFolder: parsedPath.location.topFolder,
-          categoryKey: parsedPath.location.categoryKey,
-          groupSlug: parsedPath.location.groupSlug,
-          groupName: parsedPath.location.groupName,
+        const parsedPath = parseStructPath(normalizedPath);
+        let structId: string;
+        let locationPath: string;
+        let groupSlug = DEFAULT_STRUCT_GROUP_SLUG;
+        let groupName = DEFAULT_STRUCT_GROUP_NAME;
+        if (parsedPath) {
+          structId = parsedPath.fileStem;
+          groupSlug = parsedPath.groupSlug;
+          groupName = parsedPath.groupName;
+          locationPath = buildStructPath(parsedPath.groupSlug, structId);
+          upsertStructManifestGroup(document.manifest, {
+            groupSlug: parsedPath.groupSlug,
+            groupName: parsedPath.groupName,
+          });
+        } else {
+          structId = createStructId();
+          const fallback = resolveStructLocation(structId, undefined);
+          groupSlug = fallback.groupSlug;
+          groupName = fallback.groupName;
+          locationPath = fallback.normalizedPath;
+          warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallback.normalizedPath}`);
+        }
+        const structDocument: StructDocument = cloneStructDocument(parsed);
+        availableStructFiles.set(structId, {
+          path: normalizedPath,
+          locationPath,
+          groupSlug,
+          groupName,
+          document: structDocument,
         });
       } else {
-        graphId = createProjectId();
-        const fallbackLocation = resolveGraphLocation(graphId, undefined);
-        locationPath = fallbackLocation.normalizedPath;
-        groupName = fallbackLocation.location.groupName;
-        location = fallbackLocation.location;
-        warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallbackLocation.normalizedPath}`);
-      }
-      const environmentFromLocation = resolveEnvironmentFromLocation(location);
-      const fallbackKind = clientKindFromEnvironment(environmentFromLocation) ?? undefined;
-      const normalizedDeclared =
-        declaredEnvironment && getEnvironmentTopFolder(declaredEnvironment) === location.topFolder
-          ? normalizeGraphEnvironment(declaredEnvironment, { fallbackClientKind: fallbackKind })
-          : null;
-      const effectiveEnvironment: GraphEnvironment =
-        normalizedDeclared ?? environmentFromLocation;
-      const defaultInterval = getDefaultExecutionInterval(effectiveEnvironment);
-      const executionIntervalSeconds =
-        defaultInterval !== undefined
-          ? sanitizeExecutionInterval(
-              parsed.executionIntervalSeconds ?? defaultInterval,
-              defaultInterval,
-            )
-          : 0;
-      const graphDocument: GraphDocument = {
-        schemaVersion: GRAPH_SCHEMA_VERSION,
-        name: parsed.name,
-        createdAt: parsed.createdAt,
-        updatedAt: parsed.updatedAt,
-        nodes: parsed.nodes.map(cloneNode),
-        edges: parsed.edges.map(cloneEdge),
-        comments: normalizedComments,
-        environment: effectiveEnvironment,
-        executionIntervalSeconds,
-      };
+        const parsed = graphDocumentSchema.parse(JSON.parse(content));
+        const declaredEnvironment = isGraphEnvironmentValue(parsed.environment)
+          ? normalizeGraphEnvironment(parsed.environment)
+          : undefined;
+        const normalizedComments: GraphComment[] = [];
+        if (Array.isArray(parsed.comments)) {
+          for (const comment of parsed.comments) {
+            const nodeId = (comment.nodeId ?? '').trim();
+            if (!nodeId) continue;
+            const commentId =
+              comment.id && comment.id.trim().length > 0 ? comment.id : nanoid();
+            normalizedComments.push({
+              id: commentId,
+              nodeId,
+              text: comment.text ?? '',
+              pinned: Boolean(comment.pinned),
+              collapsed: Boolean(comment.collapsed),
+            });
+          }
+        }
+        const parsedPath = parseGraphPath(normalizedPath);
+        let graphId: string;
+        let locationPath: string;
+        let groupName = DEFAULT_GROUP_NAME;
+        let location: ReturnType<typeof resolveGraphLocation>['location'];
+        if (parsedPath) {
+          graphId = parsedPath.fileStem;
+          groupName = parsedPath.location.groupName;
+          locationPath = buildGraphPath(parsedPath.location, graphId);
+          location = parsedPath.location;
+          upsertManifestGroup(document.manifest, {
+            topFolder: parsedPath.location.topFolder,
+            categoryKey: parsedPath.location.categoryKey,
+            groupSlug: parsedPath.location.groupSlug,
+            groupName: parsedPath.location.groupName,
+          });
+        } else {
+          graphId = createProjectId();
+          const fallbackLocation = resolveGraphLocation(graphId, undefined);
+          locationPath = fallbackLocation.normalizedPath;
+          groupName = fallbackLocation.location.groupName;
+          location = fallbackLocation.location;
+          warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallbackLocation.normalizedPath}`);
+        }
+        const environmentFromLocation = resolveEnvironmentFromLocation(location);
+        const fallbackKind = clientKindFromEnvironment(environmentFromLocation) ?? undefined;
+        const normalizedDeclared =
+          declaredEnvironment && getEnvironmentTopFolder(declaredEnvironment) === location.topFolder
+            ? normalizeGraphEnvironment(declaredEnvironment, { fallbackClientKind: fallbackKind })
+            : null;
+        const effectiveEnvironment: GraphEnvironment =
+          normalizedDeclared ?? environmentFromLocation;
+        const defaultInterval = getDefaultExecutionInterval(effectiveEnvironment);
+        const executionIntervalSeconds =
+          defaultInterval !== undefined
+            ? sanitizeExecutionInterval(
+                parsed.executionIntervalSeconds ?? defaultInterval,
+                defaultInterval,
+              )
+            : 0;
+        const graphDocument: GraphDocument = {
+          schemaVersion: GRAPH_SCHEMA_VERSION,
+          name: parsed.name,
+          createdAt: parsed.createdAt,
+          updatedAt: parsed.updatedAt,
+          nodes: parsed.nodes.map(cloneNode),
+          edges: parsed.edges.map(cloneEdge),
+          comments: normalizedComments,
+          environment: effectiveEnvironment,
+          executionIntervalSeconds,
+        };
 
-      availableGraphFiles.set(graphId, {
-        path: normalizedPath,
-        locationPath,
-        groupName,
-        document: graphDocument,
-      });
+        availableGraphFiles.set(graphId, {
+          path: normalizedPath,
+          locationPath,
+          groupName,
+          document: graphDocument,
+        });
+      }
     } catch (error) {
       warnings.push(`解析 ${normalizedPath} 时出错：${String(error)}`);
     }
   }
 
   ensureManifestGroups(document.manifest);
+  ensureStructManifestGroups(document.manifest);
 
   const assignedGraphIds = new Set<string>();
 
@@ -362,6 +515,44 @@ export const loadProjectFromZip = async (
     document.manifest.graphs.push(sanitized);
   }
 
+  const assignedStructIds = new Set<string>();
+
+  for (const entry of manifestStructEntries) {
+    let structId = typeof entry.structId === 'string' && entry.structId.trim().length > 0
+      ? entry.structId.trim()
+      : undefined;
+    if (!structId && typeof entry.path === 'string') {
+      const parsed = parseStructPath(entry.path);
+      if (parsed) {
+        structId = parsed.fileStem;
+      }
+    }
+    if (!structId) {
+      structId = createStructId();
+      warnings.push('manifest.json 中存在缺少 structId 的结构体记录，已自动分配新 ID。');
+    }
+    const available = availableStructFiles.get(structId);
+    if (!available) {
+      warnings.push(`manifest.json 中的结构体 ${structId} 在压缩包中找不到对应 JSON 文件，已跳过。`);
+      continue;
+    }
+    assignedStructIds.add(structId);
+    document.structs![structId] = cloneStructDocument(available.document);
+    const sanitized = sanitizeStructManifest(structId, entry, document);
+    document.manifest.structures?.push(sanitized);
+  }
+
+  for (const [structId, payload] of availableStructFiles.entries()) {
+    if (assignedStructIds.has(structId)) continue;
+    document.structs![structId] = cloneStructDocument(payload.document);
+    const sanitized = sanitizeStructManifest(
+      structId,
+      { path: payload.locationPath, groupName: payload.groupName, groupSlug: payload.groupSlug },
+      document,
+    );
+    document.manifest.structures?.push(sanitized);
+  }
+
   const { document: normalizedDocument, warnings: normalizeWarnings } =
     normalizeProjectDocument(document);
 
@@ -394,6 +585,7 @@ export const saveProjectToZip = async (
       `${definition.topFolder}/${definition.directory}/${DEFAULT_GROUP_SLUG}/`,
     );
   }
+  outputZip.folder(`struct/${DEFAULT_STRUCT_GROUP_SLUG}/`);
 
   const timestamp = options.timestamp ?? new Date().toISOString();
 
@@ -414,6 +606,23 @@ export const saveProjectToZip = async (
     );
     outputZip.file(entry.path, serialized);
   }
+  for (const entry of normalized.manifest.structures ?? []) {
+    const structDoc = normalized.structs?.[entry.structId];
+    if (!structDoc) {
+      warnings.push(`结构体 ${entry.structId} 缺少 JSON 数据，未导出。`);
+      continue;
+    }
+    const serializedStruct = JSON.stringify(
+      {
+        ...structDoc,
+        struct_type: structDoc.struct_type ?? structDoc.struct_ype ?? entry.structType ?? DEFAULT_STRUCT_KIND,
+        struct_ype: structDoc.struct_ype ?? structDoc.struct_type ?? entry.structType ?? DEFAULT_STRUCT_KIND,
+      },
+      null,
+      options.pretty === false ? undefined : 2,
+    );
+    outputZip.file(entry.path, serializedStruct);
+  }
 
   const manifestPayload: ProjectManifest = {
     manifestVersion: normalized.manifest.manifestVersion ?? PROJECT_MANIFEST_VERSION,
@@ -428,6 +637,20 @@ export const saveProjectToZip = async (
         ),
     })),
     groups: normalized.manifest.groups,
+    structGroups: normalized.manifest.structGroups ?? [],
+    structures: (normalized.manifest.structures ?? []).map((entry) => {
+      const derivedSlug = entry.path.split('/')[1] ?? DEFAULT_STRUCT_GROUP_SLUG;
+      const groupSlug = entry.groupSlug ?? derivedSlug;
+      return {
+        ...entry,
+        groupSlug,
+        groupName:
+          entry.groupName ??
+          deriveStructGroupNameFromSlug(
+            groupSlug || slugifyStructGroupName(DEFAULT_STRUCT_GROUP_NAME),
+          ),
+      };
+    }),
   };
 
   outputZip.file(
