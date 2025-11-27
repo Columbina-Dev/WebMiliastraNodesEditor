@@ -14,6 +14,7 @@ import type { ProjectDocument } from '../types/project';
 import {
   DEFAULT_STRUCT_GROUP_NAME,
   DEFAULT_STRUCT_GROUP_SLUG,
+  DEFAULT_STRUCT_KIND,
   STRUCT_KIND_LABELS,
   STRUCT_PARAM_OPTIONS,
   type StructDocument,
@@ -28,6 +29,7 @@ import {
   createStructId,
   deriveStructGroupNameFromSlug,
   ensureStructManifestGroups,
+  resolveStructLocation,
   slugifyStructGroupName,
 } from '../utils/project';
 import './StructureManager.css';
@@ -36,6 +38,8 @@ const ICON_SAVE = new URL('../assets/icons/save.png', import.meta.url).href;
 const ICON_MORE = new URL('../assets/icons/more.png', import.meta.url).href;
 const ICON_SEARCH = new URL('../assets/icons/search.svg', import.meta.url).href;
 const ICON_COPY = new URL('../assets/icons/copy.png', import.meta.url).href;
+
+const DEFAULT_STRUCT_NAME = '默认结构体';
 
 interface StructureManagerProps {
   projectDocument: ProjectDocument | null;
@@ -157,7 +161,11 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   const markStructDirty = useProjectStore((state) => state.markStructDirty);
 
   const [activeKind, setActiveKind] = useState<StructKind>('basic');
-  const [selectedGroup, setSelectedGroup] = useState<string>(DEFAULT_STRUCT_GROUP_SLUG);
+  const [selectedGroupByKind, setSelectedGroupByKind] = useState<Record<StructKind, string>>({
+    basic: DEFAULT_STRUCT_GROUP_SLUG,
+    runtime: DEFAULT_STRUCT_GROUP_SLUG,
+  });
+  const selectedGroup = selectedGroupByKind[activeKind];
   const [selectedStructId, setSelectedStructId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [draft, setDraft] = useState<StructDocument | null>(null);
@@ -177,20 +185,64 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   const importStructInputRef = useRef<HTMLInputElement | null>(null);
   const [expandedGroups, setExpandedGroups] = useState<Record<string, boolean>>({});
   const [showCopyToast, setShowCopyToast] = useState(false);
+  const [infoDialog, setInfoDialog] = useState<{ title: string; message: string } | null>(null);
   const initialStructCreatedRef = useRef<Record<StructKind, boolean>>({ basic: false, runtime: false });
+  const copyToastTimerRef = useRef<number | null>(null);
+  const updateSelectedGroup = useCallback(
+    (slug: string) =>
+      setSelectedGroupByKind((prev) => ({
+        ...prev,
+        [activeKind]: slug || DEFAULT_STRUCT_GROUP_SLUG,
+      })),
+    [activeKind],
+  );
 
   const structGroups = useMemo(() => {
     if (!projectDocument) return [];
-    ensureStructManifestGroups(projectDocument.manifest);
-    const groups = (projectDocument.manifest.structGroups ?? []).filter(
+    const manifestClone = {
+      ...projectDocument.manifest,
+      structGroups: (projectDocument.manifest.structGroups ?? []).map((group) => ({ ...group })),
+    };
+    ensureStructManifestGroups(manifestClone);
+    const groups = (manifestClone.structGroups ?? []).filter(
       (group) => (group.structType ?? DEFAULT_STRUCT_KIND) === activeKind,
     );
     const dedup = new Map<string, typeof groups[number]>();
     groups.forEach((group) => {
-      if (!dedup.has(group.groupSlug)) {
-        dedup.set(group.groupSlug, group);
+      const slug = group.groupSlug || DEFAULT_STRUCT_GROUP_SLUG;
+      if (!dedup.has(slug)) {
+        dedup.set(slug, {
+          ...group,
+          groupSlug: slug,
+          groupName: group.groupName || deriveStructGroupNameFromSlug(slug),
+        });
       }
     });
+    if (!dedup.has(DEFAULT_STRUCT_GROUP_SLUG)) {
+      dedup.set(DEFAULT_STRUCT_GROUP_SLUG, {
+        groupSlug: DEFAULT_STRUCT_GROUP_SLUG,
+        groupName: DEFAULT_STRUCT_GROUP_NAME,
+        structType: activeKind,
+        sortOrder: 0,
+      });
+    }
+    (projectDocument.manifest.structures ?? [])
+      .filter((entry) => (entry.structType ?? DEFAULT_STRUCT_KIND) === activeKind)
+      .forEach((entry, index) => {
+        const resolved = resolveStructLocation(entry.structId, entry.path, {
+          groupNameHint: entry.groupName,
+          preferredGroupSlug: entry.groupSlug,
+          structType: entry.structType ?? activeKind,
+        });
+        if (!dedup.has(resolved.groupSlug)) {
+          dedup.set(resolved.groupSlug, {
+            groupSlug: resolved.groupSlug,
+            groupName: resolved.groupName,
+            structType: activeKind,
+            sortOrder: dedup.size + index,
+          });
+        }
+      });
     return [...dedup.values()].sort((a, b) => {
       const orderA = a.sortOrder ?? 0;
       const orderB = b.sortOrder ?? 0;
@@ -208,25 +260,43 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     if (!structGroups.length) return;
     const exists = structGroups.some((group) => group.groupSlug === selectedGroup);
     if (!exists) {
-      setSelectedGroup(structGroups[0].groupSlug ?? DEFAULT_STRUCT_GROUP_SLUG);
+      updateSelectedGroup(structGroups[0].groupSlug ?? DEFAULT_STRUCT_GROUP_SLUG);
     }
     setExpandedGroups((prev) => {
       const next = { ...prev };
+      let changed = false;
       structGroups.forEach((group) => {
         if (!(group.groupSlug in next)) {
           next[group.groupSlug] = true;
+          changed = true;
         }
       });
-      return next;
+      return changed ? next : prev;
     });
-  }, [selectedGroup, structGroups]);
+  }, [selectedGroup, structGroups, updateSelectedGroup]);
 
   const structEntries = useMemo(() => {
     if (!projectDocument) return [];
     const entries = projectDocument.manifest.structures ?? [];
-    return entries.filter(
-      (entry) => (entry.structType ?? 'basic') === activeKind,
-    );
+    return entries
+      .map((entry) => {
+        const structDoc = projectDocument.structs?.[entry.structId];
+        const structType =
+          entry.structType ?? structDoc?.struct_type ?? structDoc?.struct_ype ?? DEFAULT_STRUCT_KIND;
+        const resolved = resolveStructLocation(entry.structId, entry.path, {
+          groupNameHint: entry.groupName,
+          preferredGroupSlug: entry.groupSlug,
+          structType,
+        });
+        return {
+          ...entry,
+          structType,
+          groupSlug: resolved.groupSlug,
+          groupName: resolved.groupName,
+          path: buildStructPath(structType, resolved.groupSlug, entry.structId),
+        };
+      })
+      .filter((entry) => entry.structType === activeKind);
   }, [activeKind, projectDocument]);
 
   const structsByGroup = useMemo(() => {
@@ -270,20 +340,13 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   );
 
   const selectedStruct = useMemo(() => {
-    if (!projectDocument || !selectedStructId) return null;
-    const base = projectDocument.structs?.[selectedStructId];
+    if (!projectDocument || !selectedStructEntry) return null;
+    const base = projectDocument.structs?.[selectedStructEntry.structId];
     if (!base) return null;
-    return normalizeStructDoc(base, selectedStructId, activeKind);
-  }, [activeKind, projectDocument, selectedStructId]);
+    const kind = selectedStructEntry.structType ?? activeKind;
+    return normalizeStructDoc(base, selectedStructEntry.structId, kind);
+  }, [activeKind, projectDocument, selectedStructEntry]);
   const fields = useMemo(() => (draft && Array.isArray(draft.value) ? draft.value : []), [draft]);
-
-  useEffect(() => {
-    if (!projectDocument) return;
-    if (structEntries.length === 0 && !initialStructCreatedRef.current[activeKind]) {
-      initialStructCreatedRef.current[activeKind] = true;
-      handleCreateStruct();
-    }
-  }, [activeKind, handleCreateStruct, projectDocument, structEntries.length]);
 
   useEffect(() => {
     if (!selectedStruct) {
@@ -356,79 +419,90 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     return () => window.removeEventListener('keydown', handleKey);
   }, [handleRedo, handleUndo]);
 
+  useEffect(
+    () => () => {
+      if (copyToastTimerRef.current) {
+        window.clearTimeout(copyToastTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  useEffect(() => {
+    setShowCopyToast(false);
+  }, [selectedStructEntry?.structId]);
+
   const lastPersistedRef = useRef<string | null>(null);
 
   useEffect(() => {
-    if (!draft || !selectedStructId) return;
+    if (!draft || !selectedStructEntry) return;
+    const structId = selectedStructEntry.structId;
+    const structKind = selectedStructEntry.structType ?? activeKind;
+    const groupSlug = selectedStructEntry.groupSlug || DEFAULT_STRUCT_GROUP_SLUG;
+    const groupName =
+      groupMap.get(groupSlug)?.groupName ?? deriveStructGroupNameFromSlug(groupSlug);
     const fingerprint = JSON.stringify({
-      id: selectedStructId,
-      group: selectedGroup,
-      kind: activeKind,
+      id: structId,
+      group: groupSlug,
+      kind: structKind,
       draft,
     });
     if (lastPersistedRef.current === fingerprint) {
       return;
     }
     lastPersistedRef.current = fingerprint;
-    const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
-    const entry = selectedStructEntry ?? {
-      structId: selectedStructId,
-      name: draft.name,
-      groupSlug: selectedGroup,
-      groupName,
-      path: buildStructPath(activeKind, selectedGroup, selectedStructId),
-      structType: draft.struct_type ?? draft.struct_ype ?? activeKind,
-    };
     const normalizedEntry = {
-      ...entry,
+      ...selectedStructEntry,
       name: draft.name,
-      groupSlug: selectedGroup,
+      groupSlug,
       groupName,
-      path: buildStructPath(activeKind, selectedGroup, selectedStructId),
-      structType: draft.struct_type ?? draft.struct_ype ?? activeKind,
+      path: buildStructPath(structKind, groupSlug, structId),
+      structType: structKind,
       updatedAt: new Date().toISOString(),
     };
-    setStructDocument(selectedStructId, normalizeStructDoc(draft, selectedStructId, activeKind));
+    setStructDocument(structId, normalizeStructDoc(draft, structId, structKind));
     setStructManifestEntry(normalizedEntry);
-    markStructDirty(selectedStructId, true);
-    setSelfRefError(containsSelfReference(draft, selectedStructId));
+    markStructDirty(structId, true);
+    setSelfRefError(containsSelfReference(draft, structId));
   }, [
     activeKind,
     draft,
     groupMap,
     markStructDirty,
-    selectedGroup,
     selectedStructEntry,
-    selectedStructId,
     setStructDocument,
     setStructManifestEntry,
   ]);
 
   const handleCreateStruct = useCallback(() => {
     const structId = createStructId();
+    const targetGroup = selectedGroup || DEFAULT_STRUCT_GROUP_SLUG;
     const structDoc: StructDocument = {
       type: 'Struct',
       struct_type: activeKind,
       struct_ype: activeKind,
-      name: '结构体',
+      name: DEFAULT_STRUCT_NAME,
       config_id: structId,
       value: [],
     };
-    const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+    const normalizedDoc = normalizeStructDoc(structDoc, structId, activeKind);
+    const groupName =
+      groupMap.get(targetGroup)?.groupName ?? deriveStructGroupNameFromSlug(targetGroup);
     const entry = {
       structId,
       name: structDoc.name,
-      groupSlug: selectedGroup,
+      groupSlug: targetGroup,
       groupName,
-      path: buildStructPath(activeKind, selectedGroup, structId),
+      path: buildStructPath(activeKind, targetGroup, structId),
       structType: activeKind,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    setStructDocument(structId, structDoc);
+    setStructDocument(structId, normalizedDoc);
     setStructManifestEntry(entry);
     markStructDirty(structId, true);
     setSelectedStructId(structId);
+    updateSelectedGroup(targetGroup);
   }, [
     activeKind,
     groupMap,
@@ -436,7 +510,16 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     selectedGroup,
     setStructDocument,
     setStructManifestEntry,
+    updateSelectedGroup,
   ]);
+
+  useEffect(() => {
+    if (!projectDocument) return;
+    if (structEntries.length === 0 && !initialStructCreatedRef.current[activeKind]) {
+      initialStructCreatedRef.current[activeKind] = true;
+      handleCreateStruct();
+    }
+  }, [activeKind, handleCreateStruct, projectDocument, structEntries.length]);
 
   const handleDeleteStruct = useCallback(
     (structId: string) => {
@@ -507,10 +590,10 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         );
       });
       if (selectedGroup === groupSlug) {
-        setSelectedGroup(DEFAULT_STRUCT_GROUP_SLUG);
+        updateSelectedGroup(DEFAULT_STRUCT_GROUP_SLUG);
       }
     },
-    [activeKind, selectedGroup, updateDocument],
+    [activeKind, selectedGroup, updateDocument, updateSelectedGroup],
   );
 
   const handleExportGroup = useCallback(
@@ -520,7 +603,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         (entry) => entry.groupSlug === groupSlug && entry.structType === activeKind,
       );
       if (!groupStructs.length) {
-        window.alert('该页签下没有结构体');
+        setInfoDialog({ title: '导出失败', message: '该页签下没有结构体' });
         return;
       }
       const zip = new JSZip();
@@ -536,7 +619,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       link.click();
       URL.revokeObjectURL(link.href);
     },
-    [activeKind, projectDocument],
+    [activeKind, projectDocument, setInfoDialog],
   );
 
   const handleGroupDialogSubmit = useCallback(() => {
@@ -606,16 +689,27 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       if (!file || !draft) return;
       try {
         const text = await file.text();
-        const parsed = JSON.parse(text) as StructEntry['value'][];
-        applyDraftUpdate((doc) => ({ ...doc, value: parsed as unknown as StructEntry[] }));
+        const parsed = JSON.parse(text);
+        if (!Array.isArray(parsed)) {
+          throw new Error('Invalid variables payload');
+        }
+        const normalizedEntries = normalizeStructDoc(
+          {
+            ...draft,
+            value: parsed as unknown as StructEntry[],
+          } as StructDocument,
+          selectedStructEntry?.structId ?? draft.config_id ?? '',
+          selectedStructEntry?.structType ?? activeKind,
+        ).value;
+        applyDraftUpdate((doc) => ({ ...doc, value: normalizedEntries }));
       } catch (error) {
         console.error(error);
-        window.alert('导入失败，请检查JSON格式');
+        setInfoDialog({ title: '导入失败', message: '导入失败，请检查JSON格式' });
       } finally {
         event.target.value = '';
       }
     },
-    [applyDraftUpdate, draft],
+    [activeKind, applyDraftUpdate, draft, selectedStructEntry, setInfoDialog],
   );
 
   const handleImportStructs = useCallback(
@@ -623,7 +717,8 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       const files = Array.from(event.target.files ?? []);
       event.target.value = '';
       if (!files.length) return;
-      const groupName = groupMap.get(selectedGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+      const groupName =
+        groupMap.get(selectedGroup)?.groupName ?? deriveStructGroupNameFromSlug(selectedGroup);
       for (const file of files) {
         try {
           const text = await file.text();
@@ -647,7 +742,10 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           setSelectedStructId(structId);
         } catch (error) {
           console.error(error);
-          window.alert(`导入失败：${String(error)}`);
+          setInfoDialog({
+            title: '导入失败',
+            message: `导入失败：${String(error)}`,
+          });
         }
       }
     },
@@ -656,6 +754,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       groupMap,
       markStructDirty,
       selectedGroup,
+      setInfoDialog,
       setStructDocument,
       setStructManifestEntry,
     ],
@@ -676,6 +775,14 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
       navigator.clipboard.writeText(selectedStructEntry.structId).catch(() => undefined);
     }
+    if (copyToastTimerRef.current) {
+      window.clearTimeout(copyToastTimerRef.current);
+    }
+    setShowCopyToast(true);
+    copyToastTimerRef.current = window.setTimeout(() => {
+      setShowCopyToast(false);
+      copyToastTimerRef.current = null;
+    }, 1400);
   }, [selectedStructEntry]);
 
   const startMoveStruct = useCallback((structId: string) => {
@@ -688,11 +795,12 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       const entry = structEntries.find((item) => item.structId === moveTargetStruct);
       if (!entry) return;
       const groupName = groupMap.get(targetGroup)?.groupName ?? DEFAULT_STRUCT_GROUP_NAME;
+      const structType = entry.structType ?? activeKind;
       const nextEntry = {
         ...entry,
         groupSlug: targetGroup,
         groupName,
-        path: buildStructPath(activeKind, targetGroup, moveTargetStruct),
+        path: buildStructPath(structType, targetGroup, moveTargetStruct),
       };
       setStructManifestEntry(nextEntry);
       markStructDirty(moveTargetStruct, true);
@@ -701,7 +809,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       }
       setMoveTargetStruct(null);
     },
-    [groupMap, markStructDirty, selectedGroup, setStructManifestEntry, structEntries, moveTargetStruct],
+    [activeKind, groupMap, markStructDirty, selectedGroup, setStructManifestEntry, structEntries, moveTargetStruct],
   );
 
   const handleAddField = useCallback(() => {
@@ -734,7 +842,9 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       applyDraftUpdate((doc) => {
         const current = Array.isArray(doc.value) ? doc.value : [];
         const next = [...current];
-        next[index] = updater(next[index]);
+        const currentEntry = next[index];
+        if (!currentEntry) return doc;
+        next[index] = updater(currentEntry);
         return { ...doc, value: next };
       });
     },
@@ -747,7 +857,9 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         const current = Array.isArray(doc.value) ? doc.value : [];
         const next = [...current];
         const targetIndex = index + delta;
-        if (targetIndex < 0 || targetIndex >= next.length) return doc;
+        if (index < 0 || index >= next.length || targetIndex < 0 || targetIndex >= next.length) {
+          return doc;
+        }
         const [item] = next.splice(index, 1);
         next.splice(targetIndex, 0, item);
         return { ...doc, value: next };
@@ -758,7 +870,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   const handleFieldCopy = useCallback(
     (entry: StructEntry) => {
-      setFieldClipboard(cloneStruct({ type: 'Struct', name: '', value: [entry] } as unknown as StructDocument).value[0]);
+      setFieldClipboard(JSON.parse(JSON.stringify(entry)) as StructEntry);
     },
     [],
   );
@@ -766,7 +878,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   const handleFieldPaste = useCallback(
     (index: number) => {
       if (!fieldClipboard) return;
-      handleFieldChange(index, () => cloneStruct({ type: 'Struct', name: '', value: [fieldClipboard] } as unknown as StructDocument).value[0]);
+      handleFieldChange(index, () => JSON.parse(JSON.stringify(fieldClipboard)) as StructEntry);
     },
     [fieldClipboard, handleFieldChange],
   );
@@ -854,11 +966,17 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     const [item] = ordered.splice(sourceIndex, 1);
     ordered.splice(targetIndex, 0, item);
     updateDocument((draftDoc) => {
-      draftDoc.manifest.structGroups = ordered.map((group, index) => ({
+      ensureStructManifestGroups(draftDoc.manifest);
+      const remaining =
+        draftDoc.manifest.structGroups?.filter(
+          (group) => (group.structType ?? DEFAULT_STRUCT_KIND) !== activeKind,
+        ) ?? [];
+      const reordered = ordered.map((group, index) => ({
         ...group,
+        structType: activeKind,
         sortOrder: index,
       }));
-      ensureStructManifestGroups(draftDoc.manifest);
+      draftDoc.manifest.structGroups = [...remaining, ...reordered];
     });
   };
 
@@ -885,28 +1003,41 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     });
   };
 
+  const renderVectorFields = (
+    parts: [string, string, string],
+    onAxisChange: (axisIndex: number, value: string) => void,
+    extraClassName?: string,
+  ) => (
+    <div className={classNames('struct-editor__vector', extraClassName)}>
+      {(['X', 'Y', 'Z'] as const).map((axis, axisIndex) => (
+        <label
+          key={axis}
+          className={classNames('struct-editor__vector-cell', {
+            [`struct-editor__vector-cell--${axis.toLowerCase()}`]: true,
+          })}
+        >
+          <span className="struct-editor__vector-tag">{axis}</span>
+          <input
+            value={parts[axisIndex]}
+            onChange={(event) => onAxisChange(axisIndex, event.target.value)}
+          />
+        </label>
+      ))}
+    </div>
+  );
+
   const renderValueInput = (entry: StructEntry, index: number) => {
     const { param_type } = entry;
     if (param_type === 'Vector3') {
       const parts = parseVector((entry.value as { value: string }).value);
-      return (
-        <div className="struct-editor__vector">
-          {['X', 'Y', 'Z'].map((axis, axisIndex) => (
-            <input
-              key={axis}
-              value={parts[axisIndex]}
-              onChange={(event) => {
-                const next = [...parts] as [string, string, string];
-                next[axisIndex] = event.target.value;
-                handleFieldChange(index, (prev) => ({
-                  ...prev,
-                  value: { param_type: prev.value.param_type, value: joinVector(next) },
-                }));
-              }}
-            />
-          ))}
-        </div>
-      );
+      return renderVectorFields(parts, (axisIndex, value) => {
+        const next = [...parts] as [string, string, string];
+        next[axisIndex] = value;
+        handleFieldChange(index, (prev) => ({
+          ...prev,
+          value: { param_type: prev.value.param_type, value: joinVector(next) },
+        }));
+      });
     }
 
     if (param_type === 'Dict') {
@@ -956,7 +1087,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   placeholder="键"
                 />
                 <input
-                  value={(item.value as { value?: unknown })?.value ?? (item.value as unknown as string) ?? ''}
+                  value={String((item.value as { value?: unknown })?.value ?? (item.value as unknown as string) ?? '')}
                   onChange={(event) =>
                     handleDictChange(index, (prev) => {
                       const nextList = [...(prev.value ?? [])];
@@ -1042,20 +1173,14 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                 {param_type === 'Vector3List' ? (
                   (() => {
                     const parts = parseVector(value ?? '0,0,0');
-                    return (
-                      <>
-                        {['X', 'Y', 'Z'].map((axis, axisIndex) => (
-                          <input
-                            key={axis}
-                            value={parts[axisIndex]}
-                            onChange={(event) => {
-                              const nextParts = [...parts] as [string, string, string];
-                              nextParts[axisIndex] = event.target.value;
-                              handleListItemChange(index, itemIndex, joinVector(nextParts));
-                            }}
-                          />
-                        ))}
-                      </>
+                    return renderVectorFields(
+                      parts as [string, string, string],
+                      (axisIndex, inputValue) => {
+                        const nextParts = [...parts] as [string, string, string];
+                        nextParts[axisIndex] = inputValue;
+                        handleListItemChange(index, itemIndex, joinVector(nextParts));
+                      },
+                      'struct-editor__vector--list',
                     );
                   })()
                 ) : (
@@ -1215,7 +1340,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   data-tree-id={group.groupSlug}
                   className={classNames('structure-manager__group', { 'is-active': isActiveGroup })}
                   onClick={() => {
-                    setSelectedGroup(group.groupSlug);
+                    updateSelectedGroup(group.groupSlug);
                     setExpandedGroups((prev) => ({ ...prev, [group.groupSlug]: !isExpanded }));
                   }}
                   onDragStart={() => {
@@ -1230,35 +1355,31 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                 </button>
                 {isExpanded && (
                   <div className="structure-manager__tree-list">
-                    {entries.length === 0 ? (
-                      <div className="structure-manager__empty">暂无结构体</div>
-                    ) : (
-                      entries.map((entry) => {
-                        const isActive = entry.structId === selectedStructId;
-                        const isDirty = Boolean(dirtyStructIds[entry.structId]);
-                        return (
-                          <div
-                            key={entry.structId}
-                            data-tree-type="struct"
-                            data-tree-id={entry.structId}
-                            draggable
-                            onDragStart={() => {
-                              dropInfoRef.current = { type: 'struct', id: entry.structId };
-                            }}
-                            onDragOver={(event) => event.preventDefault()}
-                            onDrop={(event) => handleStructDrop(event, entry.structId)}
-                            className={classNames('structure-manager__list-item', { 'is-active': isActive })}
-                            onClick={() => {
-                              setSelectedGroup(group.groupSlug);
-                              setSelectedStructId(entry.structId);
-                            }}
-                          >
-                            <span>{entry.name}</span>
-                            {isDirty && <span className="structure-manager__dirty">*</span>}
-                          </div>
-                        );
-                      })
-                    )}
+                    {entries.map((entry) => {
+                      const isActive = entry.structId === selectedStructId;
+                      const isDirty = Boolean(dirtyStructIds[entry.structId]);
+                      return (
+                        <div
+                          key={entry.structId}
+                          data-tree-type="struct"
+                          data-tree-id={entry.structId}
+                          draggable
+                          onDragStart={() => {
+                            dropInfoRef.current = { type: 'struct', id: entry.structId };
+                          }}
+                          onDragOver={(event) => event.preventDefault()}
+                          onDrop={(event) => handleStructDrop(event, entry.structId)}
+                          className={classNames('structure-manager__list-item', { 'is-active': isActive })}
+                          onClick={() => {
+                            updateSelectedGroup(group.groupSlug);
+                            setSelectedStructId(entry.structId);
+                          }}
+                        >
+                          <span>{entry.name}</span>
+                          {isDirty && <span className="structure-manager__dirty">*</span>}
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -1286,13 +1407,17 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   onChange={(event) => handleRenameStruct(event.target.value)}
                   onBlur={(event) => handleRenameStruct(event.target.value)}
                 />
-                <span className="struct-editor__config">配置ID: {selectedStructEntry.structId}</span>
-                <img
-                  src={ICON_COPY}
-                  alt="复制配置ID"
-                  className="struct-editor__copy"
-                  onClick={handleCopyConfigId}
-                />
+                <div className="struct-editor__config-block">
+                  <span className="struct-editor__config">配置ID: {selectedStructEntry.structId}</span>
+                  <button type="button" className="struct-editor__copy-button" onClick={handleCopyConfigId}>
+                    <img
+                      src={ICON_COPY}
+                      alt="复制配置ID"
+                      className="struct-editor__copy"
+                    />
+                  </button>
+                  {showCopyToast && <span className="struct-editor__copy-toast">已复制</span>}
+                </div>
               </div>
               <div className="struct-editor__actions">
                 <button
@@ -1495,6 +1620,26 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
               </button>
               <button type="button" onClick={() => setPendingDeleteStructId(null)}>
                 取消
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+
+      {infoDialog && (
+        <div
+          className="home__confirm-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setInfoDialog(null)}
+        >
+          <div className="home__confirm" role="document" onClick={(event) => event.stopPropagation()}>
+            <h3>{infoDialog.title}</h3>
+            <p>{infoDialog.message}</p>
+            <div className="home__confirm-actions">
+              <button type="button" onClick={() => setInfoDialog(null)}>
+                确定
               </button>
             </div>
           </div>

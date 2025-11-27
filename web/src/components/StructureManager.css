@@ -183,6 +183,8 @@
   display: flex;
   align-items: center;
   gap: 12px;
+  position: relative;
+  flex-wrap: wrap;
 }
 
 .struct-editor__title input {
@@ -198,14 +200,53 @@
   color: #9aa5c4;
   font-size: 12px;
 }
+.struct-editor__config-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.struct-editor__copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: #0f1422;
+  border: 1px solid #2f3b56;
+  border-radius: 8px;
+  cursor: var(--cursor-pointer);
+  padding: 4px;
+}
 .struct-editor__copy {
   width: 16px;
   height: 16px;
-  cursor: var(--cursor-pointer);
-  opacity: 0.8;
+  opacity: 0.85;
 }
 .struct-editor__copy:hover {
   opacity: 1;
+}
+.struct-editor__copy-toast {
+  position: absolute;
+  right: 0;
+  top: -24px;
+  background: #1f2738;
+  color: #dfe6fb;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 12px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  animation: struct-copy-toast 0.25s ease forwards;
+}
+@keyframes struct-copy-toast {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .struct-editor__actions {
@@ -214,14 +255,19 @@
 .struct-editor__actions-toggle {
   background: #24304a;
   border: 1px solid #2f3b56;
-  border-radius: 8px;
-  padding: 8px;
+  border-radius: 10px;
+  padding: 6px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   cursor: var(--cursor-pointer);
 }
 .struct-editor__actions-menu {
   position: absolute;
   right: 0;
-  top: 42px;
+  top: 44px;
   background: #0f1422;
   border: 1px solid #2f3b56;
   border-radius: 10px;
@@ -229,8 +275,11 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 160px;
-  z-index: 10;
+  width: max-content;
+  min-width: 140px;
+  max-width: 220px;
+  z-index: 40;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
 }
 .struct-editor__actions-menu button {
   width: 100%;
@@ -282,7 +331,7 @@
   border-radius: 8px;
   border: 1px solid #2a3244;
   background: #0f1422;
-  overflow: hidden;
+  overflow: visible;
   transition: background 0.15s ease, color 0.15s ease;
 }
 
@@ -323,14 +372,17 @@
 .struct-editor__row-menu {
   display: none;
   position: absolute;
-  top: 28px;
+  top: 38px;
   left: 0;
   background: #111728;
   border: 1px solid #2f3b56;
   border-radius: 8px;
   padding: 6px;
-  z-index: 5;
+  z-index: 60;
+  width: max-content;
   min-width: 120px;
+  max-width: 200px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
 }
 
 .struct-editor__row-menu.is-open {
@@ -351,6 +403,9 @@
 .struct-editor__row-menu button:hover {
   background: #1f2638;
 }
+.struct-editor__row-menu .is-danger {
+  color: #ff7b7b;
+}
 
 .struct-editor__name,
 .struct-editor__type select,
@@ -367,6 +422,7 @@
 }
 
 .struct-editor__name input,
+.struct-editor__name,
 .struct-editor__type select,
 .struct-editor__value input,
 .struct-editor__value select,
@@ -444,6 +500,58 @@
   gap: 8px;
   align-items: center;
 }
+.struct-editor__vector {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.struct-editor__vector--list {
+  width: 100%;
+}
+.struct-editor__vector--list .struct-editor__vector-cell {
+  flex: 1 1 0;
+}
+.struct-editor__vector-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f1422;
+  border: 1px solid #2a3244;
+  border-radius: 8px;
+  padding: 6px 8px;
+}
+.struct-editor__vector-tag {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 700;
+  color: #0d1320;
+}
+.struct-editor__vector-cell--x .struct-editor__vector-tag {
+  background: #ffb3b3;
+}
+.struct-editor__vector-cell--y .struct-editor__vector-tag {
+  background: #b6ffba;
+}
+.struct-editor__vector-cell--z .struct-editor__vector-tag {
+  background: #a5c7ff;
+}
+.struct-editor__vector-cell input {
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  padding: 4px 6px;
+  min-width: 70px;
+  width: 80px;
+  flex: 1 1 80px;
+}
+.struct-editor__vector-cell input:focus {
+  outline: 1px solid #4c7dff;
+}
 
 .struct-editor__add-row {
   padding: 10px;
@@ -476,7 +584,9 @@
   border-radius: 8px;
   padding: 6px;
   z-index: 20;
-  min-width: 160px;
+  width: max-content;
+  min-width: 140px;
+  max-width: 240px;
 }
 
 .struct-manager__menu button {
@@ -513,4 +623,12 @@
   background: #1c2232;
   border: 1px solid #2f3b56;
   border-radius: 8px;
+}
+
+.home__confirm-message input {
+  background: #0f1422;
+  border: 1px solid #2a3244;
+  color: #dfe6fb;
+  padding: 10px 12px;
+  border-radius: 10px;
 }
