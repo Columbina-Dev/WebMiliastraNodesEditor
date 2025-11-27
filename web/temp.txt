@@ -410,7 +410,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       type: 'Struct',
       struct_type: activeKind,
       struct_ype: activeKind,
-      name: '结构体',
+      name: '结构�?,
       config_id: structId,
       value: [],
     };
@@ -520,7 +520,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         (entry) => entry.groupSlug === groupSlug && entry.structType === activeKind,
       );
       if (!groupStructs.length) {
-        window.alert('该页签下没有结构体');
+        window.alert('该页签下没有结构�?);
         return;
       }
       const zip = new JSZip();
@@ -647,7 +647,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           setSelectedStructId(structId);
         } catch (error) {
           console.error(error);
-          window.alert(`导入失败：${String(error)}`);
+          window.alert(`导入失败�?{String(error)}`);
         }
       }
     },
@@ -914,7 +914,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       return (
         <div className="struct-editor__dict">
           <div className="struct-editor__dict-row">
-            <label>键类型</label>
+            <label>键类�?/label>
             <select
               value={payload.key_type}
               onChange={(event) =>
@@ -927,7 +927,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                 </option>
               ))}
             </select>
-            <label>值类型</label>
+            <label>值类�?/label>
             <select
               value={payload.value_type}
               onChange={(event) =>
@@ -953,7 +953,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                       return { ...prev, value: nextList };
                     })
                   }
-                  placeholder="键"
+                  placeholder="�?
                 />
                 <input
                   value={(item.value as { value?: unknown })?.value ?? (item.value as unknown as string) ?? ''}
@@ -970,7 +970,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                       return { ...prev, value: nextList };
                     })
                   }
-                  placeholder="值"
+                  placeholder="�?
                 />
                 <button
                   type="button"
@@ -997,7 +997,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                 }))
               }
             >
-              添加键值
+              添加键�?
             </button>
           </div>
         </div>
@@ -1031,7 +1031,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       return (
         <div className="struct-editor__list">
           <div className="struct-editor__list-header">
-            <span>列表项</span>
+            <span>列表�?/span>
             <button type="button" onClick={() => handleAddListItem(index)}>
               +
             </button>
@@ -1107,7 +1107,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           style={{ left: contextMenu.x, top: contextMenu.y }}
           onClick={(event) => event.stopPropagation()}
         >
-          <button type="button" onClick={() => { handleRenameGroup(contextMenu.groupSlug); closeContextMenu(); }}>重命名</button>
+          <button type="button" onClick={() => { handleRenameGroup(contextMenu.groupSlug); closeContextMenu(); }}>重命�?/button>
           <button type="button" onClick={() => { handleDeleteGroup(contextMenu.groupSlug); closeContextMenu(); }}>解散页签</button>
           <button type="button" onClick={() => { handleExportGroup(contextMenu.groupSlug); closeContextMenu(); }}>导出</button>
         </div>
@@ -1136,8 +1136,8 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         style={{ left: contextMenu.x, top: contextMenu.y }}
         onClick={(event) => event.stopPropagation()}
       >
-        <button type="button" onClick={() => { handleCreateStruct(); closeContextMenu(); }}>新建结构体</button>
-        <button type="button" onClick={() => { importInputRef.current?.click(); closeContextMenu(); }}>导入结构体</button>
+        <button type="button" onClick={() => { handleCreateStruct(); closeContextMenu(); }}>新建结构�?/button>
+        <button type="button" onClick={() => { importInputRef.current?.click(); closeContextMenu(); }}>导入结构�?/button>
         <button type="button" onClick={() => { handleCreateGroup(); closeContextMenu(); }}>新建页签</button>
         <button type="button" onClick={() => { /* 导入页签 */ closeContextMenu(); }}>导入页签</button>
       </div>
@@ -1178,7 +1178,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           <img src={ICON_SEARCH} alt="" aria-hidden="true" />
           <input
             type="text"
-            placeholder="搜索结构体"
+            placeholder="搜索结构�?
             value={searchTerm}
             onChange={(event) => setSearchTerm(event.target.value)}
           />
@@ -1225,13 +1225,13 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   onDragOver={(event) => event.preventDefault()}
                   onDrop={(event) => handleGroupDrop(event, group.groupSlug)}
                 >
-                  <span className="structure-manager__group-arrow">{isExpanded ? '▾' : '▸'}</span>
+                  <span className="structure-manager__group-arrow">{isExpanded ? '�? : '�?}</span>
                   <span className="structure-manager__group-label">{group.groupName}</span>
                 </button>
                 {isExpanded && (
                   <div className="structure-manager__tree-list">
                     {entries.length === 0 ? (
-                      <div className="structure-manager__empty">暂无结构体</div>
+                      <div className="structure-manager__empty">暂无结构�?/div>
                     ) : (
                       entries.map((entry) => {
                         const isActive = entry.structId === selectedStructId;
@@ -1267,7 +1267,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         </div>
         <div className="structure-manager__footer">
           <button type="button" className="structure-manager__action" onClick={handleCreateStruct}>
-            + 创建结构体
+            + 创建结构�?
           </button>
           <button type="button" className="structure-manager__action" onClick={onRequestSave}>
             <img src={ICON_SAVE} alt="" aria-hidden="true" />
@@ -1314,7 +1314,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                     <button type="button" onClick={handlePasteStruct}>粘贴</button>
                     <button type="button" onClick={handleExportVariables}>导出变量</button>
                     <button type="button" onClick={handleImportVariables}>导入变量</button>
-                    <button type="button" onClick={handleExportStruct}>导出结构体</button>
+                    <button type="button" onClick={handleExportStruct}>导出结构�?/button>
                     <button type="button" onClick={() => startMoveStruct(selectedStructEntry.structId)}>更改页签</button>
                     <button
                       type="button"
@@ -1414,7 +1414,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
             </div>
           </>
         ) : (
-          <div className="struct-editor__empty">请选择结构体以开始编辑</div>
+          <div className="struct-editor__empty">请选择结构体以开始编�?/div>
         )}
       </div>
 
@@ -1467,7 +1467,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         <div className="home__confirm-backdrop" role="alertdialog" aria-modal="true">
           <div className="home__confirm" role="document">
             <h3>错误</h3>
-            <p>当前结构体存在非法结构，无法保存。</p>
+            <p>当前结构体存在非法结构，无法保存�?/p>
             <div className="home__confirm-actions">
               <button type="button" onClick={() => setSelfRefError(false)}>
                 关闭
@@ -1480,7 +1480,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       {pendingDeleteStructId && (
         <div className="home__confirm-backdrop" role="dialog" aria-modal="true">
           <div className="home__confirm" role="document">
-            <h3>删除结构体</h3>
+            <h3>删除结构�?/h3>
             <p>确认删除该结构体吗？</p>
             <div className="home__confirm-actions">
               <button
@@ -1504,7 +1504,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       {groupDialog && (
         <div className="home__confirm-backdrop" role="dialog" aria-modal="true">
           <div className="home__confirm" role="document" onClick={(event) => event.stopPropagation()}>
-            <h3>{groupDialog.mode === 'create' ? '新建页签' : '重命名页签'}</h3>
+            <h3>{groupDialog.mode === 'create' ? '新建页签' : '重命名页�?}</h3>
             <div className="home__confirm-message">
               <input
                 type="text"
@@ -1529,3 +1529,4 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 };
 
 export default StructureManager;
+
