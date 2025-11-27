@@ -264,6 +264,10 @@
   justify-content: center;
   cursor: var(--cursor-pointer);
 }
+.struct-editor__actions-icon {
+  width: 14px;
+  height: 14px;
+}
 .struct-editor__actions-menu {
   position: absolute;
   right: 0;
@@ -502,14 +506,8 @@
 }
 .struct-editor__vector {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
-}
-.struct-editor__vector--list {
-  width: 100%;
-}
-.struct-editor__vector--list .struct-editor__vector-cell {
-  flex: 1 1 0;
 }
 .struct-editor__vector-cell {
   display: inline-flex;
@@ -519,6 +517,11 @@
   border: 1px solid #2a3244;
   border-radius: 8px;
   padding: 6px 8px;
+  flex: 1 1 calc((100% - 12px) / 3);
+  min-width: 70px;
+}
+.struct-editor__vector--list .struct-editor__vector-cell {
+  flex: 1 1 calc((100% - 12px) / 3);
 }
 .struct-editor__vector-tag {
   width: 18px;
@@ -546,8 +549,8 @@
   color: #e5e9f0;
   padding: 4px 6px;
   min-width: 70px;
-  width: 80px;
-  flex: 1 1 80px;
+  width: 100%;
+  flex: 1 1 auto;
 }
 .struct-editor__vector-cell input:focus {
   outline: 1px solid #4c7dff;
