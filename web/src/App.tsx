@@ -824,11 +824,11 @@ const App = () => {
     [handleImportProjectDocument],
   );
 
-  const handleManualSave = useCallback(() => {
+  const performProjectSave = useCallback(() => {
     const store = useProjectStore.getState();
     if (!store.document || !store.projectId) {
       window.alert("当前没有打开的项目。");
-      return;
+      return false;
     }
     const { document: normalized } = normalizeProjectDocument(store.document);
     updateDocument(() => normalized);
@@ -849,7 +849,17 @@ const App = () => {
     });
     autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
     showSaveToast("已保存到浏览器本地存储");
+    return true;
   }, [refreshHistory, showSaveToast, updateDocument]);
+
+  const handleManualSave = useCallback(() => {
+    const store = useProjectStore.getState();
+    const validator = store.structSaveValidator;
+    if (validator) {
+      return validator();
+    }
+    return performProjectSave();
+  }, [performProjectSave]);
 
   const handleExportProject = useCallback(async () => {
     const store = useProjectStore.getState();
@@ -948,7 +958,9 @@ const App = () => {
       cancelLabel: "取消",
       onConfirm: () => {
         setGilDialog(null);
-        handleManualSave();
+        if (!handleManualSave()) {
+          return;
+        }
         pickTemplateFile();
       },
       onCancel: () => setGilDialog(null),
@@ -1262,7 +1274,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     (tabId: TabId) => {
       const targetTab = openTabs.find((tab) => tab.id === tabId);
       if (targetTab?.type === 'struct' && Object.keys(dirtyStructIds).length > 0) {
-        handleManualSave();
+        const saved = handleManualSave();
+        if (!saved) {
+          return;
+        }
       }
       closeTab(tabId);
     },
@@ -1796,7 +1811,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           <StructureManager
             projectDocument={projectDocument}
             dirtyStructIds={dirtyStructIds}
-            onRequestSave={handleManualSave}
+            onRequestSave={performProjectSave}
           />
         ) : (
           <ResourceExplorer

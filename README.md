@@ -176,7 +176,7 @@ npm run dev
 
 - 首次打开新版*时，会自动扫描旧版仅包含单个节点图的存档，并转换成完整工程，统一放置在 `server/entity/default` 目录下。  
 - 自动保存与历史项目会按照时间排序，支持一键导出所有项目的Zip。  
-- 可在 "文件/编辑项目信息" 为项目重命名，不需要重新导出并导入。
+- 可在 "文件/编辑项目信息" 为项目重命名，不需要导出修改并导入。
 
 \* - 新版指 v0.9.70 及之后版本。早期版本仅支持单个节点图的存档。
 
@@ -313,7 +313,7 @@ interface DataPortDefinition {
 }
 ```
 
-### 定义文件划分
+### 节点定义文件
 
 > [!IMPORTANT]  
 > 注意：`web/src/data/nodeDefinitions.ts`文件中**所有**节点的定义均由AI根据官方节点图编辑器截图推断，可能存在错误或不完整之处，如有任何问题，请在Issue中提出
@@ -333,4 +333,4 @@ export const serverNodeList = [
 
 ## 特别鸣谢
 - [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件
-- [Wu-Yijun](https://github.com/Wu-Yijun) - 提供 gia.proto 帮助编码/解码 .gia 文件
+- [Wu-Yijun](https://github.com/Wu-Yijun) - 提供 gia.proto及其他工具 帮助编码/解码 .gia 文件
