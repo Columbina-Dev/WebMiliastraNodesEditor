@@ -331,15 +331,20 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   useEffect(() => {
     if (visibleStructs.length === 0) {
-      setSelectedStructId(null);
-      setDraft(null);
+      if (selectedStructId !== null) {
+        setSelectedStructId(null);
+      }
+      setDraft((prev) => (prev ? null : prev));
       historyRef.current = [];
       futureRef.current = [];
       return;
     }
     const exists = visibleStructs.some((entry) => entry.structId === selectedStructId);
     if (!exists) {
-      setSelectedStructId(visibleStructs[0].structId);
+      const nextStructId = visibleStructs[0]?.structId ?? null;
+      if (nextStructId && nextStructId !== selectedStructId) {
+        setSelectedStructId(nextStructId);
+      }
     }
   }, [selectedStructId, visibleStructs]);
 
