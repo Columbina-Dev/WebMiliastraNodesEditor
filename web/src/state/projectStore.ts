@@ -94,6 +94,8 @@ interface ProjectWorkspaceState {
   activateTab: (tabId: TabId) => void;
   markGraphDirty: (graphId: string, dirty?: boolean) => void;
   markStructDirty: (structId: string, dirty?: boolean) => void;
+  structSaveValidator: (() => boolean) | null;
+  setStructSaveValidator: (validator: (() => boolean) | null) => void;
   createGroup: (
     topFolder: ProjectTopFolder,
     categoryKey: string,
@@ -132,6 +134,8 @@ const createInitialState = (): ProjectWorkspaceState => ({
   activateTab: () => undefined,
   markGraphDirty: () => undefined,
   markStructDirty: () => undefined,
+  structSaveValidator: null,
+  setStructSaveValidator: () => undefined,
   createGroup: () => null,
   duplicateGroup: () => null,
   deleteGroup: () => undefined,
@@ -700,6 +704,9 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       }
       return { dirtyStructIds: next };
     });
+  },
+  setStructSaveValidator: (validator) => {
+    set(() => ({ structSaveValidator: validator }));
   },
   createGroup: (topFolder, categoryKey, requestedName) => {
     const current = get().document;
