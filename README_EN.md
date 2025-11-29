@@ -70,7 +70,7 @@ npm run dev
   1. Window:  
       - Server Node Graph Resource Manager: Switch to the `Server Node Graph Resource Manager` tab
       - Client Node Graph Resource Manager: Switch to the `Client Node Graph Resource Manager` tab
-      - Return to Homepage: Return to the [Homepage](#homepage-introduction)
+      - Return to Homepage: Return to the [Homepage](#homepage)
   2. File:  
       - Save Project: Manually save the currently opened node graph project to the browser's local storage (use `Ctrl+S` outside of node graph tabs)
       - Edit Project Info: Modify the name of the currently opened node graph project
