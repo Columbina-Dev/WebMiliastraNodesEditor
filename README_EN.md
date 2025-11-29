@@ -85,7 +85,7 @@ npm run dev
   10. Node graph categories
   11. Node graph folders/tabs
   12. Return to the last hovered path
-  13. Reset the `12-Return to the last hovered path` action
+  13. Undo `12-Return to the last hovered path` 
   14. Path display, click to quickly jump to the path
   15. Search current path's tabs/node graphs
   16. Tabs/node graph list  
