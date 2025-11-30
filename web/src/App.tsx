@@ -36,6 +36,7 @@ import {
   saveProjectToZip,
 } from "./utils/projectIO";
 import { exportGraphsToGil } from "./lib/gil/export";
+import { exportGiaDocument } from "./lib/gia/exporter";
 import VERSION_INFO from "./config/version";
 import type { AutoSaveEntry, LayoutState, StoredProject } from "./utils/storage";
 import {
@@ -1006,11 +1007,15 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, projectDocument]);
+  }, [activeGraphId, projectDocument, setGilDialog]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {
-      window.alert("当前没有打开的节点图。");
+      setGilDialog({
+        title: ".gia导出",
+        message: "当前没有打开的节点图。",
+        confirmLabel: "知道了",
+      });
       return;
     }
     const graphState = useGraphStore.getState();
@@ -1040,6 +1045,69 @@ const handleSaveGraphAs = useCallback(() => {
     link.click();
     URL.revokeObjectURL(link.href);
   }, [activeGraphId, projectDocument]);
+
+  const handleExportGiaPrototype = useCallback(() => {
+    if (!activeGraphId) {
+      setGilDialog({
+        title: ".gia??????",
+        message: "???????????",
+        confirmLabel: "???",
+      });
+      return;
+    }
+    const graphState = useGraphStore.getState();
+    const exportedGraph = graphState.exportGraph();
+    const manifestEntry = projectDocument?.manifest.graphs.find(
+      (entry) => entry.graphId === activeGraphId,
+    );
+    const resolvedLocation = resolveGraphLocation(activeGraphId, manifestEntry?.path, {
+      groupNameHint: manifestEntry?.groupName,
+    });
+    const environment: GraphEnvironment =
+      exportedGraph.environment ?? resolveEnvironmentFromLocation(resolvedLocation.location);
+    const exportPayload: GraphDocument = {
+      ...exportedGraph,
+      environment,
+    };
+    try {
+      const result = exportGiaDocument(exportPayload);
+      const link = window.document.createElement("a");
+      link.href = URL.createObjectURL(result.blob);
+      link.download = result.fileName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      if (result.warnings.length > 0) {
+        setGilDialog({
+          title: ".gia导出（实验）",
+          message: (
+            <div>
+              <p>.gia导出完成，但存在以下限制：</p>
+              <ul>
+                {result.warnings.map((warning, index) => (
+                  <li key={`${index}-${warning}`}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          confirmLabel: "确认",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      setGilDialog({
+        title: ".gia导出失败",
+        message: (
+          <div>
+            <p>.gia导出失败：请查看控制台以获取更多信息。</p>
+            {error instanceof Error && error.message ? (
+              <pre>{error.message}</pre>
+            ) : null}
+          </div>
+        ),
+        confirmLabel: "知道了",
+      });
+    }
+  }, [activeGraphId, projectDocument, setGilDialog]);
 
   const handleSaveAsCancel = useCallback(() => {
     setSaveAsDialog(null);
@@ -1980,6 +2048,15 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               >
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
                 <span className="sr-only">导出节点图</span>
+              </button>
+              <button
+                type="button"
+                className="action_dock__button"
+                onClick={handleExportGiaPrototype}
+                title="导出为.gia文件（实验）"
+              >
+                <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
+                <span className="sr-only">导出.gia（实验）</span>
               </button>
             </div>
           )}

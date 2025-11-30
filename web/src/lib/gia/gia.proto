@@ -1,5 +1,5 @@
 syntax = "proto3";
-// @version: 1.2.0
+// @version: 1.2.5
 // package gia;
 
 message Root {
@@ -243,7 +243,7 @@ enum VarType {
   EntityList = 13;
   EnumItem = 14;
   VectorList = 15;
-
+  LocalVariable = 16;
   Faction = 17;
 
   Configuration = 20;
@@ -254,6 +254,7 @@ enum VarType {
   Struct = 25;
   StructList = 26;
   Dictionary = 27;
+  VariableSnapshot = 28;
 }
 message GraphVariable {
   string name = 2;
