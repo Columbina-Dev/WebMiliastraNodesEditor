@@ -91,6 +91,7 @@ type LightweightDialog = {
   onConfirm?: () => void;
   onCancel?: () => void;
 };
+type DialogRequest = Omit<LightweightDialog, 'onConfirm' | 'onCancel'>;
 
 const sanitizeFileName = (name: string) => {
   const trimmed = name.trim();
@@ -106,6 +107,55 @@ const formatExecutionInterval = (value: number) => {
   }
   const rounded = Number(value.toFixed(3));
   return rounded.toString();
+};
+
+const tokenizeVersion = (value?: string): number[] => {
+  if (!value) {
+    return [];
+  }
+  const sanitized = value.trim();
+  if (!sanitized) {
+    return [];
+  }
+  const cleaned = sanitized.replace(/^v/i, '');
+  const segments = cleaned.split('.');
+  const tokens: number[] = [];
+  for (const segment of segments) {
+    if (!segment) {
+      tokens.push(0);
+      continue;
+    }
+    if (/^\d+$/.test(segment)) {
+      tokens.push(Number(segment));
+      continue;
+    }
+    const match = /^([A-Za-z]+)(\d+)?$/.exec(segment);
+    if (match) {
+      const letterCode = 10000 + match[1].toUpperCase().charCodeAt(0);
+      tokens.push(letterCode);
+      if (match[2]) {
+        tokens.push(Number(match[2]));
+      }
+      continue;
+    }
+    tokens.push(0);
+  }
+  return tokens;
+};
+
+const compareAppVersions = (incoming?: string, current?: string): number => {
+  const incomingTokens = tokenizeVersion(incoming);
+  const currentTokens = tokenizeVersion(current);
+  const length = Math.max(incomingTokens.length, currentTokens.length);
+  for (let i = 0; i < length; i++) {
+    const a = incomingTokens[i] ?? 0;
+    const b = currentTokens[i] ?? 0;
+    if (a === b) {
+      continue;
+    }
+    return a > b ? 1 : -1;
+  }
+  return 0;
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -340,6 +390,48 @@ const App = () => {
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<'window' | 'file' | null>(null);
   const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
+  const requestConfirmation = useCallback(
+    (dialog: DialogRequest) =>
+      new Promise<boolean>((resolve) => {
+        setGilDialog({
+          ...dialog,
+          onConfirm: () => {
+            setGilDialog(null);
+            resolve(true);
+          },
+          onCancel: () => {
+            setGilDialog(null);
+            resolve(false);
+          },
+        });
+      }),
+    [setGilDialog],
+  );
+  const ensureImportVersionSafe = useCallback(
+    async (incomingVersion?: string) => {
+      const currentVersion = VERSION_INFO.editor;
+      if (!incomingVersion || !currentVersion) {
+        return true;
+      }
+      if (compareAppVersions(incomingVersion, currentVersion) <= 0) {
+        return true;
+      }
+      return requestConfirmation({
+        title: "项目导入确认",
+        message: (
+          <div>
+            <p>
+              导入的项目版本（{incomingVersion}）高于当前编辑器版本（{currentVersion}），继续导入可能导致数据丢失或出现未知问题。
+            </p>
+            <p>是否继续？</p>
+          </div>
+        ),
+        confirmLabel: "继续",
+        cancelLabel: "取消",
+      });
+    },
+    [requestConfirmation],
+  );
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
   const [saveAsDialog, setSaveAsDialog] = useState<{
@@ -785,6 +877,10 @@ const App = () => {
         const { document, warnings: loadWarnings } = await loadProjectFromZip(file, {
           fallbackAppVersion: VERSION_INFO.editor,
         });
+        const versionOk = await ensureImportVersionSafe(document.manifest.appVersion);
+        if (!versionOk) {
+          return;
+        }
         const { document: prepared, primaryGraphId, warnings: normalizeWarnings } =
           prepareProjectDocument(document);
         applyProjectDocument(prepared, primaryGraphId);
@@ -799,7 +895,7 @@ const App = () => {
         window.alert("导入项目失败，请确认文件是否为有效的节点项目压缩包。");
       }
     },
-    [applyProjectDocument, prepareProjectDocument, showSaveToast],
+    [applyProjectDocument, ensureImportVersionSafe, prepareProjectDocument, showSaveToast],
   );
 
   const handleProjectFiles = useCallback(
@@ -2044,10 +2140,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 type="button"
                 className="action_dock__button"
                 onClick={handleExportCurrentGraph}
-                title="导出节点图"
+                title="导出为Json节点图"
               >
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">导出节点图</span>
+                <span className="sr-only">导出为Json节点图</span>
               </button>
               <button
                 type="button"
@@ -2056,7 +2152,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 title="导出为.gia文件（实验）"
               >
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">导出.gia（实验）</span>
+                <span className="sr-only">导出为.gia文件（实验）</span>
               </button>
             </div>
           )}
