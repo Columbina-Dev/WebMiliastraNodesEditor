@@ -149,7 +149,7 @@ npm run dev
   16. Save As: Copy this node graph to another path within the current project
   17. Export this node graph as `.server.json` / `.client.json` file
 
-## 额外页面
+## Other UIs
 
 ### General Guide Related
 ![Screenshot-04](/media/tut4.png)  
