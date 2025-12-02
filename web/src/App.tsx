@@ -38,6 +38,7 @@ import {
 } from "./utils/projectIO";
 import { exportGraphsToGil } from "./lib/gil/export";
 import { exportGiaDocument } from "./lib/gia/exporter";
+import { decodeGiaBinary } from "./lib/gia/decoder";
 import VERSION_INFO from "./config/version";
 import type { AutoSaveEntry, EditorSettings, LayoutState, StoredProject } from "./utils/storage";
 import {
@@ -160,6 +161,33 @@ const compareAppVersions = (incoming?: string, current?: string): number => {
     return a > b ? 1 : -1;
   }
   return 0;
+};
+
+const highlightJsonText = (jsonText: string) => {
+  const escaped = jsonText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return escaped.replace(
+    /("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+    (match) => {
+      let cls = 'number';
+      if (match.startsWith('"')) {
+        cls = match.endsWith(':') ? 'key' : 'string';
+      } else if (/true|false/.test(match)) {
+        cls = 'boolean';
+      } else if (match === 'null') {
+        cls = 'null';
+      }
+      return `<span class="json-token json-token--${cls}">${match}</span>`;
+    },
+  );
+};
+
+type GiaModalState = {
+  fileName: string;
+  jsonText: string;
+  highlightedJson: string;
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -431,6 +459,8 @@ const App = () => {
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<'window' | 'file' | null>(null);
   const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
+  const [giaModal, setGiaModal] = useState<GiaModalState | null>(null);
+  const [isDecodingGia, setIsDecodingGia] = useState(false);
   const settingsReturnViewRef = useRef<'home' | 'editor' | null>(
     initialRouteState.view === 'settings' ? 'home' : null,
   );
@@ -1030,6 +1060,47 @@ const App = () => {
     },
     [handleImportProjectDocument],
   );
+
+  const handleDecodeGiaFile = useCallback(async (file: File) => {
+    setIsDecodingGia(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const decoded = decodeGiaBinary(buffer);
+      const pretty = JSON.stringify(decoded, null, 2);
+      setGiaModal({
+        fileName: file.name,
+        jsonText: pretty,
+        highlightedJson: highlightJsonText(pretty),
+      });
+    } catch (error) {
+      console.error('解码 GIA 文件失败', error);
+      const message =
+        error instanceof Error ? error.message : '解码过程中发生未知错误，请确认文件是否有效。';
+      setGilDialog({
+        title: '解码失败',
+        message,
+        confirmLabel: '关闭',
+      });
+    } finally {
+      setIsDecodingGia(false);
+    }
+  }, []);
+
+  const handleDownloadGiaJson = useCallback(() => {
+    if (!giaModal) return;
+    const safeBase = sanitizeFileName(giaModal.fileName.replace(/\.gia$/i, '') || 'gia');
+    const filename = `${safeBase}.decoded.json`;
+    const blob = new Blob([giaModal.jsonText], { type: 'application/json;charset=utf-8' });
+    const link = window.document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [giaModal]);
+
+  const closeGiaModal = useCallback(() => {
+    setGiaModal(null);
+  }, []);
 
   const performProjectSave = useCallback(() => {
     const store = useProjectStore.getState();
@@ -2449,15 +2520,17 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         onImportClick={() => projectFileInputRef.current?.click()}
         onDropFiles={handleProjectFiles}
         onOpenProject={handleOpenProject}
-      onDeleteProject={handleDeleteProject}
-      onSaveAll={handleSaveAll}
-      githubUrl={GITHUB_URL}
-      onOpenTutorial={handleOpenTutorial}
-      onOpenEffects={handleOpenEffects}
-      onOpenSettings={handleOpenSettingsFromHome}
-    />
-  </>
-);
+        onDeleteProject={handleDeleteProject}
+        onSaveAll={handleSaveAll}
+        githubUrl={GITHUB_URL}
+        onOpenTutorial={handleOpenTutorial}
+        onOpenEffects={handleOpenEffects}
+        onOpenSettings={handleOpenSettingsFromHome}
+        isDecodingGia={isDecodingGia}
+        onDecodeGia={handleDecodeGiaFile}
+      />
+    </>
+  );
 
   const renderTutorial = () => (
     <TutorialPage route={tutorialRoute} onNavigate={handleTutorialNavigate} onClose={handleGoHome} />
@@ -2491,16 +2564,42 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
       {view === 'effects' && <div className="app__version-info">{VERSION_INFO.effects}</div>}
       {view === 'editor' && <div className="app__version-info app__version-info--hidden" />}
       {view === 'editor'
-        ? renderEditor()
-        : view === 'tutorial'
-          ? renderTutorial()
-          : view === 'effects'
-            ? renderEffects()
-            : view === 'settings'
-              ? renderSettings()
-              : view === 'notFound'
-                ? renderNotFound()
-                : renderHome()}
+       ? renderEditor()
+       : view === 'tutorial'
+         ? renderTutorial()
+         : view === 'effects'
+           ? renderEffects()
+           : view === 'settings'
+             ? renderSettings()
+             : view === 'notFound'
+               ? renderNotFound()
+               : renderHome()}
+      {giaModal && (
+        <div className="gia-modal-overlay" role="dialog" aria-modal="true">
+          <div className="gia-modal" role="document">
+            <div className="gia-modal__header">
+              <div className="gia-modal__title">
+                <h3>解码.gia文件</h3>
+                <p>{giaModal.fileName}</p>
+              </div>
+            </div>
+            <div className="gia-modal__body">
+              <pre
+                className="gia-modal__code"
+                dangerouslySetInnerHTML={{ __html: giaModal.highlightedJson }}
+              />
+            </div>
+            <div className="gia-modal__actions">
+              <button type="button" onClick={handleDownloadGiaJson}>
+                下载Json
+              </button>
+              <button type="button" onClick={closeGiaModal}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {gilDialog && (
         <div
           className="home__confirm-backdrop"

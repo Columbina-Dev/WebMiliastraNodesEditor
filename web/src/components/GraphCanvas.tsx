@@ -1134,107 +1134,139 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       setClickSelectionPreview(null);
       const deltaX = endPoint.x - startPoint.x;
       const deltaY = endPoint.y - startPoint.y;
-      if (Math.hypot(deltaX, deltaY) < MIN_SELECTION_DISTANCE) {
-        setHasPartialSelection(false);
-        return;
-      }
-      const nextMode = determineSelectionMode(deltaX);
-      const isPartial = nextMode === SelectionMode.Partial;
-      selectionModeRef.current = nextMode;
-      crossSelectionRef.current = isPartial;
-      setCurrentSelectionMode(nextMode);
-      setIsCrossSelection(isPartial);
-      const selectionScreenRect: ScreenRect = {
-        left: Math.min(startPoint.x, endPoint.x),
-        right: Math.max(startPoint.x, endPoint.x),
-        top: Math.min(startPoint.y, endPoint.y),
-        bottom: Math.max(startPoint.y, endPoint.y),
-      };
-      const startFlow = reactFlow.screenToFlowPosition(startPoint);
-      const endFlow = reactFlow.screenToFlowPosition(endPoint);
-      const selectionRect = buildFlowRect(startFlow, endFlow);
-      const selectedNodeIds = new Set<string>();
-      reactFlow.getNodes().forEach((node) => {
-        const width = node.width ?? 0;
-        const height = node.height ?? 0;
-        const position = node.positionAbsolute ?? node.position;
-        const nodeRect: FlowRect = {
-          minX: position.x,
-          minY: position.y,
-          maxX: position.x + width,
-          maxY: position.y + height,
-        };
-        const intersects =
-          nodeRect.minX <= selectionRect.maxX &&
-          nodeRect.maxX >= selectionRect.minX &&
-          nodeRect.minY <= selectionRect.maxY &&
-          nodeRect.maxY >= selectionRect.minY;
-        const contains =
-          selectionRect.minX <= nodeRect.minX &&
-          selectionRect.maxX >= nodeRect.maxX &&
-          selectionRect.minY <= nodeRect.minY &&
-          selectionRect.maxY >= nodeRect.maxY;
-        const shouldSelect = isPartial ? intersects : contains;
-        if (shouldSelect) {
-          selectedNodeIds.add(node.id);
-        }
-      });
-      reactFlow.setNodes((prev) =>
-        prev.map((node) => {
-          const baseSelected = additive ? node.selected : false;
-          const shouldSelect = baseSelected || selectedNodeIds.has(node.id);
-          return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
-        }),
-      );
-      const edges = reactFlow.getEdges();
-      const finalSelectedEdges = new Set<string>(
-        additive ? edges.filter((edge) => edge.selected).map((edge) => edge.id) : [],
-      );
-      if (isPartial) {
-        edges.forEach((edge) => {
-          const positioned = edge as PositionedEdge;
-          const { sourceX, sourceY, targetX, targetY } = positioned;
-          if (sourceX == null || sourceY == null || targetX == null || targetY == null) {
-            return;
+      const travelDistance = Math.hypot(deltaX, deltaY);
+
+      requestAnimationFrame(() => {
+        if (travelDistance < MIN_SELECTION_DISTANCE) {
+          const flowPoint = reactFlow.screenToFlowPosition(startPoint);
+          const nodes = reactFlow.getNodes();
+          let targetNodeId: string | null = null;
+          for (const node of nodes) {
+            const width = node.width ?? 0;
+            const height = node.height ?? 0;
+            const position = node.positionAbsolute ?? node.position;
+            if (
+              flowPoint.x >= position.x &&
+              flowPoint.x <= position.x + width &&
+              flowPoint.y >= position.y &&
+              flowPoint.y <= position.y + height
+            ) {
+              targetNodeId = node.id;
+              break;
+            }
           }
-          const edgeStart = { x: sourceX, y: sourceY };
-          const edgeEnd = { x: targetX, y: targetY };
-          if (lineIntersectsRect(edgeStart, edgeEnd, selectionRect)) {
-            finalSelectedEdges.add(edge.id);
+          if (targetNodeId) {
+            reactFlow.setNodes((prev) =>
+              prev.map((node) => {
+                const shouldSelect = additive
+                  ? node.selected || node.id === targetNodeId
+                  : node.id === targetNodeId;
+                return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
+              }),
+            );
+          }
+          setHasPartialSelection(false);
+          return;
+        }
+
+        const nextMode = determineSelectionMode(deltaX);
+        const isPartial = nextMode === SelectionMode.Partial;
+        selectionModeRef.current = nextMode;
+        crossSelectionRef.current = isPartial;
+        setCurrentSelectionMode(nextMode);
+        setIsCrossSelection(isPartial);
+        const selectionScreenRect: ScreenRect = {
+          left: Math.min(startPoint.x, endPoint.x),
+          right: Math.max(startPoint.x, endPoint.x),
+          top: Math.min(startPoint.y, endPoint.y),
+          bottom: Math.max(startPoint.y, endPoint.y),
+        };
+        const startFlow = reactFlow.screenToFlowPosition(startPoint);
+        const endFlow = reactFlow.screenToFlowPosition(endPoint);
+        const selectionRect = buildFlowRect(startFlow, endFlow);
+        const selectedNodeIds = new Set<string>();
+        reactFlow.getNodes().forEach((node) => {
+          const width = node.width ?? 0;
+          const height = node.height ?? 0;
+          const position = node.positionAbsolute ?? node.position;
+          const nodeRect: FlowRect = {
+            minX: position.x,
+            minY: position.y,
+            maxX: position.x + width,
+            maxY: position.y + height,
+          };
+          const intersects =
+            nodeRect.minX <= selectionRect.maxX &&
+            nodeRect.maxX >= selectionRect.minX &&
+            nodeRect.minY <= selectionRect.maxY &&
+            nodeRect.maxY >= selectionRect.minY;
+          const contains =
+            selectionRect.minX <= nodeRect.minX &&
+            selectionRect.maxX >= nodeRect.maxX &&
+            selectionRect.minY <= nodeRect.minY &&
+            selectionRect.maxY >= nodeRect.maxY;
+          const shouldSelect = isPartial ? intersects : contains;
+          if (shouldSelect) {
+            selectedNodeIds.add(node.id);
           }
         });
-      }
-      reactFlow.setEdges((prev) =>
-        prev.map((edge) => {
-          const shouldSelect = finalSelectedEdges.has(edge.id);
-          return edge.selected === shouldSelect ? edge : { ...edge, selected: shouldSelect };
-        }),
-      );
-      setHasPartialSelection(isPartial && (selectedNodeIds.size > 0 || finalSelectedEdges.size > 0));
-      const bubbleElements = document.querySelectorAll<HTMLDivElement>(
-        '.graph-comment-bubble[data-comment-id][data-floating="true"]',
-      );
-      let selectedFloatingCommentId: string | undefined;
-      bubbleElements.forEach((element) => {
-        const rect = element.getBoundingClientRect();
-        const bubbleRect: ScreenRect = { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
-        if (!selectedFloatingCommentId && rectanglesIntersect(selectionScreenRect, bubbleRect)) {
-          selectedFloatingCommentId = element.dataset.commentId ?? undefined;
+        reactFlow.setNodes((prev) =>
+          prev.map((node) => {
+            const baseSelected = additive ? node.selected : false;
+            const shouldSelect = baseSelected || selectedNodeIds.has(node.id);
+            return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
+          }),
+        );
+        const edges = reactFlow.getEdges();
+        const finalSelectedEdges = new Set<string>(
+          additive ? edges.filter((edge) => edge.selected).map((edge) => edge.id) : [],
+        );
+        if (isPartial) {
+          edges.forEach((edge) => {
+            const positioned = edge as PositionedEdge;
+            const { sourceX, sourceY, targetX, targetY } = positioned;
+            if (sourceX == null || sourceY == null || targetX == null || targetY == null) {
+              return;
+            }
+            const edgeStart = { x: sourceX, y: sourceY };
+            const edgeEnd = { x: targetX, y: targetY };
+            if (lineIntersectsRect(edgeStart, edgeEnd, selectionRect)) {
+              finalSelectedEdges.add(edge.id);
+            }
+          });
+        }
+        reactFlow.setEdges((prev) =>
+          prev.map((edge) => {
+            const shouldSelect = finalSelectedEdges.has(edge.id);
+            return edge.selected === shouldSelect ? edge : { ...edge, selected: shouldSelect };
+          }),
+        );
+        setHasPartialSelection(isPartial && (selectedNodeIds.size > 0 || finalSelectedEdges.size > 0));
+        const bubbleElements = document.querySelectorAll<HTMLDivElement>(
+          '.graph-comment-bubble[data-comment-id][data-floating="true"]',
+        );
+        let selectedFloatingCommentId: string | undefined;
+        bubbleElements.forEach((element) => {
+          const rect = element.getBoundingClientRect();
+          const bubbleRect: ScreenRect = { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+          if (!selectedFloatingCommentId && rectanglesIntersect(selectionScreenRect, bubbleRect)) {
+            selectedFloatingCommentId = element.dataset.commentId ?? undefined;
+          }
+        });
+        const state = useGraphStore.getState();
+        const currentCommentId = state.selectedCommentId;
+        const currentComment = currentCommentId
+          ? state.comments.find((comment) => comment.id === currentCommentId)
+          : undefined;
+        const currentIsFloating = currentComment ? !currentComment.nodeId : false;
+        if (selectedFloatingCommentId) {
+          if (selectedFloatingCommentId !== currentCommentId) {
+            setSelectedComment(selectedFloatingCommentId);
+          }
+        } else if (currentIsFloating && currentCommentId) {
+          setSelectedComment(undefined);
         }
       });
-      const state = useGraphStore.getState();
-      const currentCommentId = state.selectedCommentId;
-      const currentComment = currentCommentId
-        ? state.comments.find((comment) => comment.id === currentCommentId)
-        : undefined;
-      const currentIsFloating = currentComment ? !currentComment.nodeId : false;
-      if (selectedFloatingCommentId) {
-        if (selectedFloatingCommentId !== currentCommentId) {
-          setSelectedComment(selectedFloatingCommentId);
-        }
-      } else if (currentIsFloating && currentCommentId) {
-        setSelectedComment(undefined);
-      }
     }, [determineSelectionMode, reactFlow, setClickSelectionPreview, setHasPartialSelection, setIsClickSelectionActive, setSelectedComment]);
 
   const handlePaneClick = useCallback(

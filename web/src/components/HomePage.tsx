@@ -1,5 +1,5 @@
 import type { DragEvent, KeyboardEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { StoredProject } from '../utils/storage';
 import './HomePage.css';
@@ -17,6 +17,8 @@ interface HomePageProps {
   onOpenTutorial: () => void;
   onOpenEffects: () => void;
   onOpenSettings: () => void;
+  isDecodingGia: boolean;
+  onDecodeGia: (file: File) => Promise<void> | void;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -52,9 +54,12 @@ const HomePage = ({
   onOpenTutorial,
   onOpenEffects,
   onOpenSettings,
+  isDecodingGia,
+  onDecodeGia,
 }: HomePageProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
+  const decodeInputRef = useRef<HTMLInputElement | null>(null);
 
   const sortedProjects = useMemo(
     () => [...projects].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)),
@@ -95,6 +100,28 @@ const HomePage = ({
           <button type="button" onClick={onImportClick}>
             导入Zip项目
           </button>
+        </div>
+        <div className="home__actions home__actions--secondary">
+          <button
+            type="button"
+            onClick={() => decodeInputRef.current?.click()}
+            disabled={isDecodingGia}
+            aria-busy={isDecodingGia || undefined}
+          >
+            {isDecodingGia ? '解码中…' : '解码.gia文件'}
+          </button>
+          <input
+            ref={decodeInputRef}
+            type="file"
+            accept=".gia"
+            hidden
+            onChange={async (event) => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = '';
+              if (!file) return;
+              await onDecodeGia(file);
+            }}
+          />
         </div>
         <div
           className={classNames('home__dropzone', { 'is-active': isDragging })}
