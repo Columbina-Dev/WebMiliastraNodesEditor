@@ -15,6 +15,24 @@
   --cursor-jump: url('./assets/cursor/Jump-60.png') 24 18, pointer;
 }
 
+.app--system-pointer {
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --cursor-text: text;
+  --cursor-move: move;
+  --cursor-drag: move;
+  --cursor-comment: pointer;
+  --cursor-conn-valid: pointer;
+  --cursor-conn-invalid: not-allowed;
+  --cursor-stretch-vertical: ns-resize;
+  --cursor-stretch-horizontal: ew-resize;
+  --cursor-stretch-diagonal-lr: nesw-resize;
+  --cursor-stretch-diagonal-rl: nwse-resize;
+  --cursor-text-invalid: not-allowed;
+  --cursor-jump: pointer;
+}
+
+
 body,
 .app {
   cursor: var(--cursor-default);

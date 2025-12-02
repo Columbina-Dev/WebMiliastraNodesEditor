@@ -1,4 +1,4 @@
-﻿import { useMemo, useEffect, useRef } from 'react';
+﻿import { useMemo } from 'react';
 import type { ChangeEvent } from 'react';
 import { nodeDefinitionsById } from '../data/nodeDefinitions';
 import { useGraphStore } from '../state/graphStore';
@@ -9,10 +9,9 @@ import './NodeInspector.css';
 interface NodeInspectorProps {
   collapsed: boolean;
   onToggle: () => void;
-  enterInputOnInsert?: boolean;
 }
 
-const NodeInspector = ({ collapsed, onToggle, enterInputOnInsert = true }: NodeInspectorProps) => {
+const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
   const {
     nodes,
     edges,
@@ -25,8 +24,6 @@ const NodeInspector = ({ collapsed, onToggle, enterInputOnInsert = true }: NodeI
     updateCommentText,
     setSelectedComment,
     setCommentCollapsed,
-    lastInsertedNodeId,
-    clearLastInsertedNodeId,
   } = useGraphStore(
     useShallow((state) => ({
       nodes: state.nodes,
@@ -40,8 +37,6 @@ const NodeInspector = ({ collapsed, onToggle, enterInputOnInsert = true }: NodeI
       updateCommentText: state.updateCommentText,
       setSelectedComment: state.setSelectedComment,
       setCommentCollapsed: state.setCommentCollapsed,
-      lastInsertedNodeId: state.lastInsertedNodeId,
-      clearLastInsertedNodeId: state.clearLastInsertedNodeId,
     }))
   );
 
@@ -68,19 +63,6 @@ const NodeInspector = ({ collapsed, onToggle, enterInputOnInsert = true }: NodeI
   }, [edges, node]);
 
   const isEmpty = !node || !definition;
-  const nameInputRef = useRef<HTMLInputElement | null>(null);
-
-  useEffect(() => {
-    if (!enterInputOnInsert) return;
-    if (!node) return;
-    if (!lastInsertedNodeId || node.id !== lastInsertedNodeId) return;
-    const raf = window.requestAnimationFrame(() => {
-      nameInputRef.current?.focus({ preventScroll: true });
-      nameInputRef.current?.select();
-      clearLastInsertedNodeId();
-    });
-    return () => window.cancelAnimationFrame(raf);
-  }, [clearLastInsertedNodeId, enterInputOnInsert, lastInsertedNodeId, node]);
 
   const handleLabelChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
@@ -138,7 +120,6 @@ const NodeInspector = ({ collapsed, onToggle, enterInputOnInsert = true }: NodeI
           节点实例名称
         </label>
         <input
-          ref={nameInputRef}
           id="node-name"
           className="inspector__input"
           placeholder={definition.displayName}

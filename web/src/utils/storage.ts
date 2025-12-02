@@ -106,13 +106,14 @@ export interface SessionState {
 
 export type EditorPanButton = 'right' | 'middle';
 export type EditorZoomControl = 'wheel' | 'keys' | 'both';
-export type EditorSelectionActivation = 'drag' | 'click' | 'both';
+export type EditorSelectionActivation = 'drag' | 'click';
 export type EditorMultiSelectBehavior =
   | 'touch'
   | 'box'
   | 'leftTouchRightBox'
   | 'leftBoxRightTouch';
 export type GiaUidMode = 'perExport' | 'perSession' | 'fixed';
+export type PointerStyle = 'sandbox' | 'system';
 
 export interface EditorSettings {
   panButton: EditorPanButton;
@@ -124,18 +125,20 @@ export interface EditorSettings {
   enableGiaExport: boolean;
   giaUidMode: GiaUidMode;
   giaFixedUid: string;
+  pointerStyle: PointerStyle;
 }
 
 export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   panButton: 'right',
   zoomControl: 'wheel',
   selectionActivation: 'drag',
-  multiSelectBehavior: 'leftTouchRightBox',
+  multiSelectBehavior: 'touch',
   enterInputOnNodeInsert: true,
-  enableGilExport: true,
+  enableGilExport: false,
   enableGiaExport: false,
   giaUidMode: 'perExport',
   giaFixedUid: '',
+  pointerStyle: 'sandbox',
 };
 
 const DEFAULT_LAYOUT: LayoutState = {
@@ -467,7 +470,23 @@ export const loadEditorSettings = (): EditorSettings => {
   const storage = getStorage();
   if (!storage) return { ...DEFAULT_EDITOR_SETTINGS };
   const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
-  return { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+  const merged = { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+  // sanitize legacy values
+  if (parsed.selectionActivation === 'both') {
+    merged.selectionActivation = 'drag';
+  }
+  if (
+    merged.multiSelectBehavior !== 'touch' &&
+    merged.multiSelectBehavior !== 'box' &&
+    merged.multiSelectBehavior !== 'leftTouchRightBox' &&
+    merged.multiSelectBehavior !== 'leftBoxRightTouch'
+  ) {
+    merged.multiSelectBehavior = DEFAULT_EDITOR_SETTINGS.multiSelectBehavior;
+  }
+  if (merged.pointerStyle !== 'sandbox' && merged.pointerStyle !== 'system') {
+    merged.pointerStyle = DEFAULT_EDITOR_SETTINGS.pointerStyle;
+  }
+  return merged;
 };
 
 export const persistEditorSettings = (settings: EditorSettings) => {

@@ -2107,11 +2107,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               isTouchEnvironment={isMobileMode}
             />
             <GraphCanvas isMobileMode={isMobileMode} settings={editorSettings} />
-            <NodeInspector
-              collapsed={inspectorCollapsed}
-              onToggle={toggleInspector}
-              enterInputOnInsert={editorSettings.enterInputOnNodeInsert}
-            />
+            <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
           </>
         ) : isStructTab ? (
           <StructureManager
@@ -2478,12 +2474,16 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   );
 
   const isScrollableView = view === 'home' || view === 'effects' || view === 'settings';
+  const appClassName = [
+    'app',
+    isScrollableView ? 'app--scrollable' : '',
+    editorSettings.pointerStyle === 'system' ? 'app--system-pointer' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div
-      className={`app${isScrollableView ? ' app--scrollable' : ''}`}
-      onClick={() => setOpenMenu(null)}
-    >
+    <div className={appClassName} onClick={() => setOpenMenu(null)}>
       {(view === 'home' || view === 'settings') && (
         <div className="app__version-info">{VERSION_INFO.homepage}</div>
       )}

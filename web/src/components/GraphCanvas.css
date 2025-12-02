@@ -236,3 +236,16 @@
 .react-flow__handle {
   cursor: var(--cursor-pointer) !important;
 }
+
+.graph-click-selection {
+  position: absolute;
+  border: 1px solid rgba(92, 186, 255, 0.8);
+  background: rgba(92, 186, 255, 0.16);
+  pointer-events: none;
+  z-index: 4;
+}
+
+.graph-click-selection--partial {
+  border-color: rgba(118, 255, 180, 0.85);
+  background: rgba(118, 255, 180, 0.18);
+}

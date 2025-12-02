@@ -80,6 +80,14 @@ type ScreenRect = {
   bottom: number;
 };
 
+type ClickSelectionPreview = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  mode: SelectionMode;
+};
+
 type PositionedEdge = Edge & {
   sourceX?: number;
   sourceY?: number;
@@ -372,6 +380,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   const previousSelectedIdsRef = useRef<string[]>([]);
   const libraryTouchDragRef = useRef<{ definitionId: string; screen: ScreenPoint } | null>(null);
   const clickSelectionStartRef = useRef<ScreenPoint | null>(null);
+  const [clickSelectionPreview, setClickSelectionPreview] = useState<ClickSelectionPreview | null>(null);
   const watermarkText =
     getEnvironmentTopFolder(environment) === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
   const selectionHasProtectedNode =
@@ -389,17 +398,15 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   } | null>(null);
 
   const [isMousePanning, setIsMousePanning] = useState(false);
+  const [isClickSelectionActive, setIsClickSelectionActive] = useState(false);
   const panMouseButton = isMobileMode ? 0 : settings.panButton === 'middle' ? 1 : 2;
-  const dragSelectionEnabled =
-    !isMobileMode &&
-    (settings.selectionActivation === 'drag' || settings.selectionActivation === 'both');
-  const clickSelectionEnabled =
-    !isMobileMode &&
-    (settings.selectionActivation === 'click' || settings.selectionActivation === 'both');
+  const dragSelectionEnabled = !isMobileMode && settings.selectionActivation === 'drag';
+  const clickSelectionEnabled = !isMobileMode && settings.selectionActivation === 'click';
   const multiSelectBehavior = isMobileMode ? 'leftTouchRightBox' : settings.multiSelectBehavior;
-  const zoomWithWheel = isMobileMode ? true : settings.zoomControl !== 'keys';
+  const zoomWithWheel =
+    settings.zoomControl === 'wheel' || settings.zoomControl === 'both';
   const zoomWithKeys =
-    !isMobileMode && (settings.zoomControl === 'keys' || settings.zoomControl === 'both');
+    settings.zoomControl === 'keys' || settings.zoomControl === 'both';
 
   const determineSelectionMode = useCallback(
     (deltaX: number) => {
@@ -420,6 +427,26 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     [multiSelectBehavior],
   );
 
+  const updateClickSelectionPreview = useCallback(
+    (start: ScreenPoint, current: ScreenPoint) => {
+      const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+      if (!wrapperRect) return;
+      const left = Math.min(start.x, current.x) - wrapperRect.left;
+      const top = Math.min(start.y, current.y) - wrapperRect.top;
+      const width = Math.abs(current.x - start.x);
+      const height = Math.abs(current.y - start.y);
+      const mode = determineSelectionMode(current.x - start.x);
+      setClickSelectionPreview({
+        left,
+        top,
+        width,
+        height,
+        mode,
+      });
+    },
+    [determineSelectionMode],
+  );
+
   useEffect(() => {
     const handleGlobalClick = () => {
       if (skipGlobalClickCloseRef.current) {
@@ -433,6 +460,9 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       setFloatingPanel(null);
       setActiveConnection(null);
       setConnectionCursor(null);
+      clickSelectionStartRef.current = null;
+      setClickSelectionPreview(null);
+      setIsClickSelectionActive(false);
       const state = useGraphStore.getState();
       if (state.commentMode === 'selecting') {
         setCommentMode('inactive');
@@ -539,10 +569,23 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       const currentZoom = reactFlow.getZoom();
       const nextZoom = Math.min(1.5, Math.max(0.25, Number((currentZoom + direction * 0.1).toFixed(2))));
       reactFlow.zoomTo(nextZoom);
+      setZoomLevel(nextZoom);
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [reactFlow, zoomWithKeys]);
+  }, [reactFlow, setZoomLevel, zoomWithKeys]);
+
+  useEffect(() => {
+    if (zoomWithKeys) return;
+    const preventPageZoom = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = event.key;
+      if (key !== '+' && key !== '=' && key !== '-') return;
+      event.preventDefault();
+    };
+    window.addEventListener('keydown', preventPageZoom);
+    return () => window.removeEventListener('keydown', preventPageZoom);
+  }, [zoomWithKeys]);
 
 
   useEffect(() => {
@@ -581,6 +624,9 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     selectionBoxRef.current = null;
     selectionModeRef.current = SelectionMode.Full;
     setCurrentSelectionMode(SelectionMode.Full);
+    clickSelectionStartRef.current = null;
+    setClickSelectionPreview(null);
+    setIsClickSelectionActive(false);
     const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
     if (selectedNodes.length) {
       reactFlow.setNodes((nodes) =>
@@ -634,7 +680,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
       if (!selectionActiveRef.current || !selectionStartRef.current) return;
-      if ((event.buttons & 1) === 0) return;
+      if ((event.buttons & 1) === 0 && !isClickSelectionActive) return;
       const start = selectionStartRef.current;
       const current = { x: event.clientX, y: event.clientY };
       selectionBoxRef.current = { start, current };
@@ -654,23 +700,24 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
 
     window.addEventListener('pointermove', handlePointerMove);
     return () => window.removeEventListener('pointermove', handlePointerMove);
-  }, [determineSelectionMode]);
+  }, [determineSelectionMode, isClickSelectionActive]);
 
   useEffect(() => {
-    if (clickSelectionEnabled) return;
-    clickSelectionStartRef.current = null;
-  }, [clickSelectionEnabled]);
-
-  useEffect(() => {
-    if (!clickSelectionEnabled) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'Escape') {
-        clickSelectionStartRef.current = null;
-      }
+    if (!clickSelectionEnabled) {
+      clickSelectionStartRef.current = null;
+      setClickSelectionPreview(null);
+      setIsClickSelectionActive(false);
+      return;
+    }
+    const handleMove = (event: PointerEvent) => {
+      const start = clickSelectionStartRef.current;
+      if (!start) return;
+      updateClickSelectionPreview(start, { x: event.clientX, y: event.clientY });
     };
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [clickSelectionEnabled]);
+    window.addEventListener('pointermove', handleMove);
+    return () => window.removeEventListener('pointermove', handleMove);
+  }, [clickSelectionEnabled, updateClickSelectionPreview]);
+
 
   useEffect(() => {
     if (floatingPanel?.type === 'connection') {
@@ -1083,6 +1130,8 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
 
   const performClickSelection = useCallback(
     (startPoint: ScreenPoint, endPoint: ScreenPoint, additive: boolean) => {
+      setIsClickSelectionActive(false);
+      setClickSelectionPreview(null);
       const deltaX = endPoint.x - startPoint.x;
       const deltaY = endPoint.y - startPoint.y;
       if (Math.hypot(deltaX, deltaY) < MIN_SELECTION_DISTANCE) {
@@ -1186,7 +1235,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       } else if (currentIsFloating && currentCommentId) {
         setSelectedComment(undefined);
       }
-    }, [determineSelectionMode, reactFlow, setHasPartialSelection, setSelectedComment]);
+    }, [determineSelectionMode, reactFlow, setClickSelectionPreview, setHasPartialSelection, setIsClickSelectionActive, setSelectedComment]);
 
   const handlePaneClick = useCallback(
     (event?: ReactMouseEvent<Element>) => {
@@ -1212,10 +1261,14 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
           setSelectedComment(undefined);
           collapseUnpinnedComments(undefined);
           clickSelectionStartRef.current = point;
+          updateClickSelectionPreview(point, point);
+          setIsClickSelectionActive(true);
           return;
         }
         const startPoint = clickSelectionStartRef.current;
         clickSelectionStartRef.current = null;
+        setClickSelectionPreview(null);
+        setIsClickSelectionActive(false);
         if (startPoint) {
           performClickSelection(startPoint, point, event.shiftKey);
         }
@@ -1242,6 +1295,8 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       reactFlow,
       setCommentMode,
       setSelectedComment,
+      setIsClickSelectionActive,
+      updateClickSelectionPreview,
     ],
   );
 
@@ -2033,6 +2088,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         selectionMode={currentSelectionMode}
         panOnDrag={isMobileMode ? [1, 2] : [panMouseButton]}
         zoomOnScroll={zoomWithWheel}
+        zoomOnPinch={zoomWithWheel}
         zoomOnDoubleClick={!isMobileMode}
         deleteKeyCode={['Delete']}
         onNodesChange={handleNodesChange}
@@ -2057,6 +2113,20 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         onMoveEnd={(_, viewport) => setZoomLevel(viewport.zoom)}
         fitView
       />
+      {clickSelectionPreview && (
+        <div
+          className={classNames('graph-click-selection', {
+            'graph-click-selection--partial':
+              clickSelectionPreview.mode === SelectionMode.Partial,
+          })}
+          style={{
+            left: clickSelectionPreview.left,
+            top: clickSelectionPreview.top,
+            width: clickSelectionPreview.width,
+            height: clickSelectionPreview.height,
+          }}
+        />
+      )}
       <GraphCommentsOverlay selectionLocked={isSelectionActive} />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
@@ -2072,7 +2142,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
             filter={connectionFilter}
             variant="floating"
             isTouchEnvironment={isMobileMode}
-            autoFocusSearch
+            autoFocusSearch={settings.enterInputOnNodeInsert}
             onSelect={(definition) => {
               if (floatingPanel.type === 'canvas') {
                 handleCreateNode(definition.id, floatingPanel.flowPosition);
