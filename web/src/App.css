@@ -91,6 +91,10 @@ option {
   user-select: none;
 }
 
+.app--scrollable {
+  overflow: auto;
+}
+
 .action_dock {
   position: fixed;
   bottom: 24px;

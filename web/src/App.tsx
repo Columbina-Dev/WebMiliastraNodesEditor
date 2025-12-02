@@ -10,6 +10,7 @@ import TutorialPage, { type TutorialRoute } from "./components/TutorialPage";
 import EffectsPage from "./components/EffectsPage";
 import NodeInspector from "./components/NodeInspector";
 import NodePalette from "./components/NodePalette";
+import SettingsPage from "./components/SettingsPage";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
 import type { GraphDocument, GraphEnvironment } from "./types/node";
@@ -38,7 +39,7 @@ import {
 import { exportGraphsToGil } from "./lib/gil/export";
 import { exportGiaDocument } from "./lib/gia/exporter";
 import VERSION_INFO from "./config/version";
-import type { AutoSaveEntry, LayoutState, StoredProject } from "./utils/storage";
+import type { AutoSaveEntry, EditorSettings, LayoutState, StoredProject } from "./utils/storage";
 import {
   AUTOSAVE_LIMIT,
   clearAutoSavesForProject,
@@ -46,8 +47,10 @@ import {
   loadLayoutState,
   loadProjects,
   loadSessionState,
+  loadEditorSettings,
   persistAutoSaveEntry,
   persistLayoutState,
+  persistEditorSettings,
   replaceAutoSavesForProject,
   removeProjectRecord,
   updateSessionState,
@@ -70,6 +73,7 @@ const ICON_REDO = new URL("./assets/icons/redo.png", import.meta.url).href;
 const ICON_TUTORIAL = new URL("./assets/icons/tutorial.png", import.meta.url).href;
 const ICON_EFFECTS = new URL("./assets/icons/effects.svg", import.meta.url).href;
 const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
+const ICON_SETTING = new URL("./assets/icons/setting.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
@@ -188,6 +192,8 @@ const isTutorialPath = (path: string) =>
 const isEffectsPath = (path: string) =>
   path === "/effects" || path.startsWith("/effects/");
 
+const isSettingsPath = (path: string) => path === "/settings";
+
 const buildTutorialPath = (path: string) => {
   const trimmed = path.replace(/^\/+/, "");
   if (!trimmed) {
@@ -223,12 +229,15 @@ const parseTutorialRouteFromPath = (pathname: string): TutorialRoute => {
   return { kind, entryId };
 };
 
-type ViewMode = "home" | "editor" | "tutorial" | "effects" | "notFound";
+type ViewMode = "home" | "editor" | "tutorial" | "effects" | "settings" | "notFound";
 
 const resolveViewFromPath = (relativePath: string) => {
   const normalized = relativePath.replace(/\/+$/, "") || "/";
   if (normalized === "/") {
     return { view: "home" } as const;
+  }
+  if (isSettingsPath(normalized)) {
+    return { view: "settings" } as const;
   }
   if (isEffectsPath(normalized)) {
     return { view: "effects" } as const;
@@ -317,6 +326,17 @@ const detectMobileMode = () => {
   return (isMobileUA && touchPoints > 0) || coarsePointer || (touchPoints > 1 && smallViewport);
 };
 
+const GIA_UID_DIGITS = "0123456789";
+const generateGiaUidValue = (length = 9) => {
+  const safeLength = Math.max(1, length);
+  let result = "";
+  for (let i = 0; i < safeLength; i++) {
+    const index = Math.floor(Math.random() * GIA_UID_DIGITS.length);
+    result += GIA_UID_DIGITS[index];
+  }
+  return result;
+};
+
 const DEFAULT_PROJECT_NAME = "未命名项目";
 const App = () => {
   const projectDocument = useProjectStore((state) => state.document);
@@ -368,9 +388,21 @@ const App = () => {
   const [view, setView] = useState<ViewMode>(() => {
     if (initialRouteState.view === "tutorial") return "tutorial";
     if (initialRouteState.view === "effects") return "effects";
+    if (initialRouteState.view === "settings") return "settings";
     if (initialRouteState.view === "notFound") return "notFound";
     return "home";
-});
+  });
+  const currentViewRef = useRef<ViewMode>(view);
+  useEffect(() => {
+    currentViewRef.current = view;
+  }, [view]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.history.state) {
+      window.history.replaceState({ view }, '', window.location.href);
+    }
+  }, []);
+
   const [tutorialRoute, setTutorialRoute] = useState<TutorialRoute>(() =>
     initialRouteState.view === "tutorial" ? initialRouteState.tutorialRoute : { kind: "landing" },
   );
@@ -380,16 +412,48 @@ const App = () => {
   const skipInitialRecoveryRef = useRef(
     initialRouteState.view === "tutorial" ||
       initialRouteState.view === "effects" ||
-      initialRouteState.view === "notFound",
+      initialRouteState.view === "notFound" ||
+      initialRouteState.view === "settings",
   );
 
   const [isMobileMode, setIsMobileMode] = useState(() => detectMobileMode());
+  const [editorSettings, setEditorSettings] = useState<EditorSettings>(() => loadEditorSettings());
+  const updateEditorSettings = useCallback((updater: (prev: EditorSettings) => EditorSettings) => {
+    setEditorSettings((prev) => {
+      const next = updater(prev);
+      persistEditorSettings(next);
+      return next;
+    });
+  }, []);
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<'window' | 'file' | null>(null);
   const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
+  const settingsReturnViewRef = useRef<'home' | 'editor' | null>(
+    initialRouteState.view === 'settings' ? 'home' : null,
+  );
+  const giaSessionUidRef = useRef<string | null>(null);
+  const getGiaUid = useCallback(() => {
+    if (editorSettings.giaUidMode === 'fixed') {
+      const sanitized = editorSettings.giaFixedUid.trim();
+      if (/^\d{9,10}$/.test(sanitized)) {
+        return sanitized;
+      }
+    } else if (editorSettings.giaUidMode === 'perSession') {
+      if (!giaSessionUidRef.current) {
+        giaSessionUidRef.current = generateGiaUidValue(9);
+      }
+      return giaSessionUidRef.current;
+    }
+    return generateGiaUidValue(9);
+  }, [editorSettings.giaFixedUid, editorSettings.giaUidMode]);
+  useEffect(() => {
+    if (editorSettings.giaUidMode !== 'perSession') {
+      giaSessionUidRef.current = null;
+    }
+  }, [editorSettings.giaUidMode]);
   const requestConfirmation = useCallback(
     (dialog: DialogRequest) =>
       new Promise<boolean>((resolve) => {
@@ -488,13 +552,14 @@ const App = () => {
       setExecutionIntervalInput('');
     }
   }, [executionIntervalSeconds, shouldShowExecutionInterval]);
-  const pushAppHistory = useCallback((path: string, replace = false) => {
+  const pushAppHistory = useCallback((path: string, replace = false, state?: Record<string, unknown>) => {
     if (typeof window === "undefined") return;
     const target = buildAppPath(path);
+    const payload = state ?? {};
     if (replace) {
-      window.history.replaceState({}, '', target);
+      window.history.replaceState(payload, '', target);
     } else {
-      window.history.pushState({}, '', target);
+      window.history.pushState(payload, '', target);
     }
   }, []);
 
@@ -659,7 +724,7 @@ const App = () => {
 
   const navigateHome = useCallback(
     (replace: boolean) => {
-      pushAppHistory('/', replace);
+      pushAppHistory('/', replace, { view: 'home' });
       setView('home');
       setTutorialRoute({ kind: 'landing' });
       setNotFoundPath(null);
@@ -672,6 +737,51 @@ const App = () => {
     setOpenMenu(null);
     navigateHome(false);
   }, [navigateHome]);
+
+  const applySettingsReturnView = useCallback(
+    (options?: { viaHistory?: boolean }) => {
+      const target = settingsReturnViewRef.current ?? 'home';
+      settingsReturnViewRef.current = null;
+      if (!options?.viaHistory) {
+        pushAppHistory('/', true, { view: target });
+      }
+      setNotFoundPath(null);
+      if (target === 'editor') {
+        setView('editor');
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'editor' }));
+      } else {
+        setView('home');
+        setTutorialRoute({ kind: 'landing' });
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'home' }));
+      }
+    },
+    [pushAppHistory],
+  );
+
+  const handleCloseSettings = useCallback(() => {
+    applySettingsReturnView();
+  }, [applySettingsReturnView]);
+
+  const openSettings = useCallback(
+    (source: 'home' | 'editor') => {
+      setOpenMenu(null);
+      settingsReturnViewRef.current = source;
+      pushAppHistory('/settings', false, { view: 'settings', returnView: source });
+      setTutorialRoute({ kind: 'landing' });
+      setNotFoundPath(null);
+      setView('settings');
+      updateSessionState((prev) => ({ ...prev, lastVisitedView: 'settings' }));
+    },
+    [pushAppHistory],
+  );
+
+  const handleOpenSettingsFromHome = useCallback(() => {
+    openSettings('home');
+  }, [openSettings]);
+
+  const handleOpenSettingsFromEditor = useCallback(() => {
+    openSettings('editor');
+  }, [openSettings]);
 
   const handleTutorialNavigate = useCallback(
     (nextPath: string, replace = false) => {
@@ -1166,7 +1276,8 @@ const handleSaveGraphAs = useCallback(() => {
       environment,
     };
     try {
-      const result = exportGiaDocument(exportPayload);
+      const uid = getGiaUid();
+      const result = exportGiaDocument(exportPayload, { uid });
       const link = window.document.createElement("a");
       link.href = URL.createObjectURL(result.blob);
       link.download = result.fileName;
@@ -1203,7 +1314,7 @@ const handleSaveGraphAs = useCallback(() => {
         confirmLabel: "知道了",
       });
     }
-  }, [activeGraphId, projectDocument, setGilDialog]);
+  }, [activeGraphId, getGiaUid, projectDocument, setGilDialog]);
 
   const handleSaveAsCancel = useCallback(() => {
     setSaveAsDialog(null);
@@ -1475,10 +1586,23 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   );
 
   useEffect(() => {
-    const onPopState = () => {
+    const onPopState = (event: PopStateEvent) => {
       if (typeof window === 'undefined') return;
       const relative = stripAppBase(window.location.pathname);
       const routeState = resolveViewFromPath(relative);
+      if (routeState.view === 'settings') {
+        const returnView = event.state?.returnView === 'editor' ? 'editor' : 'home';
+        settingsReturnViewRef.current = returnView;
+        setTutorialRoute({ kind: 'landing' });
+        setNotFoundPath(null);
+        setView('settings');
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'settings' }));
+        return;
+      }
+      if (currentViewRef.current === 'settings') {
+        applySettingsReturnView({ viaHistory: true });
+        return;
+      }
       if (routeState.view === 'tutorial') {
         setTutorialRoute(routeState.tutorialRoute);
         setView('tutorial');
@@ -1506,7 +1630,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, []);
+  }, [applySettingsReturnView]);
 
   useEffect(() => {
     if (view === 'effects') {
@@ -1855,6 +1979,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           ? `/${saveAsDialog.topFolder}/`
           : '';
 
+    const isGiaFixedUidValid = /^\d{9,10}$/.test(editorSettings.giaFixedUid);
+    const isGiaExportButtonEnabled =
+      editorSettings.giaUidMode !== 'fixed' || isGiaFixedUidValid;
+
     return (
       <>
       <header className="app__editor-bar">
@@ -1917,10 +2045,12 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
                     导出为.zip项目
                   </button>
-                  <button type="button" onClick={handleExportGil}>
-                    <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                    导出为.gil存档
-                  </button>
+                  {editorSettings.enableGilExport && (
+                    <button type="button" onClick={handleExportGil}>
+                      <img src={ICON_EXPORT} alt="" aria-hidden="true" />
+                      导出为.gil存档
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1928,6 +2058,14 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         </div>
         <div className="app__editor-bar-center">{VERSION_INFO.node || VERSION_INFO.editor}</div>
         <div className="app__editor-bar-right">
+          <button
+            type="button"
+            className="app__editor-icon-button"
+            onClick={handleOpenSettingsFromEditor}
+            aria-label="设置"
+          >
+            <img src={ICON_SETTING} alt="" aria-hidden="true" />
+          </button>
           <button
             type="button"
             className="app__editor-icon-button app__editor-icon-button--github"
@@ -1968,8 +2106,12 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               onToggle={togglePalette}
               isTouchEnvironment={isMobileMode}
             />
-            <GraphCanvas isMobileMode={isMobileMode} />
-            <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
+            <GraphCanvas isMobileMode={isMobileMode} settings={editorSettings} />
+            <NodeInspector
+              collapsed={inspectorCollapsed}
+              onToggle={toggleInspector}
+              enterInputOnInsert={editorSettings.enterInputOnNodeInsert}
+            />
           </>
         ) : isStructTab ? (
           <StructureManager
@@ -2145,15 +2287,27 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
                 <span className="sr-only">导出为Json节点图</span>
               </button>
-              <button
-                type="button"
-                className="action_dock__button"
-                onClick={handleExportGiaPrototype}
-                title="导出为.gia文件（实验）"
-              >
-                <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">导出为.gia文件（实验）</span>
-              </button>
+              {editorSettings.enableGiaExport && (
+                <button
+                  type="button"
+                  className="action_dock__button"
+                  onClick={handleExportGiaPrototype}
+                  title={
+                    editorSettings.giaUidMode === 'fixed' && !isGiaFixedUidValid
+                      ? '请输入9-10位UID后再导出'
+                      : '导出为.gia文件（实验）'
+                  }
+                  disabled={!isGiaExportButtonEnabled}
+                >
+                  <img
+                    src={ICON_EXPORT}
+                    alt=""
+                    aria-hidden="true"
+                    className="action_dock__icon-img"
+                  />
+                  <span className="sr-only">导出为.gia文件（实验）</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -2279,6 +2433,17 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     <EffectsPage version={VERSION_INFO.effects} onBack={handleGoHome} />
   );
 
+  const renderSettings = () => (
+    <SettingsPage
+      iconBack={ICON_BACK}
+      settings={editorSettings}
+      onUpdateSettings={updateEditorSettings}
+      onClose={handleCloseSettings}
+      returnTarget={settingsReturnViewRef.current ?? 'home'}
+      isTouchEnvironment={isMobileMode}
+    />
+  );
+
   const renderHome = () => (
     <>
       <HomePage
@@ -2293,6 +2458,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
       githubUrl={GITHUB_URL}
       onOpenTutorial={handleOpenTutorial}
       onOpenEffects={handleOpenEffects}
+      onOpenSettings={handleOpenSettingsFromHome}
     />
   </>
 );
@@ -2311,14 +2477,16 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     </div>
   );
 
-  const isScrollableView = view === 'home' || view === 'effects';
+  const isScrollableView = view === 'home' || view === 'effects' || view === 'settings';
 
   return (
     <div
       className={`app${isScrollableView ? ' app--scrollable' : ''}`}
       onClick={() => setOpenMenu(null)}
     >
-      {view === 'home' && <div className="app__version-info">{VERSION_INFO.homepage}</div>}
+      {(view === 'home' || view === 'settings') && (
+        <div className="app__version-info">{VERSION_INFO.homepage}</div>
+      )}
       {view === 'tutorial' && <div className="app__version-info">{VERSION_INFO.tutorial}</div>}
       {view === 'effects' && <div className="app__version-info">{VERSION_INFO.effects}</div>}
       {view === 'editor' && <div className="app__version-info app__version-info--hidden" />}
@@ -2328,9 +2496,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           ? renderTutorial()
           : view === 'effects'
             ? renderEffects()
-            : view === 'notFound'
-              ? renderNotFound()
-              : renderHome()}
+            : view === 'settings'
+              ? renderSettings()
+              : view === 'notFound'
+                ? renderNotFound()
+                : renderHome()}
       {gilDialog && (
         <div
           className="home__confirm-backdrop"

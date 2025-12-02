@@ -177,6 +177,7 @@ interface GraphState {
   commentMode: CommentMode;
   selectedCommentId?: string;
   selectedNodeId?: string;
+  lastInsertedNodeId?: string;
   past: GraphSnapshot[];
   future: GraphSnapshot[];
   setGraphId: (graphId: string) => void;
@@ -217,6 +218,7 @@ interface GraphState {
   requestedZoom: number | null;
   setZoomLevel: (zoom: number) => void;
   setRequestedZoom: (zoom: number | null) => void;
+  clearLastInsertedNodeId: () => void;
 }
 
 const getProtectedNodeIds = (state: GraphState) =>
@@ -296,6 +298,7 @@ const createDefaultState = (graphId?: string) => {
     requestedZoom: null,
     environment: 'server' as GraphEnvironment,
     executionIntervalSeconds: 0,
+    lastInsertedNodeId: undefined,
   };
 };
 
@@ -361,6 +364,7 @@ export const useGraphStore = create<GraphState>((set, get) => {
       set((state) => ({
         nodes: [...state.nodes, { ...node, id }],
         selectedNodeId: id,
+        lastInsertedNodeId: id,
       }));
       return id;
     },
@@ -641,6 +645,8 @@ export const useGraphStore = create<GraphState>((set, get) => {
       set((state) => (state.requestedZoom === zoom ? {} : { requestedZoom: zoom })),
     setZoomLevel: (zoom) =>
       set((state) => (state.zoomLevel === zoom ? {} : { zoomLevel: zoom })),
+    clearLastInsertedNodeId: () =>
+      set((state) => (state.lastInsertedNodeId ? { lastInsertedNodeId: undefined } : {})),
     importGraph: (doc, options) => {
       if (options?.recordHistory !== false) {
         captureSnapshot();

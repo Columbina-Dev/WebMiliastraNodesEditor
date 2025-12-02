@@ -21,6 +21,7 @@ const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
 const KEY_PROJECTS = STORAGE_NAMESPACE + ':projects';
 const KEY_AUTOSAVES = STORAGE_NAMESPACE + ':autosaves';
 const KEY_SESSION = STORAGE_NAMESPACE + ':session';
+const KEY_SETTINGS = STORAGE_NAMESPACE + ':settings';
 const KEY_MIGRATION_V2 = STORAGE_NAMESPACE + ':migration:v2';
 
 const LEGACY_TOP_FOLDER: ProjectTopFolder = 'server';
@@ -100,8 +101,42 @@ export type AutoSaveMap = Record<string, AutoSaveEntry[]>;
 
 export interface SessionState {
   lastActiveProjectId?: string;
-  lastVisitedView?: 'home' | 'editor' | 'tutorial' | 'effects';
+  lastVisitedView?: 'home' | 'editor' | 'tutorial' | 'effects' | 'settings';
 }
+
+export type EditorPanButton = 'right' | 'middle';
+export type EditorZoomControl = 'wheel' | 'keys' | 'both';
+export type EditorSelectionActivation = 'drag' | 'click' | 'both';
+export type EditorMultiSelectBehavior =
+  | 'touch'
+  | 'box'
+  | 'leftTouchRightBox'
+  | 'leftBoxRightTouch';
+export type GiaUidMode = 'perExport' | 'perSession' | 'fixed';
+
+export interface EditorSettings {
+  panButton: EditorPanButton;
+  zoomControl: EditorZoomControl;
+  selectionActivation: EditorSelectionActivation;
+  multiSelectBehavior: EditorMultiSelectBehavior;
+  enterInputOnNodeInsert: boolean;
+  enableGilExport: boolean;
+  enableGiaExport: boolean;
+  giaUidMode: GiaUidMode;
+  giaFixedUid: string;
+}
+
+export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
+  panButton: 'right',
+  zoomControl: 'wheel',
+  selectionActivation: 'drag',
+  multiSelectBehavior: 'leftTouchRightBox',
+  enterInputOnNodeInsert: true,
+  enableGilExport: true,
+  enableGiaExport: false,
+  giaUidMode: 'perExport',
+  giaFixedUid: '',
+};
 
 const DEFAULT_LAYOUT: LayoutState = {
   paletteCollapsed: false,
@@ -426,4 +461,15 @@ export const updateSessionState = (updater: (prev: SessionState) => SessionState
   const next = updater(loadSessionState());
   persistSessionState(next);
   return next;
+};
+
+export const loadEditorSettings = (): EditorSettings => {
+  const storage = getStorage();
+  if (!storage) return { ...DEFAULT_EDITOR_SETTINGS };
+  const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
+  return { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+};
+
+export const persistEditorSettings = (settings: EditorSettings) => {
+  persist(KEY_SETTINGS, settings);
 };

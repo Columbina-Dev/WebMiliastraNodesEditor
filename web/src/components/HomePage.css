@@ -261,14 +261,16 @@
 
 .home__github,
 .home__tutorial,
-.home__effects {
+.home__effects,
+.home__settings {
   color: #FFF;
   transition: color 0.2s ease, opacity 0.2s ease;
   display: flex;
 }
 
 .home__tutorial,
-.home__effects {
+.home__effects,
+.home__settings {
   border: none;
   background: transparent;
   padding: 0;
@@ -276,14 +278,16 @@
 }
 
 .home__tutorial:focus-visible,
-.home__effects:focus-visible {
+.home__effects:focus-visible,
+.home__settings:focus-visible {
   outline: 2px solid rgba(92, 186, 255, 0.7);
   outline-offset: 4px;
 }
 
 .home__github:hover,
 .home__tutorial:hover,
-.home__effects:hover {
+.home__effects:hover,
+.home__settings:hover {
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
   cursor: var(--cursor-pointer);
