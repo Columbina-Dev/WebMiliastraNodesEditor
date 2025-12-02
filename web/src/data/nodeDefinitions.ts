@@ -7,7 +7,8 @@ const QUERY_HEADER = "#3F54AF";
 const MATH_HEADER = "#0D5A8B";
 
 // 注意：以下**所有**节点的定义均由AI根据官方节点图编辑器截图推断，可能存在错误或不完整之处，如有任何问题，请在Issue中提出。
-// 部分 officialID 为 0，表示暂未确认此节点的官方ID，或此节点使用动态ID，详见 https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack/blob/main/utils/node_id/server_node_id.yaml#L387
+// officialID 的值表示 官方编辑器使用的 "Concrete ID"
+// 部分 officialID 为 0，表示暂未确认此节点的官方ID，或此节点使用动态ID
 
 export const nodeDefinitions: NodeDefinition[] = [
   // ==============================================================================

@@ -25,7 +25,7 @@ This project recreates the node graph editor from "Genshin Impact - Miliastra Wo
 | :---: | :--- | :---: |
 | [main](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/main) | Main branch for stable release. Equivilant to Genshin REL versions | v1.0.0 |
 | [beta](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/beta) | Beta branch, would try to keep `npm run build` runnable. No local save data update adaptation. For important projects, please use the stable editor. | v1.0.50 |
-| [canary](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/canary) | Small update branch, any small updates will be pushed here. `npm run build` may fail, no public test address. | v1.0.49.C1 |
+| [canary](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/canary) | Small update branch, any small updates will be pushed here. `npm run build` may fail, no public test prebuilt. | v1.0.49.C1 |
 
 
 ## Quick Start
@@ -70,7 +70,7 @@ npm run dev
   1. Window:  
       - Server Node Graph Resource Manager: Switch to the `Server Node Graph Resource Manager` tab
       - Client Node Graph Resource Manager: Switch to the `Client Node Graph Resource Manager` tab
-      - Return to Homepage: Return to the [Homepage](#homepage-introduction)
+      - Return to Homepage: Return to the [Homepage](#homepage)
   2. File:  
       - Save Project: Manually save the currently opened node graph project to the browser's local storage (use `Ctrl+S` outside of node graph tabs)
       - Edit Project Info: Modify the name of the currently opened node graph project
@@ -85,7 +85,7 @@ npm run dev
   10. Node graph categories
   11. Node graph folders/tabs
   12. Return to the last hovered path
-  13. Reset the `12-Return to the last hovered path` action
+  13. Undo `12-Return to the last hovered path` 
   14. Path display, click to quickly jump to the path
   15. Search current path's tabs/node graphs
   16. Tabs/node graph list  
@@ -149,7 +149,7 @@ npm run dev
   16. Save As: Copy this node graph to another path within the current project
   17. Export this node graph as `.server.json` / `.client.json` file
 
-## 额外页面
+## Other UIs
 
 ### General Guide Related
 ![Screenshot-04](/media/tut4.png)  

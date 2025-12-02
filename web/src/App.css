@@ -15,6 +15,24 @@
   --cursor-jump: url('./assets/cursor/Jump-60.png') 24 18, pointer;
 }
 
+.app--system-pointer {
+  --cursor-default: auto;
+  --cursor-pointer: pointer;
+  --cursor-text: text;
+  --cursor-move: move;
+  --cursor-drag: move;
+  --cursor-comment: pointer;
+  --cursor-conn-valid: pointer;
+  --cursor-conn-invalid: not-allowed;
+  --cursor-stretch-vertical: ns-resize;
+  --cursor-stretch-horizontal: ew-resize;
+  --cursor-stretch-diagonal-lr: nesw-resize;
+  --cursor-stretch-diagonal-rl: nwse-resize;
+  --cursor-text-invalid: not-allowed;
+  --cursor-jump: pointer;
+}
+
+
 body,
 .app {
   cursor: var(--cursor-default);
@@ -89,6 +107,10 @@ option {
   font-family: 'DreamHanSans';
   overflow: hidden;
   user-select: none;
+}
+
+.app--scrollable {
+  overflow: auto;
 }
 
 .action_dock {
@@ -666,6 +688,114 @@ option {
 
 .app__modal-actions button[type='button'] {
   background: rgba(255, 255, 255, 0.04);
+}
+
+.gia-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(3, 5, 12, 0.82);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 2100;
+}
+
+.gia-modal {
+  width: min(960px, 100%);
+  max-height: min(88vh, 900px);
+  background: #0c111d;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 32px 80px rgba(0, 0, 0, 0.6);
+  color: #f6f6ff;
+}
+
+.gia-modal__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.gia-modal__title h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.gia-modal__title p {
+  margin: 4px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.65);
+  word-break: break-all;
+}
+
+.gia-modal__body {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: rgba(3, 7, 14, 0.72);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 14px;
+  padding: 18px;
+}
+
+.gia-modal__code {
+  margin: 0;
+  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+  line-height: 1.5;
+  white-space: pre;
+  color: #d4d4d4;
+}
+
+.gia-modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.gia-modal__actions button {
+  padding: 10px 20px;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.gia-modal__actions button:hover {
+  border-color: rgba(92, 186, 255, 0.4);
+  background: rgba(92, 186, 255, 0.18);
+}
+
+.json-token {
+  font-family: inherit;
+}
+
+.json-token--key {
+  color: #9cdcfe;
+}
+
+.json-token--string {
+  color: #ce9178;
+}
+
+.json-token--number {
+  color: #b5cea8;
+}
+
+.json-token--boolean {
+  color: #569cd6;
+}
+
+.json-token--null {
+  color: #dcdcaa;
 }
 
 

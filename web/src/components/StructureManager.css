@@ -298,6 +298,13 @@
 .struct-editor__actions-menu button:hover {
   background: #1c2232;
 }
+.struct-editor__actions-menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-editor__actions-menu button:disabled:hover {
+  background: transparent;
+}
 .struct-editor__actions-menu .is-danger {
   color: #ff7b7b;
 }
@@ -409,6 +416,13 @@
 }
 .struct-editor__row-menu .is-danger {
   color: #ff7b7b;
+}
+.struct-editor__row-menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-editor__row-menu button:disabled:hover {
+  background: transparent;
 }
 
 .struct-editor__name,
@@ -609,6 +623,13 @@
 
 .struct-manager__menu .is-danger {
   color: #ff9b9b;
+}
+.struct-manager__menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-manager__menu button:disabled:hover {
+  background: transparent;
 }
 
 .struct-move__list {

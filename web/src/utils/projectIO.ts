@@ -1,5 +1,6 @@
 import JSZip from 'jszip';
 import { nanoid } from 'nanoid/non-secure';
+import VERSION_INFO from '../config/version';
 import type {
   GraphComment,
   GraphDocument,
@@ -585,6 +586,10 @@ export const saveProjectToZip = async (
   options: SaveProjectOptions = {},
 ): Promise<SaveProjectResult> => {
   const { document: normalized, warnings } = normalizeProjectDocument(document);
+  const editorVersion = VERSION_INFO.editor || normalized.manifest.appVersion || '';
+  if (editorVersion) {
+    normalized.manifest.appVersion = editorVersion;
+  }
   const outputZip = new JSZip();
 
   for (const definition of PROJECT_CATEGORY_DEFINITIONS) {

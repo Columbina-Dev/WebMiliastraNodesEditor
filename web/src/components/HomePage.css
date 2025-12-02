@@ -51,6 +51,30 @@
   background: rgba(92, 186, 255, 0.22);
 }
 
+.home__actions--secondary {
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-top: 16px;
+  margin-top: -8px;
+}
+
+.home__actions--secondary button {
+  border-color: rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.home__actions--secondary button:hover {
+  border-color: rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.home__actions--secondary button:disabled {
+  opacity: 0.5;
+  cursor: var(--cursor-default);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.2);
+}
+
 .home__dropzone {
   border: 2px dashed rgba(255, 255, 255, 0.18);
   border-radius: 18px;
@@ -261,14 +285,16 @@
 
 .home__github,
 .home__tutorial,
-.home__effects {
+.home__effects,
+.home__settings {
   color: #FFF;
   transition: color 0.2s ease, opacity 0.2s ease;
   display: flex;
 }
 
 .home__tutorial,
-.home__effects {
+.home__effects,
+.home__settings {
   border: none;
   background: transparent;
   padding: 0;
@@ -276,14 +302,16 @@
 }
 
 .home__tutorial:focus-visible,
-.home__effects:focus-visible {
+.home__effects:focus-visible,
+.home__settings:focus-visible {
   outline: 2px solid rgba(92, 186, 255, 0.7);
   outline-offset: 4px;
 }
 
 .home__github:hover,
 .home__tutorial:hover,
-.home__effects:hover {
+.home__effects:hover,
+.home__settings:hover {
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
   cursor: var(--cursor-pointer);

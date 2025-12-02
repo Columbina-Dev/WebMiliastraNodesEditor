@@ -1941,7 +1941,13 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           <button type="button" onClick={() => { setMoveTargetStruct(contextMenu.structId); closeContextMenu(); }}>更改页签</button>
           <button type="button" onClick={() => { handleDeleteStruct(contextMenu.structId); closeContextMenu(); }} className="is-danger">删除</button>
           <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleCopyStruct(); closeContextMenu(); }}>复制</button>
-          <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handlePasteStruct(); closeContextMenu(); }}>粘贴</button>
+          <button
+            type="button"
+            disabled={!clipboard}
+            onClick={() => { setSelectedStructId(contextMenu.structId); handlePasteStruct(); closeContextMenu(); }}
+          >
+            粘贴
+          </button>
           <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleExportVariables(); closeContextMenu(); }}>导出变量</button>
           <button type="button" onClick={() => { setSelectedStructId(contextMenu.structId); handleImportVariables(); closeContextMenu(); }}>导入变量</button>
         </div>
@@ -2175,6 +2181,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                     </button>
                     <button
                       type="button"
+                      disabled={!clipboard}
                       onClick={() => {
                         handlePasteStruct();
                         closeActionsMenu();
@@ -2260,7 +2267,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                       <button type="button" onClick={() => handleFieldCopy(entry)}>
                         复制
                       </button>
-                      <button type="button" onClick={() => handleFieldPaste(index)}>
+                      <button type="button" disabled={!fieldClipboard} onClick={() => handleFieldPaste(index)}>
                         粘贴
                       </button>
                       <button type="button" className="is-danger" onClick={() => handleRemoveField(index)}>

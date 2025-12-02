@@ -1,5 +1,5 @@
 import type { DragEvent, KeyboardEvent } from 'react';
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { StoredProject } from '../utils/storage';
 import './HomePage.css';
@@ -16,6 +16,9 @@ interface HomePageProps {
   githubUrl: string;
   onOpenTutorial: () => void;
   onOpenEffects: () => void;
+  onOpenSettings: () => void;
+  isDecodingGia: boolean;
+  onDecodeGia: (file: File) => Promise<void> | void;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -34,6 +37,7 @@ const formatTimestamp = (iso?: string) => {
 const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
 const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).href;
 const ICON_EFFECTS = new URL('../assets/icons/effects.svg', import.meta.url).href;
+const ICON_SETTING = new URL('../assets/icons/setting.png', import.meta.url).href;
 
 const DEFAULT_PROJECT_NAME = '未命名项目';
 
@@ -49,9 +53,13 @@ const HomePage = ({
   githubUrl,
   onOpenTutorial,
   onOpenEffects,
+  onOpenSettings,
+  isDecodingGia,
+  onDecodeGia,
 }: HomePageProps) => {
   const [isDragging, setIsDragging] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
+  const decodeInputRef = useRef<HTMLInputElement | null>(null);
 
   const sortedProjects = useMemo(
     () => [...projects].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)),
@@ -92,6 +100,28 @@ const HomePage = ({
           <button type="button" onClick={onImportClick}>
             导入Zip项目
           </button>
+        </div>
+        <div className="home__actions home__actions--secondary">
+          <button
+            type="button"
+            onClick={() => decodeInputRef.current?.click()}
+            disabled={isDecodingGia}
+            aria-busy={isDecodingGia || undefined}
+          >
+            {isDecodingGia ? '解码中…' : '解码.gia文件'}
+          </button>
+          <input
+            ref={decodeInputRef}
+            type="file"
+            accept=".gia"
+            hidden
+            onChange={async (event) => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = '';
+              if (!file) return;
+              await onDecodeGia(file);
+            }}
+          />
         </div>
         <div
           className={classNames('home__dropzone', { 'is-active': isDragging })}
@@ -150,6 +180,9 @@ const HomePage = ({
         </div>
       </div>
       <div className="home__links">
+        <button type="button" className="home__settings" onClick={onOpenSettings} aria-label="设置">
+          <img src={ICON_SETTING} alt="" aria-hidden="true" width="32" height="32" />
+        </button>
         <a
           className="home__github"
           href={githubUrl}

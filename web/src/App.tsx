@@ -10,6 +10,7 @@ import TutorialPage, { type TutorialRoute } from "./components/TutorialPage";
 import EffectsPage from "./components/EffectsPage";
 import NodeInspector from "./components/NodeInspector";
 import NodePalette from "./components/NodePalette";
+import SettingsPage from "./components/SettingsPage";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
 import type { GraphDocument, GraphEnvironment } from "./types/node";
@@ -36,8 +37,10 @@ import {
   saveProjectToZip,
 } from "./utils/projectIO";
 import { exportGraphsToGil } from "./lib/gil/export";
+import { exportGiaDocument } from "./lib/gia/exporter";
+import { decodeGiaBinary } from "./lib/gia/decoder";
 import VERSION_INFO from "./config/version";
-import type { AutoSaveEntry, LayoutState, StoredProject } from "./utils/storage";
+import type { AutoSaveEntry, EditorSettings, LayoutState, StoredProject } from "./utils/storage";
 import {
   AUTOSAVE_LIMIT,
   clearAutoSavesForProject,
@@ -45,8 +48,10 @@ import {
   loadLayoutState,
   loadProjects,
   loadSessionState,
+  loadEditorSettings,
   persistAutoSaveEntry,
   persistLayoutState,
+  persistEditorSettings,
   replaceAutoSavesForProject,
   removeProjectRecord,
   updateSessionState,
@@ -69,6 +74,7 @@ const ICON_REDO = new URL("./assets/icons/redo.png", import.meta.url).href;
 const ICON_TUTORIAL = new URL("./assets/icons/tutorial.png", import.meta.url).href;
 const ICON_EFFECTS = new URL("./assets/icons/effects.svg", import.meta.url).href;
 const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
+const ICON_SETTING = new URL("./assets/icons/setting.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
@@ -90,6 +96,7 @@ type LightweightDialog = {
   onConfirm?: () => void;
   onCancel?: () => void;
 };
+type DialogRequest = Omit<LightweightDialog, 'onConfirm' | 'onCancel'>;
 
 const sanitizeFileName = (name: string) => {
   const trimmed = name.trim();
@@ -105,6 +112,82 @@ const formatExecutionInterval = (value: number) => {
   }
   const rounded = Number(value.toFixed(3));
   return rounded.toString();
+};
+
+const tokenizeVersion = (value?: string): number[] => {
+  if (!value) {
+    return [];
+  }
+  const sanitized = value.trim();
+  if (!sanitized) {
+    return [];
+  }
+  const cleaned = sanitized.replace(/^v/i, '');
+  const segments = cleaned.split('.');
+  const tokens: number[] = [];
+  for (const segment of segments) {
+    if (!segment) {
+      tokens.push(0);
+      continue;
+    }
+    if (/^\d+$/.test(segment)) {
+      tokens.push(Number(segment));
+      continue;
+    }
+    const match = /^([A-Za-z]+)(\d+)?$/.exec(segment);
+    if (match) {
+      const letterCode = 10000 + match[1].toUpperCase().charCodeAt(0);
+      tokens.push(letterCode);
+      if (match[2]) {
+        tokens.push(Number(match[2]));
+      }
+      continue;
+    }
+    tokens.push(0);
+  }
+  return tokens;
+};
+
+const compareAppVersions = (incoming?: string, current?: string): number => {
+  const incomingTokens = tokenizeVersion(incoming);
+  const currentTokens = tokenizeVersion(current);
+  const length = Math.max(incomingTokens.length, currentTokens.length);
+  for (let i = 0; i < length; i++) {
+    const a = incomingTokens[i] ?? 0;
+    const b = currentTokens[i] ?? 0;
+    if (a === b) {
+      continue;
+    }
+    return a > b ? 1 : -1;
+  }
+  return 0;
+};
+
+const highlightJsonText = (jsonText: string) => {
+  const escaped = jsonText
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+  return escaped.replace(
+    /("(?:\\u[\da-fA-F]{4}|\\[^u]|[^\\"])*"(?:\s*:)?|\b(?:true|false|null)\b|-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)/g,
+    (match) => {
+      let cls = 'number';
+      if (match.startsWith('"')) {
+        cls = match.endsWith(':') ? 'key' : 'string';
+      } else if (/true|false/.test(match)) {
+        cls = 'boolean';
+      } else if (match === 'null') {
+        cls = 'null';
+      }
+      return `<span class="json-token json-token--${cls}">${match}</span>`;
+    },
+  );
+};
+
+type GiaModalState = {
+  fileName: string;
+  jsonText: string;
+  highlightedJson: string;
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -136,6 +219,8 @@ const isTutorialPath = (path: string) =>
 
 const isEffectsPath = (path: string) =>
   path === "/effects" || path.startsWith("/effects/");
+
+const isSettingsPath = (path: string) => path === "/settings";
 
 const buildTutorialPath = (path: string) => {
   const trimmed = path.replace(/^\/+/, "");
@@ -172,12 +257,15 @@ const parseTutorialRouteFromPath = (pathname: string): TutorialRoute => {
   return { kind, entryId };
 };
 
-type ViewMode = "home" | "editor" | "tutorial" | "effects" | "notFound";
+type ViewMode = "home" | "editor" | "tutorial" | "effects" | "settings" | "notFound";
 
 const resolveViewFromPath = (relativePath: string) => {
   const normalized = relativePath.replace(/\/+$/, "") || "/";
   if (normalized === "/") {
     return { view: "home" } as const;
+  }
+  if (isSettingsPath(normalized)) {
+    return { view: "settings" } as const;
   }
   if (isEffectsPath(normalized)) {
     return { view: "effects" } as const;
@@ -266,6 +354,17 @@ const detectMobileMode = () => {
   return (isMobileUA && touchPoints > 0) || coarsePointer || (touchPoints > 1 && smallViewport);
 };
 
+const GIA_UID_DIGITS = "0123456789";
+const generateGiaUidValue = (length = 9) => {
+  const safeLength = Math.max(1, length);
+  let result = "";
+  for (let i = 0; i < safeLength; i++) {
+    const index = Math.floor(Math.random() * GIA_UID_DIGITS.length);
+    result += GIA_UID_DIGITS[index];
+  }
+  return result;
+};
+
 const DEFAULT_PROJECT_NAME = "未命名项目";
 const App = () => {
   const projectDocument = useProjectStore((state) => state.document);
@@ -317,9 +416,21 @@ const App = () => {
   const [view, setView] = useState<ViewMode>(() => {
     if (initialRouteState.view === "tutorial") return "tutorial";
     if (initialRouteState.view === "effects") return "effects";
+    if (initialRouteState.view === "settings") return "settings";
     if (initialRouteState.view === "notFound") return "notFound";
     return "home";
-});
+  });
+  const currentViewRef = useRef<ViewMode>(view);
+  useEffect(() => {
+    currentViewRef.current = view;
+  }, [view]);
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    if (!window.history.state) {
+      window.history.replaceState({ view }, '', window.location.href);
+    }
+  }, []);
+
   const [tutorialRoute, setTutorialRoute] = useState<TutorialRoute>(() =>
     initialRouteState.view === "tutorial" ? initialRouteState.tutorialRoute : { kind: "landing" },
   );
@@ -329,16 +440,92 @@ const App = () => {
   const skipInitialRecoveryRef = useRef(
     initialRouteState.view === "tutorial" ||
       initialRouteState.view === "effects" ||
-      initialRouteState.view === "notFound",
+      initialRouteState.view === "notFound" ||
+      initialRouteState.view === "settings",
   );
 
   const [isMobileMode, setIsMobileMode] = useState(() => detectMobileMode());
+  const [editorSettings, setEditorSettings] = useState<EditorSettings>(() => loadEditorSettings());
+  const updateEditorSettings = useCallback((updater: (prev: EditorSettings) => EditorSettings) => {
+    setEditorSettings((prev) => {
+      const next = updater(prev);
+      persistEditorSettings(next);
+      return next;
+    });
+  }, []);
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
   const [saveToast, setSaveToast] = useState<string | null>(null);
   const [openMenu, setOpenMenu] = useState<'window' | 'file' | null>(null);
   const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
+  const [giaModal, setGiaModal] = useState<GiaModalState | null>(null);
+  const [isDecodingGia, setIsDecodingGia] = useState(false);
+  const settingsReturnViewRef = useRef<'home' | 'editor' | null>(
+    initialRouteState.view === 'settings' ? 'home' : null,
+  );
+  const giaSessionUidRef = useRef<string | null>(null);
+  const getGiaUid = useCallback(() => {
+    if (editorSettings.giaUidMode === 'fixed') {
+      const sanitized = editorSettings.giaFixedUid.trim();
+      if (/^\d{9,10}$/.test(sanitized)) {
+        return sanitized;
+      }
+    } else if (editorSettings.giaUidMode === 'perSession') {
+      if (!giaSessionUidRef.current) {
+        giaSessionUidRef.current = generateGiaUidValue(9);
+      }
+      return giaSessionUidRef.current;
+    }
+    return generateGiaUidValue(9);
+  }, [editorSettings.giaFixedUid, editorSettings.giaUidMode]);
+  useEffect(() => {
+    if (editorSettings.giaUidMode !== 'perSession') {
+      giaSessionUidRef.current = null;
+    }
+  }, [editorSettings.giaUidMode]);
+  const requestConfirmation = useCallback(
+    (dialog: DialogRequest) =>
+      new Promise<boolean>((resolve) => {
+        setGilDialog({
+          ...dialog,
+          onConfirm: () => {
+            setGilDialog(null);
+            resolve(true);
+          },
+          onCancel: () => {
+            setGilDialog(null);
+            resolve(false);
+          },
+        });
+      }),
+    [setGilDialog],
+  );
+  const ensureImportVersionSafe = useCallback(
+    async (incomingVersion?: string) => {
+      const currentVersion = VERSION_INFO.editor;
+      if (!incomingVersion || !currentVersion) {
+        return true;
+      }
+      if (compareAppVersions(incomingVersion, currentVersion) <= 0) {
+        return true;
+      }
+      return requestConfirmation({
+        title: "项目导入确认",
+        message: (
+          <div>
+            <p>
+              导入的项目版本（{incomingVersion}）高于当前编辑器版本（{currentVersion}），继续导入可能导致数据丢失或出现未知问题。
+            </p>
+            <p>是否继续？</p>
+          </div>
+        ),
+        confirmLabel: "继续",
+        cancelLabel: "取消",
+      });
+    },
+    [requestConfirmation],
+  );
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
   const [saveAsDialog, setSaveAsDialog] = useState<{
@@ -395,13 +582,14 @@ const App = () => {
       setExecutionIntervalInput('');
     }
   }, [executionIntervalSeconds, shouldShowExecutionInterval]);
-  const pushAppHistory = useCallback((path: string, replace = false) => {
+  const pushAppHistory = useCallback((path: string, replace = false, state?: Record<string, unknown>) => {
     if (typeof window === "undefined") return;
     const target = buildAppPath(path);
+    const payload = state ?? {};
     if (replace) {
-      window.history.replaceState({}, '', target);
+      window.history.replaceState(payload, '', target);
     } else {
-      window.history.pushState({}, '', target);
+      window.history.pushState(payload, '', target);
     }
   }, []);
 
@@ -566,7 +754,7 @@ const App = () => {
 
   const navigateHome = useCallback(
     (replace: boolean) => {
-      pushAppHistory('/', replace);
+      pushAppHistory('/', replace, { view: 'home' });
       setView('home');
       setTutorialRoute({ kind: 'landing' });
       setNotFoundPath(null);
@@ -579,6 +767,51 @@ const App = () => {
     setOpenMenu(null);
     navigateHome(false);
   }, [navigateHome]);
+
+  const applySettingsReturnView = useCallback(
+    (options?: { viaHistory?: boolean }) => {
+      const target = settingsReturnViewRef.current ?? 'home';
+      settingsReturnViewRef.current = null;
+      if (!options?.viaHistory) {
+        pushAppHistory('/', true, { view: target });
+      }
+      setNotFoundPath(null);
+      if (target === 'editor') {
+        setView('editor');
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'editor' }));
+      } else {
+        setView('home');
+        setTutorialRoute({ kind: 'landing' });
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'home' }));
+      }
+    },
+    [pushAppHistory],
+  );
+
+  const handleCloseSettings = useCallback(() => {
+    applySettingsReturnView();
+  }, [applySettingsReturnView]);
+
+  const openSettings = useCallback(
+    (source: 'home' | 'editor') => {
+      setOpenMenu(null);
+      settingsReturnViewRef.current = source;
+      pushAppHistory('/settings', false, { view: 'settings', returnView: source });
+      setTutorialRoute({ kind: 'landing' });
+      setNotFoundPath(null);
+      setView('settings');
+      updateSessionState((prev) => ({ ...prev, lastVisitedView: 'settings' }));
+    },
+    [pushAppHistory],
+  );
+
+  const handleOpenSettingsFromHome = useCallback(() => {
+    openSettings('home');
+  }, [openSettings]);
+
+  const handleOpenSettingsFromEditor = useCallback(() => {
+    openSettings('editor');
+  }, [openSettings]);
 
   const handleTutorialNavigate = useCallback(
     (nextPath: string, replace = false) => {
@@ -784,6 +1017,10 @@ const App = () => {
         const { document, warnings: loadWarnings } = await loadProjectFromZip(file, {
           fallbackAppVersion: VERSION_INFO.editor,
         });
+        const versionOk = await ensureImportVersionSafe(document.manifest.appVersion);
+        if (!versionOk) {
+          return;
+        }
         const { document: prepared, primaryGraphId, warnings: normalizeWarnings } =
           prepareProjectDocument(document);
         applyProjectDocument(prepared, primaryGraphId);
@@ -798,7 +1035,7 @@ const App = () => {
         window.alert("导入项目失败，请确认文件是否为有效的节点项目压缩包。");
       }
     },
-    [applyProjectDocument, prepareProjectDocument, showSaveToast],
+    [applyProjectDocument, ensureImportVersionSafe, prepareProjectDocument, showSaveToast],
   );
 
   const handleProjectFiles = useCallback(
@@ -823,6 +1060,47 @@ const App = () => {
     },
     [handleImportProjectDocument],
   );
+
+  const handleDecodeGiaFile = useCallback(async (file: File) => {
+    setIsDecodingGia(true);
+    try {
+      const buffer = await file.arrayBuffer();
+      const decoded = decodeGiaBinary(buffer);
+      const pretty = JSON.stringify(decoded, null, 2);
+      setGiaModal({
+        fileName: file.name,
+        jsonText: pretty,
+        highlightedJson: highlightJsonText(pretty),
+      });
+    } catch (error) {
+      console.error('解码 GIA 文件失败', error);
+      const message =
+        error instanceof Error ? error.message : '解码过程中发生未知错误，请确认文件是否有效。';
+      setGilDialog({
+        title: '解码失败',
+        message,
+        confirmLabel: '关闭',
+      });
+    } finally {
+      setIsDecodingGia(false);
+    }
+  }, []);
+
+  const handleDownloadGiaJson = useCallback(() => {
+    if (!giaModal) return;
+    const safeBase = sanitizeFileName(giaModal.fileName.replace(/\.gia$/i, '') || 'gia');
+    const filename = `${safeBase}.decoded.json`;
+    const blob = new Blob([giaModal.jsonText], { type: 'application/json;charset=utf-8' });
+    const link = window.document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [giaModal]);
+
+  const closeGiaModal = useCallback(() => {
+    setGiaModal(null);
+  }, []);
 
   const performProjectSave = useCallback(() => {
     const store = useProjectStore.getState();
@@ -1006,11 +1284,15 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, projectDocument]);
+  }, [activeGraphId, projectDocument, setGilDialog]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {
-      window.alert("当前没有打开的节点图。");
+      setGilDialog({
+        title: ".gia导出",
+        message: "当前没有打开的节点图。",
+        confirmLabel: "知道了",
+      });
       return;
     }
     const graphState = useGraphStore.getState();
@@ -1040,6 +1322,70 @@ const handleSaveGraphAs = useCallback(() => {
     link.click();
     URL.revokeObjectURL(link.href);
   }, [activeGraphId, projectDocument]);
+
+  const handleExportGiaPrototype = useCallback(() => {
+    if (!activeGraphId) {
+      setGilDialog({
+        title: ".gia??????",
+        message: "???????????",
+        confirmLabel: "???",
+      });
+      return;
+    }
+    const graphState = useGraphStore.getState();
+    const exportedGraph = graphState.exportGraph();
+    const manifestEntry = projectDocument?.manifest.graphs.find(
+      (entry) => entry.graphId === activeGraphId,
+    );
+    const resolvedLocation = resolveGraphLocation(activeGraphId, manifestEntry?.path, {
+      groupNameHint: manifestEntry?.groupName,
+    });
+    const environment: GraphEnvironment =
+      exportedGraph.environment ?? resolveEnvironmentFromLocation(resolvedLocation.location);
+    const exportPayload: GraphDocument = {
+      ...exportedGraph,
+      environment,
+    };
+    try {
+      const uid = getGiaUid();
+      const result = exportGiaDocument(exportPayload, { uid });
+      const link = window.document.createElement("a");
+      link.href = URL.createObjectURL(result.blob);
+      link.download = result.fileName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+      if (result.warnings.length > 0) {
+        setGilDialog({
+          title: ".gia导出（实验）",
+          message: (
+            <div>
+              <p>.gia导出完成，但存在以下限制：</p>
+              <ul>
+                {result.warnings.map((warning, index) => (
+                  <li key={`${index}-${warning}`}>{warning}</li>
+                ))}
+              </ul>
+            </div>
+          ),
+          confirmLabel: "确认",
+        });
+      }
+    } catch (error) {
+      console.error(error);
+      setGilDialog({
+        title: ".gia导出失败",
+        message: (
+          <div>
+            <p>.gia导出失败：请查看控制台以获取更多信息。</p>
+            {error instanceof Error && error.message ? (
+              <pre>{error.message}</pre>
+            ) : null}
+          </div>
+        ),
+        confirmLabel: "知道了",
+      });
+    }
+  }, [activeGraphId, getGiaUid, projectDocument, setGilDialog]);
 
   const handleSaveAsCancel = useCallback(() => {
     setSaveAsDialog(null);
@@ -1311,10 +1657,23 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   );
 
   useEffect(() => {
-    const onPopState = () => {
+    const onPopState = (event: PopStateEvent) => {
       if (typeof window === 'undefined') return;
       const relative = stripAppBase(window.location.pathname);
       const routeState = resolveViewFromPath(relative);
+      if (routeState.view === 'settings') {
+        const returnView = event.state?.returnView === 'editor' ? 'editor' : 'home';
+        settingsReturnViewRef.current = returnView;
+        setTutorialRoute({ kind: 'landing' });
+        setNotFoundPath(null);
+        setView('settings');
+        updateSessionState((prev) => ({ ...prev, lastVisitedView: 'settings' }));
+        return;
+      }
+      if (currentViewRef.current === 'settings') {
+        applySettingsReturnView({ viaHistory: true });
+        return;
+      }
       if (routeState.view === 'tutorial') {
         setTutorialRoute(routeState.tutorialRoute);
         setView('tutorial');
@@ -1342,7 +1701,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     };
     window.addEventListener('popstate', onPopState);
     return () => window.removeEventListener('popstate', onPopState);
-  }, []);
+  }, [applySettingsReturnView]);
 
   useEffect(() => {
     if (view === 'effects') {
@@ -1691,6 +2050,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           ? `/${saveAsDialog.topFolder}/`
           : '';
 
+    const isGiaFixedUidValid = /^\d{9,10}$/.test(editorSettings.giaFixedUid);
+    const isGiaExportButtonEnabled =
+      editorSettings.giaUidMode !== 'fixed' || isGiaFixedUidValid;
+
     return (
       <>
       <header className="app__editor-bar">
@@ -1753,10 +2116,12 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
                     导出为.zip项目
                   </button>
-                  <button type="button" onClick={handleExportGil}>
-                    <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                    导出为.gil存档
-                  </button>
+                  {editorSettings.enableGilExport && (
+                    <button type="button" onClick={handleExportGil}>
+                      <img src={ICON_EXPORT} alt="" aria-hidden="true" />
+                      导出为.gil存档
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -1764,6 +2129,14 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         </div>
         <div className="app__editor-bar-center">{VERSION_INFO.node || VERSION_INFO.editor}</div>
         <div className="app__editor-bar-right">
+          <button
+            type="button"
+            className="app__editor-icon-button"
+            onClick={handleOpenSettingsFromEditor}
+            aria-label="设置"
+          >
+            <img src={ICON_SETTING} alt="" aria-hidden="true" />
+          </button>
           <button
             type="button"
             className="app__editor-icon-button app__editor-icon-button--github"
@@ -1804,7 +2177,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               onToggle={togglePalette}
               isTouchEnvironment={isMobileMode}
             />
-            <GraphCanvas isMobileMode={isMobileMode} />
+            <GraphCanvas isMobileMode={isMobileMode} settings={editorSettings} />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
           </>
         ) : isStructTab ? (
@@ -1976,11 +2349,32 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 type="button"
                 className="action_dock__button"
                 onClick={handleExportCurrentGraph}
-                title="导出节点图"
+                title="导出为Json节点图"
               >
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">导出节点图</span>
+                <span className="sr-only">导出为Json节点图</span>
               </button>
+              {editorSettings.enableGiaExport && (
+                <button
+                  type="button"
+                  className="action_dock__button"
+                  onClick={handleExportGiaPrototype}
+                  title={
+                    editorSettings.giaUidMode === 'fixed' && !isGiaFixedUidValid
+                      ? '请输入9-10位UID后再导出'
+                      : '导出为.gia文件（实验）'
+                  }
+                  disabled={!isGiaExportButtonEnabled}
+                >
+                  <img
+                    src={ICON_EXPORT}
+                    alt=""
+                    aria-hidden="true"
+                    className="action_dock__icon-img"
+                  />
+                  <span className="sr-only">导出为.gia文件（实验）</span>
+                </button>
+              )}
             </div>
           )}
         </div>
@@ -2106,6 +2500,17 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     <EffectsPage version={VERSION_INFO.effects} onBack={handleGoHome} />
   );
 
+  const renderSettings = () => (
+    <SettingsPage
+      iconBack={ICON_BACK}
+      settings={editorSettings}
+      onUpdateSettings={updateEditorSettings}
+      onClose={handleCloseSettings}
+      returnTarget={settingsReturnViewRef.current ?? 'home'}
+      isTouchEnvironment={isMobileMode}
+    />
+  );
+
   const renderHome = () => (
     <>
       <HomePage
@@ -2115,14 +2520,17 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         onImportClick={() => projectFileInputRef.current?.click()}
         onDropFiles={handleProjectFiles}
         onOpenProject={handleOpenProject}
-      onDeleteProject={handleDeleteProject}
-      onSaveAll={handleSaveAll}
-      githubUrl={GITHUB_URL}
-      onOpenTutorial={handleOpenTutorial}
-      onOpenEffects={handleOpenEffects}
-    />
-  </>
-);
+        onDeleteProject={handleDeleteProject}
+        onSaveAll={handleSaveAll}
+        githubUrl={GITHUB_URL}
+        onOpenTutorial={handleOpenTutorial}
+        onOpenEffects={handleOpenEffects}
+        onOpenSettings={handleOpenSettingsFromHome}
+        isDecodingGia={isDecodingGia}
+        onDecodeGia={handleDecodeGiaFile}
+      />
+    </>
+  );
 
   const renderTutorial = () => (
     <TutorialPage route={tutorialRoute} onNavigate={handleTutorialNavigate} onClose={handleGoHome} />
@@ -2138,26 +2546,60 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     </div>
   );
 
-  const isScrollableView = view === 'home' || view === 'effects';
+  const isScrollableView = view === 'home' || view === 'effects' || view === 'settings';
+  const appClassName = [
+    'app',
+    isScrollableView ? 'app--scrollable' : '',
+    editorSettings.pointerStyle === 'system' ? 'app--system-pointer' : '',
+  ]
+    .filter(Boolean)
+    .join(' ');
 
   return (
-    <div
-      className={`app${isScrollableView ? ' app--scrollable' : ''}`}
-      onClick={() => setOpenMenu(null)}
-    >
-      {view === 'home' && <div className="app__version-info">{VERSION_INFO.homepage}</div>}
+    <div className={appClassName} onClick={() => setOpenMenu(null)}>
+      {(view === 'home' || view === 'settings') && (
+        <div className="app__version-info">{VERSION_INFO.homepage}</div>
+      )}
       {view === 'tutorial' && <div className="app__version-info">{VERSION_INFO.tutorial}</div>}
       {view === 'effects' && <div className="app__version-info">{VERSION_INFO.effects}</div>}
       {view === 'editor' && <div className="app__version-info app__version-info--hidden" />}
       {view === 'editor'
-        ? renderEditor()
-        : view === 'tutorial'
-          ? renderTutorial()
-          : view === 'effects'
-            ? renderEffects()
-            : view === 'notFound'
-              ? renderNotFound()
-              : renderHome()}
+       ? renderEditor()
+       : view === 'tutorial'
+         ? renderTutorial()
+         : view === 'effects'
+           ? renderEffects()
+           : view === 'settings'
+             ? renderSettings()
+             : view === 'notFound'
+               ? renderNotFound()
+               : renderHome()}
+      {giaModal && (
+        <div className="gia-modal-overlay" role="dialog" aria-modal="true">
+          <div className="gia-modal" role="document">
+            <div className="gia-modal__header">
+              <div className="gia-modal__title">
+                <h3>解码.gia文件</h3>
+                <p>{giaModal.fileName}</p>
+              </div>
+            </div>
+            <div className="gia-modal__body">
+              <pre
+                className="gia-modal__code"
+                dangerouslySetInnerHTML={{ __html: giaModal.highlightedJson }}
+              />
+            </div>
+            <div className="gia-modal__actions">
+              <button type="button" onClick={handleDownloadGiaJson}>
+                下载Json
+              </button>
+              <button type="button" onClick={closeGiaModal}>
+                关闭
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
       {gilDialog && (
         <div
           className="home__confirm-backdrop"
