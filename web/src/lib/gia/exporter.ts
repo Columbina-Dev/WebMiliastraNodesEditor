@@ -205,6 +205,7 @@ class GiaRootBuilder {
       compositePins: [],
       graphValues: [],
       affiliations: [],
+      comments: nodeEncoder.getGraphComments(),
     };
   }
 
@@ -298,6 +299,9 @@ type NodeInfo = {
 
 const NODE_DEFINITION_MAP = new Map(nodeDefinitions.map((def) => [def.id, def]));
 
+type NodeCommentPayload = { content: string };
+type GraphCommentPayload = { content: string; x: number; y: number };
+
 class GiaGraphNodeEncoder {
   private readonly document: GraphDocument;
   private readonly env: NormalizedEnvironment;
@@ -306,6 +310,8 @@ class GiaGraphNodeEncoder {
   private readonly nodeInfoById: Map<string, NodeInfo>;
   private readonly flowConnections = new Map<string, FlowConnection[]>();
   private readonly dataConnections = new Map<string, DataConnection[]>();
+  private readonly nodeComments = new Map<string, NodeCommentPayload>();
+  private readonly graphComments: GraphCommentPayload[] = [];
 
   constructor(doc: GraphDocument, env: NormalizedEnvironment, warnings: string[]) {
     this.document = doc;
@@ -321,6 +327,7 @@ class GiaGraphNodeEncoder {
       };
     });
     this.nodeInfoById = new Map(this.nodeInfos.map((info) => [info.node.id, info]));
+    this.collectComments();
     this.collectEdges();
   }
 
@@ -347,6 +354,7 @@ class GiaGraphNodeEncoder {
       return null;
     }
 
+    const comment = this.nodeComments.get(info.node.id);
     const pins = [
       ...this.buildFlowOutPins(info, portMeta),
       ...this.buildDataInPins(info, portMeta),
@@ -359,6 +367,7 @@ class GiaGraphNodeEncoder {
       pins,
       x: info.node.position?.x ?? 0,
       y: info.node.position?.y ?? 0,
+      comments: comment,
     };
   }
 
@@ -412,6 +421,37 @@ class GiaGraphNodeEncoder {
       kind: NODE_PROPERTY_KIND.SysCall,
       nodeId,
     };
+  }
+
+  private collectComments() {
+    for (const rawComment of this.document.comments ?? []) {
+      const text = rawComment?.text?.trim();
+      if (!text) continue;
+      const nodeId = rawComment.nodeId?.trim();
+      if (nodeId) {
+        const targetNode = this.nodeInfoById.get(nodeId);
+        if (!targetNode) {
+          this.warnings.push(`GIA：注释指向的节点（ID=${nodeId}）不存在，已忽略。`);
+          continue;
+        }
+        if (this.nodeComments.has(nodeId)) {
+          this.warnings.push(`GIA：节点“${targetNode.node.type}”存在多个注释，仅导出第一个。`);
+          continue;
+        }
+        this.nodeComments.set(nodeId, { content: text });
+        continue;
+      }
+      const x = sanitizeCoordinate(rawComment.position?.x);
+      const y = sanitizeCoordinate(rawComment.position?.y);
+      if (rawComment.position === undefined) {
+        this.warnings.push("GIA：存在未绑定节点且缺少坐标的注释，已放置在 (0, 0)。");
+      }
+      this.graphComments.push({ content: text, x, y });
+    }
+  }
+
+  getGraphComments() {
+    return this.graphComments;
   }
 
   private collectEdges() {
@@ -519,6 +559,11 @@ const resolveVarType = (info: NodeInfo, portId: string): number | undefined => {
     return VAR_TYPE.UnknownVar ?? 0;
   }
   return undefined;
+};
+
+const sanitizeCoordinate = (value?: number) => {
+  const numeric = typeof value === "number" ? value : Number(value ?? 0);
+  return Number.isFinite(numeric) ? numeric : 0;
 };
 
 const makePortKey = (nodeId: string, portId: string) => `${nodeId}::${portId}`;
