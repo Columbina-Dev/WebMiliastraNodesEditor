@@ -25,7 +25,8 @@ import {
 } from '../types/struct';
 
 const INVALID_PATH_CHARS = /[\\:*?"<>|]/g;
-const CONTROL_CHARS = /[\u0000-\u001f\u007f]/g;
+const CONTROL_CHAR_RANGES = ['\\u0000-\\u001f', '\\u007f'];
+const CONTROL_CHARS = new RegExp(`[${CONTROL_CHAR_RANGES.join('')}]`, 'g');
 
 export const GRAPH_FILE_EXTENSION = '.json';
 export const STRUCT_FILE_EXTENSION = '.json';

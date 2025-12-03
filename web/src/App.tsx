@@ -427,7 +427,7 @@ const App = () => {
   useEffect(() => {
     if (typeof window === 'undefined') return;
     if (!window.history.state) {
-      window.history.replaceState({ view }, '', window.location.href);
+      window.history.replaceState({ view: currentViewRef.current }, '', window.location.href);
     }
   }, []);
 
@@ -1284,7 +1284,7 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, projectDocument, setGilDialog]);
+  }, [activeGraphId, projectDocument]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {

@@ -139,6 +139,8 @@ export const exportGiaDocument = (
   };
 };
 
+type GiaRecord = Record<string, unknown>;
+
 class GiaRootBuilder {
   private readonly document: GraphDocument;
   private readonly env: NormalizedEnvironment;
@@ -155,9 +157,9 @@ class GiaRootBuilder {
     this.timestampSeconds = options?.timestampSeconds ?? Math.floor(Date.now() / 1000);
   }
 
-  build(): { root: Record<string, any>; warnings: string[]; fileName: string } {
+  build(): { root: GiaRecord; warnings: string[]; fileName: string } {
     const nodeUnit = this.buildNodeUnit();
-    const root: Record<string, any> = {
+    const root: GiaRecord = {
       graph: nodeUnit,
       utils: [],
       filePath: this.buildFilePath(),
@@ -331,13 +333,13 @@ class GiaGraphNodeEncoder {
     this.collectEdges();
   }
 
-  build(): Record<string, any>[] {
+  build(): GiaRecord[] {
     return this.nodeInfos
       .map((info) => this.buildNode(info))
-      .filter((item): item is Record<string, any> => item !== null);
+      .filter((item): item is GiaRecord => item !== null);
   }
 
-  private buildNode(info: NodeInfo): Record<string, any> | null {
+  private buildNode(info: NodeInfo): GiaRecord | null {
     const definition = info.definition;
     const portMeta = info.portMeta;
     if (!definition || !portMeta) {
@@ -372,7 +374,7 @@ class GiaGraphNodeEncoder {
   }
 
   private buildFlowOutPins(info: NodeInfo, meta: NodePortMeta) {
-    const pins: Record<string, any>[] = [];
+    const pins: GiaRecord[] = [];
     meta.flowOut.forEach((portId, index) => {
       const key = makePortKey(info.node.id, portId);
       const entries = this.flowConnections.get(key);
@@ -391,7 +393,7 @@ class GiaGraphNodeEncoder {
   }
 
   private buildDataInPins(info: NodeInfo, meta: NodePortMeta) {
-    const pins: Record<string, any>[] = [];
+    const pins: GiaRecord[] = [];
     meta.dataIn.forEach((portId, index) => {
       const key = makePortKey(info.node.id, portId);
       const entries = this.dataConnections.get(key);

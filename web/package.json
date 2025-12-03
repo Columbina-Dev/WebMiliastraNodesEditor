@@ -1,4 +1,5 @@
 {
+  "$schema": "./package.schema.json",
   "name": "web",
   "private": true,
   "version": "0.0.0",

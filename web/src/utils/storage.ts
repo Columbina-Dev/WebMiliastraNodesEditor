@@ -472,7 +472,11 @@ export const loadEditorSettings = (): EditorSettings => {
   const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
   const merged = { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
   // sanitize legacy values
-  if (parsed.selectionActivation === 'both') {
+  const legacySelectionActivation = parsed.selectionActivation as
+    | EditorSelectionActivation
+    | 'both'
+    | undefined;
+  if (legacySelectionActivation === 'both') {
     merged.selectionActivation = 'drag';
   }
   if (
