@@ -1381,14 +1381,19 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
 
   const handlePaneClickCapture = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
-      if (!clickSelectionEnabled) return;
       const target = event.target as HTMLElement | null;
       if (!target) return;
-      const paneElement = target.closest('.react-flow__pane');
-      if (!paneElement) return;
+      const paneElement = target.closest('.react-flow__pane') as HTMLElement | null;
+      if (!paneElement || target !== paneElement) return;
+      // Prevent React Flow's pane handler from clearing selections before our logic runs.
+      event.stopPropagation();
+      event.preventDefault();
+      if (event.nativeEvent && typeof event.nativeEvent.stopImmediatePropagation === 'function') {
+        event.nativeEvent.stopImmediatePropagation();
+      }
       handlePaneClick(event);
     },
-    [clickSelectionEnabled, handlePaneClick],
+    [handlePaneClick],
   );
 
   const handleDrop = useCallback(
@@ -2181,7 +2186,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         panOnDrag={isMobileMode ? [1, 2] : [panMouseButton]}
         zoomOnScroll={zoomWithWheel}
         zoomOnPinch={zoomWithWheel}
-        zoomOnDoubleClick={!isMobileMode}
+        zoomOnDoubleClick={isMobileMode}
         deleteKeyCode={['Delete']}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
@@ -2196,7 +2201,6 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         onNodeDrag={handleNodeDragMove}
         onNodeDragStop={handleNodeDragStop}
         onEdgeContextMenu={(event, edge) => openEdgeMenu(event, edge.id)}
-        onPaneClick={handlePaneClick}
         onPaneContextMenu={openCanvasMenu}
         nodeTypes={memoizedNodeTypes}
         proOptions={{ hideAttribution: true }}

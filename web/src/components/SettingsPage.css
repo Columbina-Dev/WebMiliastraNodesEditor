@@ -247,7 +247,7 @@
 }
 
 .settings-about-modal {
-  width: min(720px, 100%);
+  width: min(750px, 100%);
   max-height: min(80vh, 640px);
   background: #101726;
   border: 1px solid rgba(255, 255, 255, 0.12);

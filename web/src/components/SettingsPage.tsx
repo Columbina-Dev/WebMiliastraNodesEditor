@@ -355,7 +355,7 @@ const SettingsPage = ({
                 声明：该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。该项目90%以上代码均由AI生成。此项目仅供学习和交流使用，严禁用于商业用途。使用时请务必遵守<a href="https://genshin.hoyoverse.com/company/terms" target="_blank" rel="noopener noreferrer">《原神》及《原神·千星奇域》使用条款</a>，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。
               </p>
               <p>
-                使用此网页应用时即默认表示您已同意以上声明。
+                使用此网页应用时即默认表示您已阅读并同意以上声明。
               </p>
               <br></br>
               <p>
@@ -373,7 +373,7 @@ const SettingsPage = ({
               </p>
               <br></br><br></br>
               <p>
-                《原神·千星奇域》节点图模拟器（Genshin Impact — Miliastra Wonderland Node Graph Simulator）
+                《原神·千星奇域》节点图模拟器（"Genshin Impact - Miliastra Wonderland" Node Graph Simulator）
               </p>
               <p>
                     Copyright (C) 2025-2026  Columbina-Dev
