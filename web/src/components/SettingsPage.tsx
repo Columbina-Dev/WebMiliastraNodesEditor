@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import classNames from 'classnames';
-import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
+import type { EditorSettings } from '../utils/storage';
+// import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
 import './SettingsPage.css';
 const ICON_INFO = new URL('../assets/icons/info.png', import.meta.url).href;
 
@@ -79,10 +80,10 @@ const SettingsPage = ({
       leftBoxRightTouch: '向左拖动使用框选，向右拖动使用触碰。',
     };
 
-    const selectionActivationNotes: Record<EditorSelectionActivation, string> = {
-      drag: '需要按住左键拖动创建选框。',
-      click: '第一次点击确定起点，第二次点击确定终点。',
-    };
+    // const selectionActivationNotes: Record<EditorSelectionActivation, string> = {
+    //   drag: '需要按住左键拖动创建选框。',
+    //   click: '第一次点击确定起点，第二次点击确定终点。',
+    // };
 
     return (
       <div className="settings-panel">
@@ -159,7 +160,8 @@ const SettingsPage = ({
                 )}
                 <p className="settings-option__hint">选择缩放时使用的方式</p>
               </div>
-              <div className="settings-option">
+              {/* 由于bug较难修复，暂时移除此设置的UI。默认为`左键拖拽` */}
+              {/* <div className="settings-option">
                 <div className="settings-option__label">*框选控制</div>
                 {renderChoiceButtons(
                   [
@@ -170,7 +172,7 @@ const SettingsPage = ({
                   (value) => handleOptionChange('selectionActivation', value),
                 )}
                 <p className="settings-option__hint">{selectionActivationNotes[settings.selectionActivation]}</p>
-              </div>
+              </div> */}
               <div className="settings-option">
                 <div className="settings-option__label">*多选模式</div>
                 {renderChoiceButtons(
