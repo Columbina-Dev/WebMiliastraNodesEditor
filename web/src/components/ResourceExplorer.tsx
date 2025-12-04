@@ -351,7 +351,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   const currentHistoryEntry = history[historyIndex] ?? null;
   const isRootView = currentHistoryEntry === null;
 
-  const currentCategoryGroups = groupsByCategory.get(activeCategoryKey) ?? [];
+  const currentCategoryGroups = useMemo(
+    () => groupsByCategory.get(activeCategoryKey) ?? [],
+    [activeCategoryKey, groupsByCategory],
+  );
 
   const visibleFolders = useMemo(() => {
     const filtered = currentCategoryGroups.filter((group) =>

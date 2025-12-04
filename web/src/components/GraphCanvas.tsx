@@ -5,6 +5,7 @@
   useMemo,
   useRef,
   useState,
+  type DependencyList,
 } from 'react';
 import type {
   DragEvent as ReactDragEvent,
@@ -232,10 +233,29 @@ type FloatingPanelState =
 
 const useViewportAdjustedPosition = (
   anchor: ScreenPoint | null,
-  deps: unknown[]
+  deps: DependencyList
 ) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState<ScreenPoint | null>(anchor);
+  const previousDepsRef = useRef<DependencyList>(deps);
+  const [depsVersion, setDepsVersion] = useState(0);
+
+  useEffect(() => {
+    const previous = previousDepsRef.current;
+    let changed = previous.length !== deps.length;
+    if (!changed) {
+      for (let i = 0; i < deps.length; i += 1) {
+        if (previous[i] !== deps[i]) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    if (changed) {
+      previousDepsRef.current = deps;
+      setDepsVersion((value) => value + 1);
+    }
+  }, [deps]);
 
   useLayoutEffect(() => {
     if (!anchor) {
@@ -258,7 +278,7 @@ const useViewportAdjustedPosition = (
       top = Math.max(padding, window.innerHeight - offsetHeight - padding);
     }
     setPosition({ x: left, y: top });
-  }, [anchor, ...deps]);
+  }, [anchor, depsVersion]);
 
   return { ref, position } as const;
 };
@@ -266,7 +286,7 @@ const useViewportAdjustedPosition = (
 const FloatingPanel: React.FC<{
   anchor: ScreenPoint | null;
   className?: string;
-  deps?: unknown[];
+  deps?: DependencyList;
   children: React.ReactNode;
 }> = ({ anchor, className, children, deps = [] }) => {
   const { ref, position } = useViewportAdjustedPosition(anchor, deps);
@@ -640,6 +660,21 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       );
     }
   }, [reactFlow, setSelectedNode]);
+
+  const applyManualSelection = useCallback(
+    (selectedIds: string[]) => {
+      previousSelectedIdsRef.current = selectedIds;
+      if (selectedIds.length) {
+        const anchorId = selectedIds[selectedIds.length - 1];
+        setSelectedNode(anchorId);
+        collapseUnpinnedComments(anchorId);
+      } else {
+        setSelectedNode(undefined);
+        collapseUnpinnedComments(undefined);
+      }
+    },
+    [collapseUnpinnedComments, setSelectedNode],
+  );
 
   const getSelectionBounds = useCallback(() => {
     const wrapperRect = wrapperRef.current?.getBoundingClientRect();
@@ -1155,19 +1190,23 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               break;
             }
           }
-          if (targetNodeId) {
-            reactFlow.setNodes((prev) =>
-              prev.map((node) => {
-                const shouldSelect = additive
-                  ? node.selected || node.id === targetNodeId
-                  : node.id === targetNodeId;
-                return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
-              }),
-            );
-          }
-          setHasPartialSelection(false);
-          return;
+        if (targetNodeId) {
+          reactFlow.setNodes((prev) =>
+            prev.map((node) => {
+              const shouldSelect = additive
+                ? node.selected || node.id === targetNodeId
+                : node.id === targetNodeId;
+              return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
+            }),
+          );
+          const finalIds = additive
+            ? Array.from(new Set([...previousSelectedIdsRef.current, targetNodeId]))
+            : [targetNodeId];
+          applyManualSelection(finalIds);
         }
+        setHasPartialSelection(false);
+        return;
+      }
 
         const nextMode = determineSelectionMode(deltaX);
         const isPartial = nextMode === SelectionMode.Partial;
@@ -1241,7 +1280,11 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
             return edge.selected === shouldSelect ? edge : { ...edge, selected: shouldSelect };
           }),
         );
-        setHasPartialSelection(isPartial && (selectedNodeIds.size > 0 || finalSelectedEdges.size > 0));
+        const finalIds = additive
+          ? Array.from(new Set([...previousSelectedIdsRef.current, ...selectedNodeIds]))
+          : Array.from(selectedNodeIds);
+        applyManualSelection(finalIds);
+        setHasPartialSelection(isPartial && (finalIds.length > 0 || finalSelectedEdges.size > 0));
         const bubbleElements = document.querySelectorAll<HTMLDivElement>(
           '.graph-comment-bubble[data-comment-id][data-floating="true"]',
         );
@@ -1267,10 +1310,14 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
           setSelectedComment(undefined);
         }
       });
-    }, [determineSelectionMode, reactFlow, setClickSelectionPreview, setHasPartialSelection, setIsClickSelectionActive, setSelectedComment]);
+    }, [applyManualSelection, determineSelectionMode, reactFlow, setClickSelectionPreview, setHasPartialSelection, setIsClickSelectionActive, setSelectedComment]);
 
   const handlePaneClick = useCallback(
     (event?: ReactMouseEvent<Element>) => {
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (commentMode === 'selecting') {
         if (event) {
           const flowPoint = reactFlow.screenToFlowPosition({
@@ -1330,6 +1377,23 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       setIsClickSelectionActive,
       updateClickSelectionPreview,
     ],
+  );
+
+  const handlePaneClickCapture = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const paneElement = target.closest('.react-flow__pane') as HTMLElement | null;
+      if (!paneElement || target !== paneElement) return;
+      // Prevent React Flow's pane handler from clearing selections before our logic runs.
+      event.stopPropagation();
+      event.preventDefault();
+      if (event.nativeEvent && typeof event.nativeEvent.stopImmediatePropagation === 'function') {
+        event.nativeEvent.stopImmediatePropagation();
+      }
+      handlePaneClick(event);
+    },
+    [handlePaneClick],
   );
 
   const handleDrop = useCallback(
@@ -1502,7 +1566,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         }
       });
     },
-    [reactFlow, setHasPartialSelection, setSelectedComment]
+    [determineSelectionMode, reactFlow, setHasPartialSelection, setSelectedComment]
   );
 
   const openNodeMenu = useCallback(
@@ -1692,7 +1756,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       setSelectedNode(newNodeId);
       setFloatingPanel(null);
     },
-    [environment, setFloatingPanel, setSelectedNode]
+    [connectionValueTypeFilter, environment, setFloatingPanel, setSelectedNode]
   );
 
   const canvasAnchor =
@@ -2100,6 +2164,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       onMouseMove={handleWrapperMouseMove}
       onMouseUp={handleWrapperMouseUp}
       onMouseLeave={handleWrapperMouseLeave}
+      onClickCapture={handlePaneClickCapture}
       onContextMenu={(event) => event.preventDefault()}
       onTouchStart={isMobileMode ? handleWrapperTouchStart : undefined}
       onTouchMove={isMobileMode ? handleWrapperTouchMove : undefined}
@@ -2121,7 +2186,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         panOnDrag={isMobileMode ? [1, 2] : [panMouseButton]}
         zoomOnScroll={zoomWithWheel}
         zoomOnPinch={zoomWithWheel}
-        zoomOnDoubleClick={!isMobileMode}
+        zoomOnDoubleClick={isMobileMode}
         deleteKeyCode={['Delete']}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
@@ -2136,7 +2201,6 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         onNodeDrag={handleNodeDragMove}
         onNodeDragStop={handleNodeDragStop}
         onEdgeContextMenu={(event, edge) => openEdgeMenu(event, edge.id)}
-        onPaneClick={handlePaneClick}
         onPaneContextMenu={openCanvasMenu}
         nodeTypes={memoizedNodeTypes}
         proOptions={{ hideAttribution: true }}

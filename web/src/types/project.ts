@@ -24,7 +24,7 @@ export interface ProjectManifestGroup {
   groupName: string;
 }
 
-export interface ProjectManifestStructGroup extends StructManifestGroup {}
+export type ProjectManifestStructGroup = StructManifestGroup;
 
 export interface ProjectManifestGraph {
   graphId: string;

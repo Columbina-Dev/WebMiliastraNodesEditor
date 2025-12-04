@@ -776,7 +776,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       categoryKey,
       `${sourceGroup.groupName} `,
     );
-    let createdSlug: string | null = newGroupSlug;
+    const createdSlug: string | null = newGroupSlug;
     upsertManifestGroup(nextDocument.manifest, {
       topFolder,
       categoryKey,

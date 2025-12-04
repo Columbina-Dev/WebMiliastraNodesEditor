@@ -20,6 +20,7 @@ import './MiliastraNode.css';
 
 type NodeStyle = React.CSSProperties & {
   '--miliastra-header-color'?: string;
+  '--miliastra-header-bg'?: string;
 };
 
 type Vector3Value = { x: number; y: number; z: number };
@@ -124,10 +125,10 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
   // support either a plain color or a CSS gradient string
   if (typeof headerColor === 'string' && headerColor.trim().startsWith('linear-gradient')) {
     nodeStyle['--miliastra-header-color'] = undefined;
-    (nodeStyle as any)['--miliastra-header-bg'] = headerColor;
+    nodeStyle['--miliastra-header-bg'] = headerColor;
   } else {
-    (nodeStyle as any)['--miliastra-header-color'] = headerColor;
-    (nodeStyle as any)['--miliastra-header-bg'] = undefined;
+    nodeStyle['--miliastra-header-color'] = headerColor;
+    nodeStyle['--miliastra-header-bg'] = undefined;
   }
 
   const compatibilityMap = useMemo(() => {
