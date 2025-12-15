@@ -4,6 +4,8 @@ import { nodeDefinitionsById } from '../data/nodeDefinitions';
 import { useGraphStore } from '../state/graphStore';
 import type { DataPortDefinition } from '../types/node';
 import { useShallow } from 'zustand/react/shallow';
+import { useI18n } from '../utils/i18nContext';
+import { resolveNodeDefinitionDisplayName, resolvePortLabel } from '../utils/nodeText';
 import './NodeInspector.css';
 
 interface NodeInspectorProps {
@@ -12,6 +14,7 @@ interface NodeInspectorProps {
 }
 
 const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
+  const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const {
     nodes,
     edges,
@@ -99,61 +102,65 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
 
   const content = isEmpty || !node || !definition ? (
     <>
-      <h2 className="inspector__title">节点详情</h2>
-      <p className="inspector__placeholder">选择画布中的节点查看详细信息</p>
+      <h2 className="inspector__title">{t('inspector.title')}</h2>
+      <p className="inspector__placeholder">{t('inspector.placeholder.selectNode')}</p>
     </>
   ) : (
     <>
       <header className="inspector__header">
-        <h2 className="inspector__title">节点详情</h2>
+        <h2 className="inspector__title">{t('inspector.title')}</h2>
         <button className="inspector__delete" onClick={() => removeNode(node.id)}>
-          删除节点
+          {t('inspector.deleteNode')}
         </button>
       </header>
       <section className="inspector__section">
-        <label className="inspector__label">定义</label>
-        <div className="inspector__value">{definition.displayName}</div>
+        <label className="inspector__label">{t('inspector.definition')}</label>
+        <div className="inspector__value">
+          {resolveNodeDefinitionDisplayName(definition, primaryLanguage, secondaryLanguage)}
+        </div>
         <div className="inspector__hint">{definition.id}</div>
       </section>
       <section className="inspector__section">
         <label className="inspector__label" htmlFor="node-name">
-          节点实例名称
+          {t('inspector.instanceName')}
         </label>
         <input
           id="node-name"
           className="inspector__input"
-          placeholder={definition.displayName}
+          placeholder={resolveNodeDefinitionDisplayName(definition, primaryLanguage, secondaryLanguage)}
           value={node.label ?? ''}
           onChange={handleLabelChange}
         />
-        <div className="inspector__hint">留空则继承定义名称</div>
+        <div className="inspector__hint">{t('inspector.instanceName.hint')}</div>
       </section>
       <section className="inspector__section">
-        <h3 className="inspector__subtitle">数据输入默认值</h3>
+        <h3 className="inspector__subtitle">{t('inspector.dataInputDefaults')}</h3>
         <div className="inspector__controls">
           {definition.ports.filter((port) => port.kind === 'data-in').map((port) => {
             const dataPort = port as DataPortDefinition;
             const value = node.data?.overrides?.[dataPort.id];
             return (
               <label key={dataPort.id} className="inspector__control">
-                <span>{dataPort.label}</span>
+                <span>{resolvePortLabel(dataPort, primaryLanguage, secondaryLanguage)}</span>
                 <input
                   className="inspector__input"
                   value={value === undefined ? '' : String(value)}
-                  placeholder={dataPort.defaultValue === undefined ? '未设置' : String(dataPort.defaultValue)}
+                  placeholder={
+                    dataPort.defaultValue === undefined ? t('common.unset') : String(dataPort.defaultValue)
+                  }
                   onChange={handleOverrideChange(node.id)(dataPort)}
                 />
               </label>
             );
           })}
           {!definition.ports.some((port) => port.kind === 'data-in') && (
-            <div className="inspector__hint">该节点没有可配置的数据输入</div>
+            <div className="inspector__hint">{t('inspector.dataInputDefaults.empty')}</div>
           )}
         </div>
       </section>
       <section className="inspector__section inspector__section--comments">
         <div className="inspector__comments-header">
-          <h3 className="inspector__subtitle">注释</h3>
+          <h3 className="inspector__subtitle">{t('inspector.comments')}</h3>
         </div>
         {nodeComments.length ? (
           <ul className="inspector__comment-list">
@@ -165,7 +172,7 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
                   <textarea
                     className="inspector__comment-item"
                     value={comment.text}
-                    placeholder="（空注释）"
+                    placeholder={t('inspector.comments.placeholder')}
                     rows={1}
                     style={{ height: `${approxHeight}px` }}
                     onFocus={(event) => {
@@ -182,33 +189,33 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
             })}
           </ul>
         ) : (
-          <div className="inspector__hint">暂无注释</div>
+          <div className="inspector__hint">{t('inspector.comments.empty')}</div>
         )}
       </section>
 
       <section className="inspector__section">
-        <h3 className="inspector__subtitle">连接</h3>
+        <h3 className="inspector__subtitle">{t('inspector.connections')}</h3>
         <div className="inspector__connections">
           <div className="inspector__connections-group inspector__connections-group--inputs">
-            <strong>输入</strong>
+            <strong>{t('inspector.connections.inputs')}</strong>
             <ul>
               {incoming.map((edge) => (
                 <li key={edge.id}>
                   {edge.source.nodeId} → {edge.target.portId}
                 </li>
               ))}
-              {!incoming.length && <li className="inspector__hint">无输入连接</li>}
+              {!incoming.length && <li className="inspector__hint">{t('inspector.connections.inputs.empty')}</li>}
             </ul>
           </div>
           <div className="inspector__connections-group inspector__connections-group--outputs">
-            <strong>输出</strong>
+            <strong>{t('inspector.connections.outputs')}</strong>
             <ul>
               {outgoing.map((edge) => (
                 <li key={edge.id}>
                   {edge.target.nodeId} ← {edge.source.portId}
                 </li>
               ))}
-              {!outgoing.length && <li className="inspector__hint">无输出连接</li>}
+              {!outgoing.length && <li className="inspector__hint">{t('inspector.connections.outputs.empty')}</li>}
             </ul>
           </div>
         </div>

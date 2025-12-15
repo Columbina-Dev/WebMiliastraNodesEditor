@@ -3,6 +3,7 @@ import classNames from 'classnames';
 import './EffectsPage.css';
 import gifsJsText from '../external/ys-keqizu/gifs.js?raw';
 import gifs2JsText from '../external/ys-keqizu/gifs2.js?raw';
+import { useI18n } from '../utils/i18nContext';
 
 type EffectCategory = 'limited' | 'loop';
 
@@ -21,15 +22,15 @@ const REMOTE_ROOT = 'https://ys.keqizu.com';
 
 const CATEGORY_META: Record<
   EffectCategory,
-  { label: string; preferredBase: string; fallbackBase: string }
+  { labelKey: string; preferredBase: string; fallbackBase: string }
 > = {
   limited: {
-    label: '限时特效',
+    labelKey: 'effects.category.limited',
     preferredBase: `${REMOTE_ROOT}/GIFS`,
     fallbackBase: `${REMOTE_ROOT}/gifs`,
   },
   loop: {
-    label: '循环特效',
+    labelKey: 'effects.category.loop',
     preferredBase: `${REMOTE_ROOT}/GIFS2`,
     fallbackBase: `${REMOTE_ROOT}/gifs2`,
   },
@@ -44,15 +45,13 @@ const parseScriptArray = (script: string, key: string) => {
   const pattern = new RegExp(`${key}\\s*=\\s*(\\[[\\s\\S]*?\\])\\s*;?\\s*$`, 'm');
   const match = script.match(pattern);
   if (!match) {
-    throw new Error(`未能从 ${key} 提取特效列表`);
+    throw new Error(`Unable to extract effect list from ${key}`);
   }
   return JSON.parse(match[1]) as EffectEntry[];
 };
 
-const formatStats = (limited: number, loop: number) =>
-  `限时特效 · ${limited} 个 | 循环特效 · ${loop} 个`;
-
 const EffectsPage = ({ onBack }: EffectsPageProps) => {
+  const { t } = useI18n();
   const [limitedEffects, setLimitedEffects] = useState<EffectEntry[]>([]);
   const [loopEffects, setLoopEffects] = useState<EffectEntry[]>([]);
   const [category, setCategory] = useState<EffectCategory>('limited');
@@ -86,7 +85,7 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
       } catch (fetchError) {
         if (cancelled) return;
         console.error(fetchError);
-        setError('特效资源加载失败，请稍后重试。');
+        setError(t('effects.error.loadFailed'));
         setLimitedEffects([]);
         setLoopEffects([]);
       } finally {
@@ -171,15 +170,15 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
     if (!normalizedSearch || !filteredEffects.length) {
       return null;
     }
-    return `搜索结果：“${normalizedSearch}” · 共 ${filteredEffects.length} 项`;
-  }, [filteredEffects.length, normalizedSearch]);
+    return t('effects.search.badge', { query: normalizedSearch, count: filteredEffects.length });
+  }, [filteredEffects.length, normalizedSearch, t]);
 
   const statsText = useMemo(() => {
     if (normalizedSearch) {
-      return `当前显示 ${filteredEffects.length} 个特效`;
+      return t('effects.stats.filtered', { count: filteredEffects.length });
     }
-    return formatStats(limitedEffects.length, loopEffects.length);
-  }, [filteredEffects.length, limitedEffects.length, loopEffects.length, normalizedSearch]);
+    return t('effects.stats.all', { limited: limitedEffects.length, loop: loopEffects.length });
+  }, [filteredEffects.length, limitedEffects.length, loopEffects.length, normalizedSearch, t]);
 
   const handleCategoryChange = useCallback((next: EffectCategory) => {
     setCategory(next);
@@ -206,12 +205,12 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
         } else {
           throw new Error('clipboard unavailable');
         }
-        showToast(`${label}已复制：${text}`);
+        showToast(t('effects.toast.copied', { label, text }));
       } catch {
-        showToast('复制失败，请手动复制');
+        showToast(t('effects.toast.copyFailed'));
       }
     },
-    [showToast],
+    [showToast, t],
   );
 
   const [selectedEffect, setSelectedEffect] = useState<{
@@ -257,26 +256,26 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
     <div className="effects-page" style={gridStyle}>
       <header className="effects-page__header">
         <div className="effects-page__title">
-          <h1>千星沙箱特效预览</h1>
+          <h1>{t('effects.title')}</h1>
         </div>
         <div className="effects-page__header-actions">
           <button type="button" className="tutorial__close" onClick={onBack}>
-            返回主页
+            {t('common.backHome')}
           </button>
           <a
             className="watermark"
-            aria-label="作者水印"
+            aria-label={t('effects.watermark.aria')}
             href="https://space.bilibili.com/2448140"
             target="_blank"
             rel="noopener noreferrer"
           >
-            特效预览 by BiliBili Ayaya小王
+            {t('effects.watermark.text')}
           </a>
         </div>
       </header>
 
       <div className="effects-page__controls">
-        <div className="effects-page__tabs" role="tablist" aria-label="特效分类">
+        <div className="effects-page__tabs" role="tablist" aria-label={t('effects.categories.aria')}>
           {(Object.keys(CATEGORY_META) as EffectCategory[]).map((key) => (
             <button
               key={key}
@@ -286,14 +285,14 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
               aria-selected={category === key}
               onClick={() => handleCategoryChange(key)}
             >
-              {CATEGORY_META[key].label}
+              {t(CATEGORY_META[key].labelKey)}
             </button>
           ))}
         </div>
 
         <div className="effects-page__filters">
           <label className="effects-page__scale">
-            <span>缩放</span>
+            <span>{t('effects.scale.label')}</span>
             <select
               value={String(scale)}
               onChange={(event) => {
@@ -313,9 +312,9 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
             <input
               type="search"
               value={searchTerm}
-              placeholder="搜索特效名称或配置 ID..."
+              placeholder={t('effects.search.placeholder')}
               onChange={(event) => setSearchTerm(event.target.value)}
-              aria-label="搜索特效"
+              aria-label={t('effects.search.aria')}
             />
           </div>
         </div>
@@ -330,11 +329,11 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
         {error && <div className="effects-page__error">{error}</div>}
         {loading && (
           <div className="effects-page__loading" role="status">
-            <span>正在加载特效...</span>
+            <span>{t('effects.loading')}</span>
           </div>
         )}
         {!loading && !error && !displayedEffects.length && (
-          <div className="effects-page__empty">未找到匹配的特效</div>
+          <div className="effects-page__empty">{t('effects.empty')}</div>
         )}
         <div className="effects-page__grid">
           {displayedEffects.map((effect) => {
@@ -367,7 +366,7 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
                 <div className="effects-page__info">
                   <div className="effects-page__name">{effect.name}</div>
                   <div className="effects-page__id">
-                    {effect.id ? `ID：${effect.id}` : '暂无 ID'}
+                    {effect.id ? t('common.idWithValue', { id: effect.id }) : t('common.noId')}
                   </div>
                 </div>
               </button>
@@ -385,7 +384,7 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
             onClick={(event) => event.stopPropagation()}
           >
             <button type="button" className="effects-page__modal-close" onClick={closeModal}>
-              关闭
+              {t('common.close')}
             </button>
             <div className="effects-page__modal-body">
               <img
@@ -405,17 +404,19 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
                 <button
                   type="button"
                   className="effects-page__modal-title"
-                  onClick={() => handleCopy(selectedEffect.effect.name ?? '', '名称')}
+                  onClick={() => handleCopy(selectedEffect.effect.name ?? '', t('common.name'))}
                 >
                   {selectedEffect.effect.name}
                 </button>
                 <button
                   type="button"
                   className="effects-page__modal-id"
-                  onClick={() => handleCopy(selectedEffect.effect.id ?? '', 'ID')}
+                  onClick={() => handleCopy(selectedEffect.effect.id ?? '', t('common.id'))}
                   disabled={!selectedEffect.effect.id}
                 >
-                  {selectedEffect.effect.id ? `ID：${selectedEffect.effect.id}` : '暂无 ID'}
+                  {selectedEffect.effect.id
+                    ? t('common.idWithValue', { id: selectedEffect.effect.id })
+                    : t('common.noId')}
                 </button>
               </div>
             </div>
@@ -433,7 +434,6 @@ const EffectsPage = ({ onBack }: EffectsPageProps) => {
 };
 
 export default EffectsPage;
-
 
 
 

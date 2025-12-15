@@ -23,10 +23,17 @@ import {
   resolveStructLocation,
   upsertStructManifestGroup,
 } from '../utils/project';
-const EXPLORER_LABEL: Record<ProjectTopFolder, string> = {
-  server: '服务器节点图资源管理器',
-  client: '客户端节点图资源管理器',
+import { t as translateText } from '../utils/i18n';
+import { loadEditorSettings } from '../utils/storage';
+
+const translateUi = (key: string, params?: Record<string, string | number>) => {
+  const settings = loadEditorSettings();
+  return translateText(key, settings.uiPrimaryLanguage, settings.uiSecondaryLanguage, params);
 };
+const getExplorerLabel = (topFolder: ProjectTopFolder): string =>
+  topFolder === 'server'
+    ? translateUi('tabs.explorer.server')
+    : translateUi('tabs.explorer.client');
 export type ExplorerTabId = `explorer:${ProjectTopFolder}`;
 export type GraphTabId = `graph:${string}`;
 export type StructTabId = 'structs';
@@ -58,12 +65,12 @@ const createExplorerTab = (topFolder: ProjectTopFolder): ExplorerTab => ({
   id: buildExplorerTabId(topFolder),
   type: 'explorer',
   topFolder,
-  label: EXPLORER_LABEL[topFolder],
+  label: getExplorerLabel(topFolder),
 });
 const createStructTab = (): StructTab => ({
   id: STRUCT_TAB_ID,
   type: 'struct',
-  label: '结构体管理器',
+  label: translateUi('tabs.structManager'),
 });
 const DEFAULT_EXPLORER_ORDER: ProjectTopFolder[] = ['server', 'client'];
 interface ProjectWorkspaceState {
@@ -109,7 +116,7 @@ interface ProjectWorkspaceState {
 const createInitialState = (): ProjectWorkspaceState => ({
   document: null,
   projectId: null,
-  projectName: 'δĿ',
+  projectName: translateUi('project.defaultName'),
   openTabs: DEFAULT_EXPLORER_ORDER.map((folder) => createExplorerTab(folder)),
   activeTabId: buildExplorerTabId('server'),
   activeGraphId: null,
@@ -180,7 +187,6 @@ const refreshGraphTabLabels = (
     } satisfies GraphTab;
   });
 };
-const DEFAULT_NEW_GROUP_NAME = '½ļ';
 const getCategoryDefinition = (topFolder: ProjectTopFolder, categoryKey: string) => {
   const definition = PROJECT_CATEGORY_BY_KEY.get(categoryKey);
   if (!definition || definition.topFolder !== topFolder) {
@@ -200,7 +206,8 @@ const generateUniqueGroupInfo = (
   );
   const existingNames = new Set(candidates.map((group) => group.groupName));
   const existingSlugs = new Set(candidates.map((group) => group.groupSlug));
-  const baseName = sanitizeName(requestedName ?? DEFAULT_NEW_GROUP_NAME, DEFAULT_NEW_GROUP_NAME);
+  const fallbackName = translateUi('resourceExplorer.defaultFolderName');
+  const baseName = sanitizeName(requestedName ?? fallbackName, fallbackName);
   let nameCandidate = baseName;
   let nameIndex = 2;
   while (existingNames.has(nameCandidate)) {
@@ -271,7 +278,8 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
   setProjectName: (name) => {
     const document = get().document;
     if (!document) return;
-    const nextName = sanitizeName(name, 'δĿ');
+    const fallbackName = translateUi('project.defaultName');
+    const nextName = sanitizeName(name, fallbackName);
     const nextDocument: ProjectDocument = {
       manifest: {
         ...document.manifest,
@@ -934,7 +942,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         item.groupSlug === groupSlug,
     );
     if (!group) {
-      window.alert('δҵָļС');
+      window.alert(translateUi('resourceExplorer.error.exportFolder.notFound'));
       return;
     }
     const entries = projectDocument.manifest.graphs.filter((entry) => {
@@ -948,7 +956,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       );
     });
     if (!entries.length) {
-      window.alert('ļΪգ޿ɵĽڵͼ');
+      window.alert(translateUi('resourceExplorer.error.exportFolder.empty'));
       return;
     }
     const zip = new JSZip();

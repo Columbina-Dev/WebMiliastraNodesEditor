@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import classNames from 'classnames';
 import type { EditorSettings } from '../utils/storage';
+import { UI_LANGUAGE_OPTIONS, getDefaultSecondaryLanguage, type UiLanguage } from '../utils/i18n';
+import { useI18n } from '../utils/i18nContext';
 // import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
 import './SettingsPage.css';
 const ICON_INFO = new URL('../assets/icons/info.png', import.meta.url).href;
@@ -29,6 +31,7 @@ const SettingsPage = ({
   returnTarget,
   isTouchEnvironment = false,
 }: SettingsPageProps) => {
+  const { t } = useI18n();
   const [activeTab, setActiveTab] = useState<'general' | 'export'>('general');
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [isAboutOpen, setIsAboutOpen] = useState(false);
@@ -53,6 +56,16 @@ const SettingsPage = ({
     onUpdateSettings((prev) => (prev.giaFixedUid === cleaned ? prev : { ...prev, giaFixedUid: cleaned }));
   };
 
+  const handlePrimaryLanguageChange = (value: UiLanguage) => {
+    onUpdateSettings((prev) => {
+      const secondary = getDefaultSecondaryLanguage(value);
+      if (prev.uiPrimaryLanguage === value && prev.uiSecondaryLanguage === secondary) {
+        return prev;
+      }
+      return { ...prev, uiPrimaryLanguage: value, uiSecondaryLanguage: secondary };
+    });
+  };
+
   const renderChoiceButtons = <T extends string | number | boolean>(
     options: Array<{ value: T; label: string; hint?: string }>,
     current: T,
@@ -74,10 +87,10 @@ const SettingsPage = ({
 
   const renderGeneralTab = () => {
     const multiSelectDescriptions: Record<EditorSettings['multiSelectBehavior'], string> = {
-      touch: '选框触碰到节点即可选中（绿色选框）。',
-      box: '节点需要完全包含在选框内才能选中（蓝色选框）。',
-      leftTouchRightBox: '向左拖动使用触碰选择，向右拖动使用框选。',
-      leftBoxRightTouch: '向左拖动使用框选，向右拖动使用触碰。',
+      touch: t('settings.editorControls.multiSelect.touch.desc'),
+      box: t('settings.editorControls.multiSelect.box.desc'),
+      leftTouchRightBox: t('settings.editorControls.multiSelect.leftTouchRightBox.desc'),
+      leftBoxRightTouch: t('settings.editorControls.multiSelect.leftBoxRightTouch.desc'),
     };
 
     // const selectionActivationNotes: Record<EditorSelectionActivation, string> = {
@@ -93,7 +106,7 @@ const SettingsPage = ({
             className="settings-group__header"
             onClick={() => toggleGroup(SETTINGS_GROUP_KEYS.global)}
           >
-            <span>全局设置</span>
+            <span>{t('settings.group.global')}</span>
             <span
               className={classNames('settings-group__caret', {
                 'is-collapsed': collapsedGroups[SETTINGS_GROUP_KEYS.global],
@@ -103,16 +116,42 @@ const SettingsPage = ({
           {!collapsedGroups[SETTINGS_GROUP_KEYS.global] && (
             <div className="settings-group__body">
               <div className="settings-option">
-                <div className="settings-option__label">指针样式</div>
+                <div className="settings-option__label">{t('settings.global.primaryLanguage.label')}</div>
+                <select
+                  className="settings-select"
+                  value={settings.uiPrimaryLanguage}
+                  onChange={(event) => handlePrimaryLanguageChange(event.target.value as UiLanguage)}
+                >
+                  {UI_LANGUAGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {t(option.labelKey)}
+                    </option>
+                  ))}
+                </select>
+                <p className="settings-option__hint">{t('settings.global.primaryLanguage.hint')}</p>
+              </div>
+              <div className="settings-option">
+                <div className="settings-option__label">{t('settings.global.secondaryLanguage.label')}</div>
+                <select className="settings-select" value={settings.uiSecondaryLanguage} disabled>
+                  {UI_LANGUAGE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {t(option.labelKey)}
+                    </option>
+                  ))}
+                </select>
+                <p className="settings-option__hint">{t('settings.global.secondaryLanguage.hint')}</p>
+              </div>
+              <div className="settings-option">
+                <div className="settings-option__label">{t('settings.global.pointerStyle.label')}</div>
                 {renderChoiceButtons(
                   [
-                    { value: 'sandbox' as const, label: '千星沙箱' },
-                    { value: 'system' as const, label: '系统' },
+                    { value: 'sandbox' as const, label: t('settings.global.pointerStyle.sandbox') },
+                    { value: 'system' as const, label: t('settings.global.pointerStyle.system') },
                   ],
                   settings.pointerStyle,
                   (value) => handleOptionChange('pointerStyle', value),
                 )}
-                <p className="settings-option__hint">切换网站使用的鼠标样式</p>
+                <p className="settings-option__hint">{t('settings.global.pointerStyle.hint')}</p>
               </div>
             </div>
           )}
@@ -123,7 +162,7 @@ const SettingsPage = ({
             className="settings-group__header"
             onClick={() => toggleGroup(SETTINGS_GROUP_KEYS.editorControls)}
           >
-            <span>节点图编辑器控制</span>
+            <span>{t('settings.group.editorControls')}</span>
             <span className={classNames('settings-group__caret', {
               'is-collapsed': collapsedGroups[SETTINGS_GROUP_KEYS.editorControls],
             })}
@@ -131,34 +170,34 @@ const SettingsPage = ({
           </button>
           {!collapsedGroups[SETTINGS_GROUP_KEYS.editorControls] && (
             <div className="settings-group__body">
-              <p className="settings-group__tip">* 标记的设置对触摸模式无效</p>
+              <p className="settings-group__tip">{t('settings.editorControls.tip')}</p>
               {isTouchEnvironment && (
-                <p className="settings-group__note">当前检测为触摸环境，部分设置将不会生效</p>
+                <p className="settings-group__note">{t('settings.editorControls.touchNote')}</p>
               )}
               <div className="settings-option">
-                <div className="settings-option__label">*平移画布</div>
+                <div className="settings-option__label">{t('settings.editorControls.panButton.label')}</div>
                 {renderChoiceButtons(
                   [
-                    { value: 'right' as const, label: '右键' },
-                    { value: 'middle' as const, label: '中键' },
+                    { value: 'right' as const, label: t('settings.editorControls.panButton.right') },
+                    { value: 'middle' as const, label: t('settings.editorControls.panButton.middle') },
                   ],
                   settings.panButton,
                   (value) => handleOptionChange('panButton', value),
                 )}
-                <p className="settings-option__hint">选择平移画布时使用的鼠标按键</p>
+                <p className="settings-option__hint">{t('settings.editorControls.panButton.hint')}</p>
               </div>
               <div className="settings-option">
-                <div className="settings-option__label">*画布缩放</div>
+                <div className="settings-option__label">{t('settings.editorControls.zoomControl.label')}</div>
                 {renderChoiceButtons(
                   [
-                    { value: 'wheel' as const, label: '鼠标滚轮' },
-                    { value: 'keys' as const, label: 'Ctrl +/-' },
-                    { value: 'both' as const, label: '同时启用' },
+                    { value: 'wheel' as const, label: t('settings.editorControls.zoomControl.wheel') },
+                    { value: 'keys' as const, label: t('settings.editorControls.zoomControl.keys') },
+                    { value: 'both' as const, label: t('settings.editorControls.zoomControl.both') },
                   ],
                   settings.zoomControl,
                   (value) => handleOptionChange('zoomControl', value),
                 )}
-                <p className="settings-option__hint">选择缩放时使用的方式</p>
+                <p className="settings-option__hint">{t('settings.editorControls.zoomControl.hint')}</p>
               </div>
               {/* 由于bug较难修复，暂时移除此设置的UI。默认为`左键拖拽` */}
               {/* <div className="settings-option">
@@ -174,13 +213,13 @@ const SettingsPage = ({
                 <p className="settings-option__hint">{selectionActivationNotes[settings.selectionActivation]}</p>
               </div> */}
               <div className="settings-option">
-                <div className="settings-option__label">*多选模式</div>
+                <div className="settings-option__label">{t('settings.editorControls.multiSelect.label')}</div>
                 {renderChoiceButtons(
                   [
-                    { value: 'touch' as const, label: '接触选择' },
-                    { value: 'box' as const, label: '框选选择' },
-                    { value: 'leftTouchRightBox' as const, label: '向左接触/向右框选' },
-                    { value: 'leftBoxRightTouch' as const, label: '向左框选/向右接触' },
+                    { value: 'touch' as const, label: t('settings.editorControls.multiSelect.touch') },
+                    { value: 'box' as const, label: t('settings.editorControls.multiSelect.box') },
+                    { value: 'leftTouchRightBox' as const, label: t('settings.editorControls.multiSelect.leftTouchRightBox') },
+                    { value: 'leftBoxRightTouch' as const, label: t('settings.editorControls.multiSelect.leftBoxRightTouch') },
                   ],
                   settings.multiSelectBehavior,
                   (value) => handleOptionChange('multiSelectBehavior', value),
@@ -188,16 +227,28 @@ const SettingsPage = ({
                 <p className="settings-option__hint">{multiSelectDescriptions[settings.multiSelectBehavior]}</p>
               </div>
               <div className="settings-option">
-                <div className="settings-option__label">插入节点时是否立刻进入输入模式</div>
+                <div className="settings-option__label">{t('settings.editorControls.enterInputOnNodeInsert.label')}</div>
                 {renderChoiceButtons(
                   [
-                    { value: true as const, label: '是' },
-                    { value: false as const, label: '否' },
+                    { value: true as const, label: t('common.yes') },
+                    { value: false as const, label: t('common.no') },
                   ],
                   settings.enterInputOnNodeInsert,
                   (value) => handleOptionChange('enterInputOnNodeInsert', value),
                 )}
-                <p className="settings-option__hint">在创建节点后立即聚焦节点库的搜索输入框（移动端推荐否）</p>
+                <p className="settings-option__hint">{t('settings.editorControls.enterInputOnNodeInsert.hint')}</p>
+              </div>
+              <div className="settings-option">
+                <div className="settings-option__label">{t('settings.editorControls.searchAllLanguages.label')}</div>
+                {renderChoiceButtons(
+                  [
+                    { value: true as const, label: t('common.yes') },
+                    { value: false as const, label: t('common.no') },
+                  ],
+                  settings.allowSearchAllLanguageNodeNames,
+                  (value) => handleOptionChange('allowSearchAllLanguageNodeNames', value),
+                )}
+                <p className="settings-option__hint">{t('settings.editorControls.searchAllLanguages.hint')}</p>
               </div>
             </div>
           )}
@@ -214,7 +265,7 @@ const SettingsPage = ({
           className="settings-group__header"
           onClick={() => toggleGroup(SETTINGS_GROUP_KEYS.gilExport)}
         >
-          <span>GIL导出设置</span>
+          <span>{t('settings.group.gilExport')}</span>
           <span
             className={classNames('settings-group__caret', {
               'is-collapsed': collapsedGroups[SETTINGS_GROUP_KEYS.gilExport],
@@ -224,16 +275,16 @@ const SettingsPage = ({
         {!collapsedGroups[SETTINGS_GROUP_KEYS.gilExport] && (
           <div className="settings-group__body">
             <div className="settings-option">
-              <div className="settings-option__label">实验：开启GIL导出功能</div>
+              <div className="settings-option__label">{t('settings.gilExport.enable.label')}</div>
               {renderChoiceButtons(
                 [
-                  { value: true as const, label: '是' },
-                  { value: false as const, label: '否' },
+                  { value: true as const, label: t('common.yes') },
+                  { value: false as const, label: t('common.no') },
                 ],
                 settings.enableGilExport,
                 (value) => handleOptionChange('enableGilExport', value),
               )}
-              <p className="settings-option__hint">启用后可在顶部文件菜单中选择"导出为.gil存档"</p>
+              <p className="settings-option__hint">{t('settings.gilExport.enable.hint')}</p>
             </div>
           </div>
         )}
@@ -244,7 +295,7 @@ const SettingsPage = ({
           className="settings-group__header"
           onClick={() => toggleGroup(SETTINGS_GROUP_KEYS.giaExport)}
         >
-          <span>GIA导出设置</span>
+          <span>{t('settings.group.giaExport')}</span>
           <span
             className={classNames('settings-group__caret', {
               'is-collapsed': collapsedGroups[SETTINGS_GROUP_KEYS.giaExport],
@@ -254,24 +305,24 @@ const SettingsPage = ({
         {!collapsedGroups[SETTINGS_GROUP_KEYS.giaExport] && (
           <div className="settings-group__body">
             <div className="settings-option">
-              <div className="settings-option__label">实验：开启GIA导出功能</div>
+              <div className="settings-option__label">{t('settings.giaExport.enable.label')}</div>
               {renderChoiceButtons(
                 [
-                  { value: true as const, label: '是' },
-                  { value: false as const, label: '否' },
+                  { value: true as const, label: t('common.yes') },
+                  { value: false as const, label: t('common.no') },
                 ],
                 settings.enableGiaExport,
                 (value) => handleOptionChange('enableGiaExport', value),
               )}
-              <p className="settings-option__hint">启用后可在操作栏选择"导出为.gia文件（实验）"</p>
+              <p className="settings-option__hint">{t('settings.giaExport.enable.hint')}</p>
             </div>
             <div className="settings-option">
-              <div className="settings-option__label">设定UID</div>
+              <div className="settings-option__label">{t('settings.giaExport.uidMode.label')}</div>
               {renderChoiceButtons(
                 [
-                  { value: 'perExport' as const, label: '导出时随机生成' },
-                  { value: 'perSession' as const, label: '每次进入网页时随机生成' },
-                  { value: 'fixed' as const, label: '固定UID' },
+                  { value: 'perExport' as const, label: t('settings.giaExport.uidMode.perExport') },
+                  { value: 'perSession' as const, label: t('settings.giaExport.uidMode.perSession') },
+                  { value: 'fixed' as const, label: t('settings.giaExport.uidMode.fixed') },
                 ],
                 settings.giaUidMode,
                 (value) => handleOptionChange('giaUidMode', value),
@@ -281,12 +332,12 @@ const SettingsPage = ({
                   <input
                     value={settings.giaFixedUid}
                     onChange={(event) => handleFixedUidChange(event.target.value)}
-                    placeholder="请输入固定UID（9~10位数字）"
+                    placeholder={t('settings.giaExport.fixedUid.placeholder')}
                     className={classNames({ 'is-invalid': !isFixedUidValid && settings.giaFixedUid.length > 0 })}
                     inputMode="numeric"
                   />
                   <p className="settings-option__hint">
-                    UID需为9~10位数字
+                    {t('settings.giaExport.fixedUid.hint')}
                   </p>
                 </div>
               )}
@@ -297,15 +348,16 @@ const SettingsPage = ({
     </div>
   );
 
-  const returnLabel = '返回';
-  const returnAriaLabel = returnTarget === 'editor' ? '返回节点图编辑器' : '返回主页';
+  const returnLabel = t('common.back');
+  const returnAriaLabel =
+    returnTarget === 'editor' ? t('settings.backToEditor') : t('settings.backToHome');
 
   return (
     <div className="settings-page">
       <header className="settings-page__header">
         <div>
-          <h1>设置</h1>
-          <p className="settings-page__subtitle">所有设置数据仅保存在本地浏览器</p>
+          <h1>{t('settings.title')}</h1>
+          <p className="settings-page__subtitle">{t('settings.subtitle')}</p>
         </div>
         <button type="button" className="settings-page__back" onClick={onClose} aria-label={returnAriaLabel}>
           <img src={iconBack} alt="" aria-hidden="true" />
@@ -320,14 +372,14 @@ const SettingsPage = ({
               className={classNames('settings-tab', { 'is-active': activeTab === 'general' })}
               onClick={() => setActiveTab('general')}
             >
-              通用设置
+              {t('settings.tabs.general')}
             </button>
             <button
               type="button"
               className={classNames('settings-tab', { 'is-active': activeTab === 'export' })}
               onClick={() => setActiveTab('export')}
             >
-              导出设置
+              {t('settings.tabs.export')}
             </button>
           </div>
           <button
@@ -336,7 +388,7 @@ const SettingsPage = ({
             onClick={() => setIsAboutOpen(true)}
           >
             <img src={ICON_INFO} alt="" aria-hidden="true" />
-            关于
+            {t('settings.about.title')}
           </button>
         </aside>
         <section className="settings-page__content">
@@ -347,54 +399,74 @@ const SettingsPage = ({
         <div className="settings-about-overlay">
           <div className="settings-about-modal" role="dialog" aria-modal="true">
             <div className="settings-about-header">
-              <h2>关于</h2>
+              <h2>{t('settings.about.title')}</h2>
               <button type="button" onClick={() => setIsAboutOpen(false)}>
-                关闭
+                {t('common.close')}
               </button>
             </div>
             <div className="settings-about-body">
               <p>
-                声明：该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。该项目90%以上代码均由AI生成。此项目仅供学习和交流使用，严禁用于商业用途。使用时请务必遵守<a href="https://genshin.hoyoverse.com/company/terms" target="_blank" rel="noopener noreferrer">《原神》及《原神·千星奇域》使用条款</a>，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。
+                {t('settings.about.disclaimer.p1.prefix')}
+                <a
+                  href="https://genshin.hoyoverse.com/company/terms"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('settings.about.disclaimer.p1.link')}
+                </a>
+                {t('settings.about.disclaimer.p1.suffix')}
               </p>
               <p>
-                使用此网页应用时即默认表示您已阅读并同意以上声明。
+                {t('settings.about.disclaimer.p2')}
               </p>
               <br></br>
               <p>
-                此项目基于 <strong>GPL V3</strong> 协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：<a href="https://github.com/Columbina-Dev/WebMiliastraNodesEditor" target="_blank" rel="noopener noreferrer">https://github.com/Columbina-Dev/WebMiliastraNodesEditor</a>
+                {t('settings.about.project.p1.prefix')}
+                <strong>{t('settings.about.project.p1.license')}</strong>
+                {t('settings.about.project.p1.middle')}
+                <a
+                  href="https://github.com/Columbina-Dev/WebMiliastraNodesEditor"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {t('settings.about.project.p1.link')}
+                </a>
               </p>
               <br></br>
               <p>
-                特别鸣谢（时间顺序）：
+                {t('settings.about.credits.title')}
               </p>
               <p>
-                <a href="https://github.com/hackermdch" target="_blank" rel="noopener noreferrer">hackermdch</a> - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件
+                <a href="https://github.com/hackermdch" target="_blank" rel="noopener noreferrer">
+                  {t('settings.about.credits.hackermdch.name')}
+                </a>
+                {t('settings.about.credits.hackermdch.desc')}
               </p>
               <p>
-                <a href="https://github.com/Wu-Yijun" target="_blank" rel="noopener noreferrer">Wu-Yijun</a> - 提供 gia.proto及其他工具 帮助编码/解码 .gia 文件
+                <a href="https://github.com/Wu-Yijun" target="_blank" rel="noopener noreferrer">
+                  {t('settings.about.credits.wuYijun.name')}
+                </a>
+                {t('settings.about.credits.wuYijun.desc')}
               </p>
               <br></br><br></br>
               <p>
-                《原神·千星奇域》节点图模拟器（"Genshin Impact - Miliastra Wonderland" Node Graph Simulator）
+                {t('settings.about.license.appName')}
               </p>
               <p>
-                    Copyright (C) 2025-2026  Columbina-Dev
+                {t('settings.about.license.copyright')}
               </p>
               <p>
-                    This program is free software: you can redistribute it and/or modify
-                    it under the terms of the GNU General Public License as published by
-                    the Free Software Foundation, either version 3 of the License, or
-                    (at your option) any later version.
+                {t('settings.about.license.p1')}
               </p>
               <p>
-                    This program is distributed in the hope that it will be useful,
-                    but WITHOUT ANY WARRANTY; without even the implied warranty of
-                    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-                    GNU General Public License for more details.
+                {t('settings.about.license.p2')}
               </p>
               <p>
-                    You should have received a copy of the GNU General Public License
-                    along with this program.  If not, see <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer">https://www.gnu.org/licenses/</a>.
+                {t('settings.about.license.p3.prefix')}
+                <a href="https://www.gnu.org/licenses/" target="_blank" rel="noopener noreferrer">
+                  {t('settings.about.license.p3.link')}
+                </a>
+                {t('settings.about.license.p3.suffix')}
               </p>
             </div>
           </div>

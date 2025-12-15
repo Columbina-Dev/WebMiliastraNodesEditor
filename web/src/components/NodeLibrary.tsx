@@ -3,6 +3,12 @@ import type { DragEvent, ReactElement, TouchEvent as ReactTouchEvent } from 'rea
 import classNames from 'classnames';
 import type { NodeDefinition, ValueType } from '../types/node';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
+import type { UiLanguage } from '../utils/i18n';
+import { useI18n } from '../utils/i18nContext';
+import {
+  getNodeDefinitionDisplayNameForLanguage,
+  resolveNodeDefinitionDisplayName,
+} from '../utils/nodeText';
 import './NodeLibrary.css';
 
 const ICON_EXECUTE = new URL('../assets/icons/execute.svg', import.meta.url).href;
@@ -43,6 +49,7 @@ interface NodeLibraryProps {
   valueTypeFilter?: ValueTypeFilterProps;
   isTouchEnvironment?: boolean;
   autoFocusSearch?: boolean;
+  allowSearchAllLanguageNodeNames?: boolean;
 }
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
@@ -121,7 +128,7 @@ const buildTree = (definitions: NodeDefinition[]): CategoryNode[] => {
 };
 
 const NodeLibrary = ({
-  title = '节点库',
+  title,
   subtitle,
   definitions,
   onSelect,
@@ -130,7 +137,9 @@ const NodeLibrary = ({
   variant = 'sidebar',
   isTouchEnvironment = false,
   autoFocusSearch = false,
+  allowSearchAllLanguageNodeNames = false,
 }: NodeLibraryProps) => {
+  const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const [search, setSearch] = useState('');
   // start collapsed by default
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -157,15 +166,57 @@ const NodeLibrary = ({
     []
   );
 
-  const filteredDefinitions = useMemo(() => {
+  const { filteredDefinitions, displayNameById, matchNameById } = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return definitions.filter((definition) => {
+    const displayNameById = new Map<string, string>();
+    const matchNameById = new Map<string, string>();
+    const candidateLanguageOrder: UiLanguage[] = ['eng', 'cht', 'jpn', 'chs'];
+
+    const filteredDefinitions = definitions.filter((definition) => {
       if (filter && !filter(definition)) return false;
+
+      const resolvedName = resolveNodeDefinitionDisplayName(
+        definition,
+        primaryLanguage,
+        secondaryLanguage,
+      );
+      displayNameById.set(definition.id, resolvedName);
+
       if (!term) return true;
-      const haystack = (' ' + definition.displayName + ' ' + definition.category + ' ' + definition.id).toLowerCase();
-      return haystack.includes(term);
+
+      const matches = (value: string | undefined) =>
+        value ? value.toLowerCase().includes(term) : false;
+
+      if (matches(resolvedName) || matches(definition.category) || matches(definition.id)) {
+        return true;
+      }
+
+      if (!allowSearchAllLanguageNodeNames) {
+        return false;
+      }
+
+      for (const language of candidateLanguageOrder) {
+        const candidate = getNodeDefinitionDisplayNameForLanguage(definition, language);
+        if (!candidate) continue;
+        if (!matches(candidate)) continue;
+        if (candidate.toLowerCase() !== resolvedName.toLowerCase()) {
+          matchNameById.set(definition.id, candidate);
+        }
+        return true;
+      }
+
+      return false;
     });
-  }, [definitions, filter, search]);
+
+    return { filteredDefinitions, displayNameById, matchNameById };
+  }, [
+    allowSearchAllLanguageNodeNames,
+    definitions,
+    filter,
+    primaryLanguage,
+    secondaryLanguage,
+    search,
+  ]);
 
   const tree = useMemo(() => buildTree(filteredDefinitions), [filteredDefinitions]);
 
@@ -330,7 +381,14 @@ const NodeLibrary = ({
           onDragStart={(event) => handleDragStartInternal(event, definition)}
         >
           <span className="node-library__definition-dot" />
-          <span className="node-library__definition-name">{definition.displayName}</span>
+          <span className="node-library__definition-name">
+            {displayNameById.get(definition.id) ?? definition.displayName}
+          </span>
+          {matchNameById.has(definition.id) && (
+            <span className="node-library__definition-match">
+              ({matchNameById.get(definition.id)})
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -372,11 +430,13 @@ const NodeLibrary = ({
     variant === 'floating' ? 'node-library--floating' : 'node-library--sidebar'
   );
 
+  const resolvedTitle = title ?? t('nodeLibrary.title');
+
   return (
     <div className={libraryClassName}>
       <div className="node-library__header">
         <div>
-          <div className="node-library__title">{title}</div>
+          <div className="node-library__title">{resolvedTitle}</div>
           {subtitle && <div className="node-library__subtitle">{subtitle}</div>}
         </div>
       </div>
@@ -385,13 +445,13 @@ const NodeLibrary = ({
         <input
           ref={searchInputRef}
           value={search}
-          placeholder="搜索节点或分类"
+          placeholder={t('nodeLibrary.search.placeholder')}
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
       <div className="node-library__content">
         {tree.length === 0 ? (
-          <div className="node-library__empty">未找到匹配的节点</div>
+          <div className="node-library__empty">{t('nodeLibrary.search.empty')}</div>
         ) : (
           tree.map((category) => renderCategory(category))
         )}
@@ -401,9 +461,6 @@ const NodeLibrary = ({
 };
 
 export default NodeLibrary;
-
-
-
 
 
 

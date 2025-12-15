@@ -5,6 +5,9 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
+    "build:TextMap": "node ./src/scripts/buildTextMap.mjs",
+    "predev": "npm run build:TextMap",
+    "prebuild": "npm run build:TextMap",
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",

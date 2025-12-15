@@ -1,5 +1,6 @@
 import protobuf from "protobufjs";
 import giaProtoSource from "./giaProtoText";
+import { LocalizedError } from "../../utils/localizedText";
 
 const HEADER_SIZE = 20;
 const FOOTER_SIZE = 4;
@@ -22,7 +23,7 @@ const toArrayBuffer = (input: ArrayBuffer | Uint8Array): ArrayBuffer => {
 const unwrapGiaPayload = (input: ArrayBuffer | Uint8Array) => {
   const buffer = toArrayBuffer(input);
   if (buffer.byteLength <= HEADER_SIZE + FOOTER_SIZE) {
-    throw new Error("GIA 文件长度不合法");
+    throw new LocalizedError({ key: "gia.decode.invalidLength" });
   }
   const view = new DataView(buffer);
   const declaredSize = view.getUint32(0, false);
@@ -33,20 +34,20 @@ const unwrapGiaPayload = (input: ArrayBuffer | Uint8Array) => {
   const footerTag = view.getUint32(buffer.byteLength - 4, false);
 
   if (declaredSize !== buffer.byteLength - FOOTER_SIZE) {
-    throw new Error("GIA 文件长度校验失败");
+    throw new LocalizedError({ key: "gia.decode.sizeMismatch" });
   }
   if (schemaVersion !== 1) {
-    throw new Error("暂不支持该版本的 GIA 文件");
+    throw new LocalizedError({ key: "gia.decode.unsupportedVersion", params: { version: schemaVersion } });
   }
   if (headerTag !== HEADER_MAGIC || footerTag !== FOOTER_MAGIC) {
-    throw new Error("GIA 文件头或尾标签校验失败");
+    throw new LocalizedError({ key: "gia.decode.headerFooterMismatch" });
   }
   if (fileType !== 3) {
-    throw new Error("未知的 GIA 文件类型");
+    throw new LocalizedError({ key: "gia.decode.unknownFileType", params: { fileType } });
   }
   const expectedProtoSize = buffer.byteLength - HEADER_SIZE - FOOTER_SIZE;
   if (protoSize !== expectedProtoSize) {
-    throw new Error("GIA 文件 protobuf 长度不匹配");
+    throw new LocalizedError({ key: "gia.decode.protoSizeMismatch" });
   }
   return new Uint8Array(buffer, HEADER_SIZE, expectedProtoSize);
 };

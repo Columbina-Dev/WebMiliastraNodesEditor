@@ -649,7 +649,7 @@ p a:hover {
 }
 
 .tutorial__content-body a[download]:empty::after {
-  content: '下载 ' attr(download);
+  content: var(--tutorial-download-prefix, "") attr(download);
   font-size: 14px;
 }
 
@@ -677,7 +677,7 @@ p a:hover {
 }
 
 .tutorial__content-body a[download]:empty::after {
-  content: "下载 " attr(download);
+  content: var(--tutorial-download-prefix, "") attr(download);
   font-size: 14px;
 }
 
@@ -718,4 +718,3 @@ p a:hover {
   border-color: rgba(92, 186, 255, 0.65);
   background: rgba(92, 186, 255, 0.28);
 }
-

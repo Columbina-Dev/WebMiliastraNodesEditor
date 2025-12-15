@@ -23,10 +23,16 @@ import {
   type StructKind,
   type StructManifestGroup,
 } from '../types/struct';
+import { detectDefaultUiLanguage, getDefaultSecondaryLanguage, t as translateText } from './i18n';
 
 const INVALID_PATH_CHARS = /[\\:*?"<>|]/g;
 const CONTROL_CHAR_RANGES = ['\\u0000-\\u001f', '\\u007f'];
 const CONTROL_CHARS = new RegExp(`[${CONTROL_CHAR_RANGES.join('')}]`, 'g');
+
+const DEFAULT_UI_PRIMARY_LANGUAGE = detectDefaultUiLanguage();
+const DEFAULT_UI_SECONDARY_LANGUAGE = getDefaultSecondaryLanguage(DEFAULT_UI_PRIMARY_LANGUAGE);
+const translateUi = (key: string, params?: Record<string, string | number>) =>
+  translateText(key, DEFAULT_UI_PRIMARY_LANGUAGE, DEFAULT_UI_SECONDARY_LANGUAGE, params);
 
 export const GRAPH_FILE_EXTENSION = '.json';
 export const STRUCT_FILE_EXTENSION = '.json';
@@ -467,7 +473,7 @@ export const resolveGraphLocation = (
       const normalizedPath = buildGraphPath(location, graphId);
       return { location, normalizedPath, issues };
     }
-    issues.push(`无效的路径：${path}`);
+    issues.push(translateUi('project.path.invalid', { path }));
   }
 
   const groupName = sanitizeName(options.groupNameHint ?? DEFAULT_GROUP_NAME, DEFAULT_GROUP_NAME);
@@ -515,7 +521,7 @@ export const resolveStructLocation = (
         issues,
       };
     }
-    issues.push(`无效的结构体路径：${path}`);
+    issues.push(translateUi('project.structPath.invalid', { path }));
   }
   const groupName = sanitizeName(
     options.groupNameHint ?? deriveStructGroupNameFromSlug(options.preferredGroupSlug ?? ''),
@@ -548,7 +554,8 @@ export const createEmptyProjectDocument = ({
   appVersion,
 }: CreateProjectDocumentOptions): ProjectDocument => {
   const id = projectId ?? createProjectId();
-  const projectName = sanitizeName(name ?? '未命名项目', '未命名项目');
+  const fallbackName = translateUi('project.defaultName');
+  const projectName = sanitizeName(name ?? fallbackName, fallbackName);
   const manifest: ProjectManifest = {
     manifestVersion: PROJECT_MANIFEST_VERSION,
     appVersion,

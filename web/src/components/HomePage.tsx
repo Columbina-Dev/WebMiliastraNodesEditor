@@ -2,6 +2,7 @@ import type { DragEvent, KeyboardEvent } from 'react';
 import { useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { StoredProject } from '../utils/storage';
+import { useI18n } from '../utils/i18nContext';
 import './HomePage.css';
 
 interface HomePageProps {
@@ -39,8 +40,6 @@ const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).h
 const ICON_EFFECTS = new URL('../assets/icons/effects.svg', import.meta.url).href;
 const ICON_SETTING = new URL('../assets/icons/setting.png', import.meta.url).href;
 
-const DEFAULT_PROJECT_NAME = '未命名项目';
-
 const HomePage = ({
   projects,
   duplicateNameCounts,
@@ -57,6 +56,7 @@ const HomePage = ({
   isDecodingGia,
   onDecodeGia,
 }: HomePageProps) => {
+  const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
   const decodeInputRef = useRef<HTMLInputElement | null>(null);
@@ -86,19 +86,20 @@ const HomePage = ({
   };
 
   const hasHistory = sortedProjects.length > 0;
+  const defaultProjectName = t('project.defaultName');
 
   return (
     <div className="home">
       <div className="home__panel">
         <div className="home__intro">
-          <h1>《原神·千星奇域》编辑器模拟器</h1>
+          <h1>{t('home.title')}</h1>
         </div>
         <div className="home__actions">
           <button type="button" onClick={onCreateNew}>
-            新建项目
+            {t('home.actions.create')}
           </button>
           <button type="button" onClick={onImportClick}>
-            导入Zip项目
+            {t('home.actions.importZip')}
           </button>
         </div>
         <div className="home__actions home__actions--secondary">
@@ -108,7 +109,7 @@ const HomePage = ({
             disabled={isDecodingGia}
             aria-busy={isDecodingGia || undefined}
           >
-            {isDecodingGia ? '解码中…' : '解码.gia文件'}
+            {isDecodingGia ? t('home.actions.decodeGia.loading') : t('home.actions.decodeGia')}
           </button>
           <input
             ref={decodeInputRef}
@@ -129,17 +130,17 @@ const HomePage = ({
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          拖放项目Zip到此处导入</div>
+          {t('home.dropzone')}</div>
         <div className="home__history-header">
-          <h2>历史项目</h2>
+          <h2>{t('home.history.title')}</h2>
           <button type="button" onClick={onSaveAll} disabled={!hasHistory}>
-            导出所有</button>
+            {t('home.history.exportAll')}</button>
         </div>
         <div className="home__history">
           {hasHistory ? (
             <div className="home__history-list">
               {sortedProjects.map((project) => {
-                const displayName = project.name || DEFAULT_PROJECT_NAME;
+                const displayName = project.name || defaultProjectName;
                 const showId = (duplicateNameCounts.get(displayName) ?? 0) > 1;
                 const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
                   if (event.key === 'Enter' || event.key === ' ') {
@@ -163,7 +164,7 @@ const HomePage = ({
                         event.stopPropagation();
                         setPendingDelete(project);
                       }}
-                      aria-label={`删除 ${displayName}`}
+                      aria-label={t('home.history.deleteAria', { name: displayName })}
                     >
                       <img src={ICON_DELETE} alt="" aria-hidden="true" />
                     </button>
@@ -175,12 +176,17 @@ const HomePage = ({
               })}
             </div>
           ) : (
-            <div className="home__history-empty">暂无历史项目</div>
+            <div className="home__history-empty">{t('home.history.empty')}</div>
           )}
         </div>
       </div>
       <div className="home__links">
-        <button type="button" className="home__settings" onClick={onOpenSettings} aria-label="设置">
+        <button
+          type="button"
+          className="home__settings"
+          onClick={onOpenSettings}
+          aria-label={t('settings.title')}
+        >
           <img src={ICON_SETTING} alt="" aria-hidden="true" width="32" height="32" />
         </button>
         <a
@@ -188,7 +194,7 @@ const HomePage = ({
           href={githubUrl}
           target="_blank"
           rel="noreferrer"
-          aria-label="GitHub"
+          aria-label={t('common.github')}
         >
           <svg width="32" height="32" viewBox="0 0 24 24" role="img" aria-hidden="true">
             <path
@@ -197,10 +203,20 @@ const HomePage = ({
             />
           </svg>
         </a>
-        <button type="button" className="home__tutorial" onClick={onOpenTutorial} aria-label="Tutorial">
+        <button
+          type="button"
+          className="home__tutorial"
+          onClick={onOpenTutorial}
+          aria-label={t('common.tutorial')}
+        >
           <img src={ICON_TUTORIAL} alt="" aria-hidden="true" width="32" height="32" />
         </button>
-        <button type="button" className="home__effects" onClick={onOpenEffects} aria-label="特效库">
+        <button
+          type="button"
+          className="home__effects"
+          onClick={onOpenEffects}
+          aria-label={t('common.effects')}
+        >
           <img src={ICON_EFFECTS} alt="" aria-hidden="true" width="32" height="32" />
         </button>
       </div>
@@ -216,11 +232,15 @@ const HomePage = ({
             role="document"
             onClick={(event) => event.stopPropagation()}
           >
-            <h3>确认删除</h3>
+            <h3>{t('home.deleteDialog.title')}</h3>
             <p>
-              确定要删除项目
-              <strong>「{pendingDelete.name || DEFAULT_PROJECT_NAME}」</strong>
-              吗？此操作无法撤销。
+              {t('home.deleteDialog.message.prefix')}
+              <strong>
+                {t('home.deleteDialog.message.nameWrap', {
+                  name: pendingDelete.name || defaultProjectName,
+                })}
+              </strong>
+              {t('home.deleteDialog.message.suffix')}
             </p>
             <div className="home__confirm-actions">
               <button
@@ -231,10 +251,10 @@ const HomePage = ({
                   setPendingDelete(null);
                 }}
               >
-                删除
+                {t('common.delete')}
               </button>
               <button type="button" onClick={() => setPendingDelete(null)}>
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </div>

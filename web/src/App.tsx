@@ -57,6 +57,9 @@ import {
   updateSessionState,
   upsertProjectRecord,
 } from "./utils/storage";
+import { I18nProvider } from "./utils/i18nContext";
+import { t as translateText } from "./utils/i18n";
+import { isLocalizedError } from "./utils/localizedText";
 import "./App.css";
 
 const AUTO_SAVE_INTERVAL = 30_000;
@@ -365,7 +368,6 @@ const generateGiaUidValue = (length = 9) => {
   return result;
 };
 
-const DEFAULT_PROJECT_NAME = "未命名项目";
 const App = () => {
   const projectDocument = useProjectStore((state) => state.document);
   const projectId = useProjectStore((state) => state.projectId);
@@ -443,6 +445,7 @@ const App = () => {
       initialRouteState.view === "notFound" ||
       initialRouteState.view === "settings",
   );
+  const didInitialBootstrapRef = useRef(false);
 
   const [isMobileMode, setIsMobileMode] = useState(() => detectMobileMode());
   const [editorSettings, setEditorSettings] = useState<EditorSettings>(() => loadEditorSettings());
@@ -453,6 +456,12 @@ const App = () => {
       return next;
     });
   }, []);
+  const t = useCallback(
+    (key: string, params?: Record<string, string | number>) =>
+      translateText(key, editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage, params),
+    [editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage],
+  );
+  const defaultProjectName = t('project.defaultName');
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
@@ -511,20 +520,23 @@ const App = () => {
         return true;
       }
       return requestConfirmation({
-        title: "项目导入确认",
+        title: t('app.importProject.confirmTitle'),
         message: (
           <div>
             <p>
-              导入的项目版本（{incomingVersion}）高于当前编辑器版本（{currentVersion}），继续导入可能导致数据丢失或出现未知问题。
+              {t('app.importProject.versionWarning', {
+                incomingVersion,
+                currentVersion,
+              })}
             </p>
-            <p>是否继续？</p>
+            <p>{t('app.importProject.continueQuestion')}</p>
           </div>
         ),
-        confirmLabel: "继续",
-        cancelLabel: "取消",
+        confirmLabel: t('common.continue'),
+        cancelLabel: t('common.cancel'),
       });
     },
-    [requestConfirmation],
+    [requestConfirmation, t],
   );
   const [dockCollapsed, setDockCollapsed] = useState(false);
   const [zoomMenuOpen, setZoomMenuOpen] = useState(false);
@@ -843,14 +855,14 @@ const App = () => {
   const handleOpenProjectInfo = useCallback(() => {
     setOpenMenu(null);
     if (!projectDocument || !projectId) {
-      window.alert('当前没有打开的项目。');
+      window.alert(t('common.noProjectOpen'));
       return;
     }
     setProjectInfoDialog({
-      name: projectDocument.manifest.project.name || projectName || DEFAULT_PROJECT_NAME,
+      name: projectDocument.manifest.project.name || projectName || defaultProjectName,
       error: null,
     });
-  }, [projectDocument, projectId, projectName]);
+  }, [defaultProjectName, projectDocument, projectId, projectName, t]);
 
   const handleProjectInfoNameChange = useCallback((value: string) => {
     setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
@@ -863,16 +875,18 @@ const App = () => {
   const handleProjectInfoConfirm = useCallback(() => {
     if (!projectInfoDialog) return;
     if (!projectDocument || !projectId) {
-      window.alert('当前没有打开的项目。');
+      window.alert(t('common.noProjectOpen'));
       setProjectInfoDialog(null);
       return;
     }
     const trimmed = projectInfoDialog.name.trim();
     if (!trimmed) {
-      setProjectInfoDialog((prev) => (prev ? { ...prev, error: '项目名称不能为空' } : prev));
+      setProjectInfoDialog((prev) =>
+        prev ? { ...prev, error: t('app.projectInfo.nameRequired') } : prev,
+      );
       return;
     }
-    const sanitized = sanitizeName(trimmed, DEFAULT_PROJECT_NAME);
+    const sanitized = sanitizeName(trimmed, defaultProjectName);
     if (sanitized === projectDocument.manifest.project.name) {
       setProjectInfoDialog(null);
       return;
@@ -893,10 +907,11 @@ const App = () => {
       upsertProjectRecord(record);
       refreshHistory();
       autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
-      showSaveToast('已更新项目名称');
+      showSaveToast(t('app.projectInfo.updatedToast'));
     }
     setProjectInfoDialog(null);
   }, [
+    defaultProjectName,
     history,
     projectDocument,
     projectId,
@@ -904,6 +919,7 @@ const App = () => {
     refreshHistory,
     setProjectName,
     showSaveToast,
+    t,
   ]);
 
   const ensurePrimaryGraph = useCallback((document: ProjectDocument) => {
@@ -918,7 +934,7 @@ const App = () => {
   const defaultInterval = getDefaultExecutionInterval(environment);
   const graphDoc: GraphDocument = {
     schemaVersion: GRAPH_SCHEMA_VERSION,
-    name: "新建节点图",
+    name: t('graph.defaultName'),
     createdAt: timestamp,
     updatedAt: timestamp,
     nodes: [],
@@ -951,7 +967,7 @@ const App = () => {
       },
     };
     return { document: nextDocument, primaryGraphId: newGraphId };
-  }, []);
+  }, [t]);
 
   const prepareProjectDocument = useCallback(
     (incoming: ProjectDocument) => {
@@ -1001,15 +1017,15 @@ const App = () => {
     const baseDocument = createEmptyProjectDocument({
       projectId: createProjectId(),
       appVersion: VERSION_INFO.editor || '',
-      name: DEFAULT_PROJECT_NAME,
+      name: defaultProjectName,
     });
     const { document: preparedDocument, primaryGraphId, warnings } =
       prepareProjectDocument(baseDocument);
     applyProjectDocument(preparedDocument, primaryGraphId);
     if (warnings.length) {
-      console.warn("项目规范化警告：", warnings);
+      console.warn('Project normalization warnings:', warnings);
     }
-  }, [applyProjectDocument, prepareProjectDocument]);
+  }, [applyProjectDocument, defaultProjectName, prepareProjectDocument]);
 
   const handleImportProjectDocument = useCallback(
     async (file: File) => {
@@ -1028,14 +1044,14 @@ const App = () => {
         if (combinedWarnings.length) {
           window.alert(combinedWarnings.join("\n"));
         } else {
-          showSaveToast("项目导入成功");
+          showSaveToast(t('app.importProject.successToast'));
         }
       } catch (error) {
         console.error(error);
-        window.alert("导入项目失败，请确认文件是否为有效的节点项目压缩包。");
+        window.alert(t('app.importProject.failedAlert'));
       }
     },
-    [applyProjectDocument, ensureImportVersionSafe, prepareProjectDocument, showSaveToast],
+    [applyProjectDocument, ensureImportVersionSafe, prepareProjectDocument, showSaveToast, t],
   );
 
   const handleProjectFiles = useCallback(
@@ -1073,18 +1089,21 @@ const App = () => {
         highlightedJson: highlightJsonText(pretty),
       });
     } catch (error) {
-      console.error('解码 GIA 文件失败', error);
-      const message =
-        error instanceof Error ? error.message : '解码过程中发生未知错误，请确认文件是否有效。';
+      console.error('Failed to decode GIA file', error);
+      const message = isLocalizedError(error)
+        ? t(error.key, error.params)
+        : error instanceof Error
+          ? error.message
+          : t('app.giaDecode.unknownError');
       setGilDialog({
-        title: '解码失败',
+        title: t('app.giaDecode.failedTitle'),
         message,
-        confirmLabel: '关闭',
+        confirmLabel: t('common.close'),
       });
     } finally {
       setIsDecodingGia(false);
     }
-  }, []);
+  }, [t]);
 
   const handleDownloadGiaJson = useCallback(() => {
     if (!giaModal) return;
@@ -1105,7 +1124,7 @@ const App = () => {
   const performProjectSave = useCallback(() => {
     const store = useProjectStore.getState();
     if (!store.document || !store.projectId) {
-      window.alert("当前没有打开的项目。");
+      window.alert(t('common.noProjectOpen'));
       return false;
     }
     const { document: normalized } = normalizeProjectDocument(store.document);
@@ -1126,9 +1145,9 @@ const App = () => {
       store.markStructDirty(id, false);
     });
     autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
-    showSaveToast("已保存到浏览器本地存储");
+    showSaveToast(t('app.save.savedToast'));
     return true;
-  }, [refreshHistory, showSaveToast, updateDocument]);
+  }, [refreshHistory, showSaveToast, t, updateDocument]);
 
   const handleManualSave = useCallback(() => {
     const store = useProjectStore.getState();
@@ -1142,7 +1161,7 @@ const App = () => {
   const handleExportProject = useCallback(async () => {
     const store = useProjectStore.getState();
     if (!store.document) {
-      window.alert("当前没有打开的项目。");
+      window.alert(t('common.noProjectOpen'));
       return;
     }
     try {
@@ -1158,13 +1177,13 @@ const App = () => {
       link.click();
       URL.revokeObjectURL(link.href);
       if (warnings.length) {
-        console.warn("项目规范化警告：", warnings);
+        console.warn('Project normalization warnings:', warnings);
       }
     } catch (error) {
       console.error(error);
-      window.alert("导出项目失败，请稍后再试。");
+      window.alert(t('app.exportProject.failedAlert'));
     }
-  }, []);
+  }, [t]);
 
   
   const performGilExport = useCallback(
@@ -1191,9 +1210,9 @@ const App = () => {
   const handleExportGil = useCallback(() => {
     if (!projectDocument) {
       setGilDialog({
-        title: "导出为.gil存档",
-        message: "当前没有打开的项目。",
-        confirmLabel: "关闭",
+        title: t('app.gilExport.title'),
+        message: t('common.noProjectOpen'),
+        confirmLabel: t('common.close'),
         onConfirm: () => setGilDialog(null),
       });
       return;
@@ -1210,10 +1229,17 @@ const App = () => {
           await performGilExport(await file.arrayBuffer());
         } catch (error) {
           console.error(error);
+          const errorText = isLocalizedError(error)
+            ? t(error.key, error.params)
+            : error instanceof Error
+              ? error.message
+              : String(error);
           setGilDialog({
-            title: "导出为.gil存档",
-            message: `导出失败：${error instanceof Error ? error.message : String(error)}`,
-            confirmLabel: "关闭",
+            title: t('app.gilExport.title'),
+            message: t('app.gilExport.failedMessage', {
+              error: errorText,
+            }),
+            confirmLabel: t('common.close'),
             onConfirm: () => setGilDialog(null),
           });
         } finally {
@@ -1224,16 +1250,16 @@ const App = () => {
     };
 
     setGilDialog({
-      title: "导出为.gil存档",
+      title: t('app.gilExport.title'),
       message: (
         <>
-          请选择一个.gil模板存档使用当前节点图数据。
+          {t('app.gilExport.prompt.line1')}
           <br /><br />
-          注意：此操作会覆盖所选.gil模板存档中的所有节点图数据！
+          {t('app.gilExport.prompt.line2')}
         </>
       ),
-      confirmLabel: "选择.gil模板存档",
-      cancelLabel: "取消",
+      confirmLabel: t('app.gilExport.pickTemplate'),
+      cancelLabel: t('common.cancel'),
       onConfirm: () => {
         setGilDialog(null);
         if (!handleManualSave()) {
@@ -1243,11 +1269,11 @@ const App = () => {
       },
       onCancel: () => setGilDialog(null),
     });
-  }, [handleManualSave, performGilExport, projectDocument]);
+  }, [handleManualSave, performGilExport, projectDocument, t]);
 
 const handleSaveGraphAs = useCallback(() => {
     if (!projectDocument || !activeGraphId) {
-      window.alert("当前没有打开的节点图。");
+      window.alert(t('common.noGraphOpen'));
       return;
     }
     const graphState = useGraphStore.getState();
@@ -1261,7 +1287,7 @@ const handleSaveGraphAs = useCallback(() => {
     const topFolder = resolved.location.topFolder;
     const categoriesForTop = PROJECT_CATEGORIES_BY_TOP[topFolder];
     if (!categoriesForTop.length) {
-      window.alert("未找到可用的分类。");
+      window.alert(t('app.saveAs.noCategories'));
       return;
     }
     const initialCategory =
@@ -1284,14 +1310,14 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, projectDocument]);
+  }, [activeGraphId, projectDocument, t]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {
       setGilDialog({
-        title: ".gia导出",
-        message: "当前没有打开的节点图。",
-        confirmLabel: "知道了",
+        title: t('app.exportGraphJson.title'),
+        message: t('common.noGraphOpen'),
+        confirmLabel: t('common.gotIt'),
       });
       return;
     }
@@ -1321,14 +1347,14 @@ const handleSaveGraphAs = useCallback(() => {
     link.download = fileName;
     link.click();
     URL.revokeObjectURL(link.href);
-  }, [activeGraphId, projectDocument]);
+  }, [activeGraphId, projectDocument, t]);
 
   const handleExportGiaPrototype = useCallback(() => {
     if (!activeGraphId) {
       setGilDialog({
-        title: ".gia??????",
-        message: "???????????",
-        confirmLabel: "???",
+        title: t('app.giaExportExperimental.title'),
+        message: t('common.noGraphOpen'),
+        confirmLabel: t('common.gotIt'),
       });
       return;
     }
@@ -1356,36 +1382,36 @@ const handleSaveGraphAs = useCallback(() => {
       URL.revokeObjectURL(link.href);
       if (result.warnings.length > 0) {
         setGilDialog({
-          title: ".gia导出（实验）",
+          title: t('app.giaExportExperimental.title'),
           message: (
             <div>
-              <p>.gia导出完成，但存在以下限制：</p>
+              <p>{t('app.giaExportExperimental.warningsIntro')}</p>
               <ul>
                 {result.warnings.map((warning, index) => (
-                  <li key={`${index}-${warning}`}>{warning}</li>
+                  <li key={`${index}-${warning.key}`}>{t(warning.key, warning.params)}</li>
                 ))}
               </ul>
             </div>
           ),
-          confirmLabel: "确认",
+          confirmLabel: t('common.confirm'),
         });
       }
     } catch (error) {
       console.error(error);
       setGilDialog({
-        title: ".gia导出失败",
+        title: t('app.giaExportExperimental.failedTitle'),
         message: (
           <div>
-            <p>.gia导出失败：请查看控制台以获取更多信息。</p>
+            <p>{t('app.giaExportExperimental.failedHint')}</p>
             {error instanceof Error && error.message ? (
               <pre>{error.message}</pre>
             ) : null}
           </div>
         ),
-        confirmLabel: "知道了",
+        confirmLabel: t('common.gotIt'),
       });
     }
-  }, [activeGraphId, getGiaUid, projectDocument, setGilDialog]);
+  }, [activeGraphId, getGiaUid, projectDocument, setGilDialog, t]);
 
   const handleSaveAsCancel = useCallback(() => {
     setSaveAsDialog(null);
@@ -1431,21 +1457,21 @@ const handleSaveGraphAs = useCallback(() => {
     if (!projectDocument || !saveAsDialog) return;
     const trimmedName = saveAsDialog.name.trim();
     if (!trimmedName) {
-      setSaveAsError('请输入节点图名称');
+      setSaveAsError(t('app.saveAs.error.nameRequired'));
       return;
     }
     const categoriesForTop = PROJECT_CATEGORIES_BY_TOP[saveAsDialog.topFolder];
     const category =
       categoriesForTop.find((item) => item.key === saveAsDialog.categoryKey) ??
       categoriesForTop[0];
-        if (!category) {
-      setSaveAsError('\u672a\u627e\u5230\u53ef\u7528\u7684\u5206\u7c7b');
+    if (!category) {
+      setSaveAsError(t('app.saveAs.error.categoryMissing'));
       return;
     }
     const sourceEnv = saveAsDialog.graph.environment;
     const sourceTop = sourceEnv ? getEnvironmentTopFolder(sourceEnv) : saveAsDialog.topFolder;
     if (sourceTop !== saveAsDialog.topFolder) {
-      setSaveAsError('\u5ba2\u6237\u7aef\u4e0e\u670d\u52a1\u5668\u7684\u8282\u70b9\u56fe\u4e0d\u80fd\u4e92\u76f8\u53e6\u5b58。');
+      setSaveAsError(t('app.saveAs.error.topFolderMismatch'));
       return;
     }
     const sourceKind = sourceEnv ? clientKindFromEnvironment(sourceEnv) : null;
@@ -1460,10 +1486,10 @@ const handleSaveGraphAs = useCallback(() => {
               : null
         : null;
     if (sourceKind && targetKind && sourceKind !== targetKind) {
-      setSaveAsError('\u4e0d\u540c\u7c7b\u578b\u7684\u5ba2\u6237\u7aef\u8282\u70b9\u56fe\u65e0\u6cd5\u4e92\u76f8\u53e6\u5b58。');
+      setSaveAsError(t('app.saveAs.error.clientKindMismatch'));
       return;
     }
-const groupsForCategory = projectDocument.manifest.groups.filter(
+    const groupsForCategory = projectDocument.manifest.groups.filter(
       (group) => group.topFolder === saveAsDialog.topFolder && group.categoryKey === category.key,
     );
     let targetGroupSlug = saveAsDialog.groupSlug;
@@ -1472,7 +1498,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     if (trimmedFolderName) {
       const created = createGroup(saveAsDialog.topFolder, category.key, trimmedFolderName);
       if (!created) {
-        setSaveAsError('新建文件夹失败，请重试');
+        setSaveAsError(t('app.saveAs.error.createFolderFailed'));
         return;
       }
       targetGroupSlug = created.groupSlug;
@@ -1482,7 +1508,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         groupsForCategory.find((group) => group.groupSlug === targetGroupSlug) ??
         groupsForCategory[0];
       if (!existingGroup) {
-        setSaveAsError('请选择或新建一个文件夹');
+        setSaveAsError(t('app.saveAs.error.folderRequired'));
         return;
       }
       targetGroupSlug = existingGroup.groupSlug;
@@ -1526,7 +1552,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     graphFingerprintRef.current.set(newGraphId, fingerprintGraphDocument(duplicatedGraph));
     handleSaveAsCancel();
     openGraphTab(newGraphId);
-    showSaveToast("已另存为新的节点图。");
+    showSaveToast(t('app.saveAs.successToast'));
   }, [
     createGroup,
     handleSaveAsCancel,
@@ -1538,6 +1564,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     setGraphDocument,
     setManifestEntry,
     showSaveToast,
+    t,
   ]);
 
   const handleSaveAll = useCallback(async () => {
@@ -1572,11 +1599,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         }
       } catch (error) {
         console.error(error);
-        window.alert("读取历史项目失败，数据可能已损坏。");
+        window.alert(t('app.history.loadFailedAlert'));
         refreshHistory();
       }
     },
-    [applyProjectDocument, prepareProjectDocument, refreshHistory],
+    [applyProjectDocument, prepareProjectDocument, refreshHistory, t],
   );
 
   const handleDeleteProject = useCallback(
@@ -1837,6 +1864,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   }, [activeGraphId, importGraph, projectDocument, setGraphName]);
 
   useEffect(() => {
+    if (didInitialBootstrapRef.current) {
+      return;
+    }
+    didInitialBootstrapRef.current = true;
     const projects = loadProjects();
     setHistory(projects);
     const session = loadSessionState();
@@ -1873,7 +1904,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         if (warnings.length) {
           console.warn("自动恢复规范化警告：", warnings);
         }
-        showSaveToast("已从自动保存恢复");
+        showSaveToast(t('app.autoSave.recoveredToast'));
         recovered = true;
         validEntries.push(entry);
         break;
@@ -1902,7 +1933,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     if (validEntries.length !== entries.length) {
       replaceAutoSavesForProject(lastProjectId, validEntries);
     }
-  }, [applyProjectDocument, initialRouteState.view, navigateHome, prepareProjectDocument, showSaveToast]);
+  }, [applyProjectDocument, initialRouteState.view, navigateHome, prepareProjectDocument, showSaveToast, t]);
 
   useEffect(() => {
     return () => {
@@ -1915,11 +1946,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   const duplicateNameCounts = useMemo(() => {
     const counts = new Map<string, number>();
     history.forEach((project) => {
-      const key = project.name || DEFAULT_PROJECT_NAME;
+      const key = project.name || defaultProjectName;
       counts.set(key, (counts.get(key) ?? 0) + 1);
     });
     return counts;
-  }, [history]);
+  }, [defaultProjectName, history]);
 
   const activeTab: ProjectTab | null = useMemo(() => {
     if (!openTabs.length) return null;
@@ -1968,6 +1999,14 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         const isDirtyGraph = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
         const isDirtyStruct = tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
         const isDirty = isDirtyGraph || isDirtyStruct;
+        const tabLabel =
+          tab.type === 'explorer'
+            ? tab.topFolder === 'server'
+              ? t('tabs.explorer.server')
+              : t('tabs.explorer.client')
+            : tab.type === 'struct'
+              ? t('tabs.structManager')
+              : tab.label;
         let iconSrc = ICON_TAB_GRAPH;
         if (tab.type === 'explorer') {
           iconSrc = tab.topFolder === 'server' ? ICON_TAB_SERVER : ICON_TAB_CLIENT;
@@ -1987,13 +2026,13 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           >
             <span className="app__tab-label">
               <img src={iconSrc} alt="" aria-hidden="true" />
-              {tab.label}
+              {tabLabel}
               {isDirty && <span className="app__tab-dirty">*</span>}
             </span>
             {(tab.type === "graph" || tab.type === "struct") && (
               <span
                 role="button"
-                aria-label={`关闭 ${tab.label}`}
+                aria-label={t('app.tabs.closeAria', { label: tabLabel })}
                 className="app__tab-close"
                 onClick={(event) => {
                   event.stopPropagation();
@@ -2041,8 +2080,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         saveAsGroups[0] ??
         null
       : null;
-    const saveAsTopFolderLabel =
-      saveAsDialog?.topFolder === 'client' ? '客户端节点图' : '服务器节点图';
+    const saveAsTopFolderLabel = saveAsDialog
+      ? saveAsDialog.topFolder === 'client'
+        ? t('app.saveAs.topFolder.client')
+        : t('app.saveAs.topFolder.server')
+      : '';
     const saveAsPathPreview =
       saveAsDialog && selectedCategory && selectedGroup
         ? `/${saveAsDialog.topFolder}/${selectedCategory.directory}/${selectedGroup.groupSlug}/`
@@ -2071,25 +2113,25 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 className="app__editor-menu-button"
                 onClick={() => handleToggleMenu("window")}
               >
-                窗口
+                {t('app.menu.window')}
               </button>
               {openMenu === 'window' && (
                 <div className="app__editor-menu-dropdown">
                   <button type="button" onClick={() => handleOpenExplorerTab("server")}>
                     <img src={ICON_TAB_SERVER} alt="" aria-hidden="true" />
-                    服务器节点图资源管理器
+                    {t('app.menu.window.serverExplorer')}
                   </button>
                   <button type="button" onClick={() => handleOpenExplorerTab("client")}>
                     <img src={ICON_TAB_CLIENT} alt="" aria-hidden="true" />
-                    客户端节点图资源管理器
+                    {t('app.menu.window.clientExplorer')}
                   </button>
                   <button type="button" onClick={handleOpenStructTab}>
                     <img src={ICON_STRUCT} alt="" aria-hidden="true" />
-                    结构体管理器
+                    {t('app.menu.window.structManager')}
                   </button>
                   <button type="button" onClick={handleGoHome}>
                     <img src={ICON_BACK} alt="" aria-hidden="true" />
-                    返回主页
+                    {t('app.menu.window.goHome')}
                   </button>
                 </div>
               )}
@@ -2100,26 +2142,26 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 className="app__editor-menu-button"
                 onClick={() => handleToggleMenu("file")}
               >
-                文件
+                {t('app.menu.file')}
               </button>
               {openMenu === 'file' && (
                 <div className="app__editor-menu-dropdown">
                   <button type="button" onClick={handleManualSave}>
                     <img src={ICON_SAVE} alt="" aria-hidden="true" />
-                    保存项目
+                    {t('app.menu.file.saveProject')}
                   </button>
                   <button type="button" onClick={handleOpenProjectInfo}>
                     <img src={ICON_PROJECT} alt="" aria-hidden="true" />
-                    编辑项目信息
+                    {t('app.menu.file.editProjectInfo')}
                   </button>
                   <button type="button" onClick={handleExportProject}>
                     <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                    导出为.zip项目
+                    {t('app.menu.file.exportZip')}
                   </button>
                   {editorSettings.enableGilExport && (
                     <button type="button" onClick={handleExportGil}>
                       <img src={ICON_EXPORT} alt="" aria-hidden="true" />
-                      导出为.gil存档
+                      {t('app.menu.file.exportGil')}
                     </button>
                   )}
                 </div>
@@ -2133,7 +2175,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             type="button"
             className="app__editor-icon-button"
             onClick={handleOpenSettingsFromEditor}
-            aria-label="设置"
+            aria-label={t('common.settings')}
           >
             <img src={ICON_SETTING} alt="" aria-hidden="true" />
           </button>
@@ -2141,7 +2183,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             type="button"
             className="app__editor-icon-button app__editor-icon-button--github"
             onClick={() => window.open(GITHUB_URL, '_blank', 'noopener')}
-            aria-label="GitHub"
+            aria-label={t('common.github')}
           >
             <svg width="16" height="16" viewBox="0 0 24 24" role="img" aria-hidden="true">
               <path
@@ -2154,7 +2196,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             type="button"
             className="app__editor-icon-button"
             onClick={handleOpenTutorial}
-            aria-label="教程"
+            aria-label={t('common.tutorial')}
           >
             <img src={ICON_TUTORIAL} alt="" aria-hidden="true" />
           </button>
@@ -2162,7 +2204,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             type="button"
             className="app__editor-icon-button"
             onClick={handleOpenEffects}
-            aria-label="特效库"
+            aria-label={t('common.effects')}
           >
             <img src={ICON_EFFECTS} alt="" aria-hidden="true" />
           </button>
@@ -2176,6 +2218,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               collapsed={paletteCollapsed}
               onToggle={togglePalette}
               isTouchEnvironment={isMobileMode}
+              allowSearchAllLanguageNodeNames={editorSettings.allowSearchAllLanguageNodeNames}
             />
             <GraphCanvas isMobileMode={isMobileMode} settings={editorSettings} />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
@@ -2204,7 +2247,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             type="button"
             className="action_dock__button"
             onClick={handleDockCollapseToggle}
-            title={dockCollapsed ? '展开操作栏' : '折叠操作栏'}
+            title={dockCollapsed ? t('app.dock.expand') : t('app.dock.collapse')}
           >
             {dockCollapsed ? (
               <img
@@ -2221,7 +2264,9 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 className="action_dock__icon-img"
               />
             )}
-            <span className="sr-only">{dockCollapsed ? '展开操作栏' : '折叠操作栏'}</span>
+            <span className="sr-only">
+              {dockCollapsed ? t('app.dock.expand') : t('app.dock.collapse')}
+            </span>
           </button>
           {!dockCollapsed && (
             <div className="action_dock__content">
@@ -2230,7 +2275,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 type="button"
                 className={`action_dock__button${commentMode === 'selecting' ? ' is-active' : ''}`}
                 onClick={handleCommentToggle}
-                title="注释模式"
+                title={t('app.dock.commentMode')}
               >
                 <img
                   src={ICON_DOCK_COMMENT}
@@ -2238,12 +2283,12 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                   aria-hidden="true"
                   className="action_dock__icon-img"
                 />
-                <span className="sr-only">注释模式</span>
+                <span className="sr-only">{t('app.dock.commentMode')}</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
               {shouldShowExecutionInterval && (
                 <>
-                  <div className="action_dock__interval" title="执行时间间隔">
+                  <div className="action_dock__interval" title={t('app.dock.executionInterval')}>
                     <img
                       src={ICON_INTERVAL}
                       alt=""
@@ -2265,11 +2310,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                         }
                       }}
                       placeholder="0.3"
-                      aria-label="执行时间间隔"
+                      aria-label={t('app.dock.executionInterval')}
                       inputMode="decimal"
                       autoComplete="off"
                     />
-                    <span className="action_dock__interval-unit">秒</span>
+                    <span className="action_dock__interval-unit">{t('common.seconds')}</span>
                   </div>
                   <div className="action_dock__separator" aria-hidden="true" />
                 </>
@@ -2278,7 +2323,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 className="action_dock__name"
                 value={graphName}
                 onChange={handleGraphNameChange}
-                placeholder="节点图名称"
+                placeholder={t('graph.namePlaceholder')}
               />
               <div className="action_dock__separator" aria-hidden="true" />
               <div className="action_dock__zoom">
@@ -2286,7 +2331,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                   type="button"
                   className="action_dock__button action_dock__button--wide"
                   onClick={handleZoomButtonClick}
-                  title="缩放比例"
+                  title={t('app.dock.zoomLevel')}
                 >
                   {`${displayedZoom}%`}
                 </button>
@@ -2311,48 +2356,48 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                 className="action_dock__button"
                 onClick={undo}
                 disabled={!canUndo}
-                title="撤销"
+                title={t('common.undo')}
               >
                 <img src={ICON_UNDO} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">撤销</span>
+                <span className="sr-only">{t('common.undo')}</span>
               </button>
               <button
                 type="button"
                 className="action_dock__button"
                 onClick={redo}
                 disabled={!canRedo}
-                title="重做"
+                title={t('common.redo')}
               >
                 <img src={ICON_REDO} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">重做</span>
+                <span className="sr-only">{t('common.redo')}</span>
               </button>
               <div className="action_dock__separator" aria-hidden="true" />
               <button
                 type="button"
                 className="action_dock__button"
                 onClick={handleManualSave}
-                title="保存"
+                title={t('common.save')}
               >
                 <img src={ICON_SAVE} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">保存</span>
+                <span className="sr-only">{t('common.save')}</span>
               </button>
               <button
                 type="button"
                 className="action_dock__button"
                 onClick={handleSaveGraphAs}
-                title="另存为"
+                title={t('common.saveAs')}
               >
                 <img src={ICON_SAVEAS} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">另存为</span>
+                <span className="sr-only">{t('common.saveAs')}</span>
               </button>
               <button
                 type="button"
                 className="action_dock__button"
                 onClick={handleExportCurrentGraph}
-                title="导出为Json节点图"
+                title={t('app.exportGraphJson.action')}
               >
                 <img src={ICON_EXPORT} alt="" aria-hidden="true" className="action_dock__icon-img" />
-                <span className="sr-only">导出为Json节点图</span>
+                <span className="sr-only">{t('app.exportGraphJson.action')}</span>
               </button>
               {editorSettings.enableGiaExport && (
                 <button
@@ -2361,8 +2406,8 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                   onClick={handleExportGiaPrototype}
                   title={
                     editorSettings.giaUidMode === 'fixed' && !isGiaFixedUidValid
-                      ? '请输入9-10位UID后再导出'
-                      : '导出为.gia文件（实验）'
+                      ? t('app.giaExportExperimental.uidRequiredTooltip')
+                      : t('app.giaExportExperimental.action')
                   }
                   disabled={!isGiaExportButtonEnabled}
                 >
@@ -2372,7 +2417,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
                     aria-hidden="true"
                     className="action_dock__icon-img"
                   />
-                  <span className="sr-only">导出为.gia文件（实验）</span>
+                  <span className="sr-only">{t('app.giaExportExperimental.action')}</span>
                 </button>
               )}
             </div>
@@ -2395,14 +2440,14 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               handleProjectInfoConfirm();
             }}
           >
-            <h3>编辑项目信息</h3>
+            <h3>{t('app.projectInfo.title')}</h3>
             <div className="app__modal-field">
-              <label htmlFor="project-info-name">项目名称</label>
+              <label htmlFor="project-info-name">{t('app.projectInfo.nameLabel')}</label>
               <input
                 id="project-info-name"
                 value={projectInfoDialog.name}
                 onChange={(event) => handleProjectInfoNameChange(event.target.value)}
-                placeholder="输入项目名称"
+                placeholder={t('app.projectInfo.namePlaceholder')}
               />
             </div>
             {projectInfoDialog.error && (
@@ -2411,9 +2456,9 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               </div>
             )}
             <div className="app__modal-actions">
-              <button type="submit">保存</button>
+              <button type="submit">{t('common.save')}</button>
               <button type="button" onClick={handleProjectInfoCancel}>
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -2435,13 +2480,13 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               handleSaveAsConfirm();
             }}
           >
-            <h3>另存为节点图</h3>
+            <h3>{t('app.saveAs.title')}</h3>
             <div className="app__modal-field">
-              <label>顶层目录</label>
+              <label>{t('app.saveAs.topFolderLabel')}</label>
               <div className="app__modal-static">{saveAsTopFolderLabel}</div>
             </div>
             <div className="app__modal-field">
-              <label htmlFor="save-as-category">分类</label>
+              <label htmlFor="save-as-category">{t('common.category')}</label>
               <select
                 id="save-as-category"
                 value={selectedCategory?.key ?? ''}
@@ -2449,13 +2494,13 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               >
                 {saveAsCategories.map((category) => (
                   <option key={category.key} value={category.key}>
-                    {category.label}
+                    {t(category.labelKey)}
                   </option>
                 ))}
               </select>
             </div>
             <div className="app__modal-field">
-              <label htmlFor="save-as-folder">文件夹</label>
+              <label htmlFor="save-as-folder">{t('common.folder')}</label>
               <select
                 id="save-as-folder"
                 value={selectedGroup?.groupSlug ?? saveAsDialog.groupSlug}
@@ -2463,30 +2508,32 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
               >
                 {saveAsGroups.map((group) => (
                   <option key={group.groupSlug} value={group.groupSlug}>
-                    {group.groupName}
+                    {group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
+                      ? t('common.defaultGroupName')
+                      : group.groupName}
                   </option>
                 ))}
               </select>
             </div>
             <div className="app__modal-field">
-              <label htmlFor="save-as-name">节点图名称</label>
+              <label htmlFor="save-as-name">{t('graph.nameLabel')}</label>
               <input
                 id="save-as-name"
                 value={saveAsDialog.name}
                 onChange={(event) => handleSaveAsNameChange(event.target.value)}
-                placeholder="输入节点图名称"
+                placeholder={t('graph.namePlaceholder')}
               />
             </div>
             {saveAsPathPreview && (
               <div className="app__modal-path" aria-live="polite">
-                保存路径：{saveAsPathPreview}
+                {t('app.saveAs.pathPreview', { path: saveAsPathPreview })}
               </div>
             )}
             {saveAsError && <div className="app__modal-error">{saveAsError}</div>}
             <div className="app__modal-actions">
-              <button type="submit">保存</button>
+              <button type="submit">{t('common.save')}</button>
               <button type="button" onClick={handleSaveAsCancel}>
-                取消
+                {t('common.cancel')}
               </button>
             </div>
           </form>
@@ -2539,9 +2586,9 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
   const renderNotFound = () => (
     <div className="app__not-found">
       <h1>404</h1>
-      <p>未找到页面：{notFoundPath ?? '/'}</p>
+      <p>{t('app.notFound.message', { path: notFoundPath ?? '/' })}</p>
       <button type="button" onClick={handleGoHome}>
-        返回主页
+        {t('common.goHome')}
       </button>
     </div>
   );
@@ -2556,7 +2603,11 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
     .join(' ');
 
   return (
-    <div className={appClassName} onClick={() => setOpenMenu(null)}>
+    <I18nProvider
+      primaryLanguage={editorSettings.uiPrimaryLanguage}
+      secondaryLanguage={editorSettings.uiSecondaryLanguage}
+    >
+      <div className={appClassName} onClick={() => setOpenMenu(null)}>
       {(view === 'home' || view === 'settings') && (
         <div className="app__version-info">{VERSION_INFO.homepage}</div>
       )}
@@ -2579,7 +2630,7 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
           <div className="gia-modal" role="document">
             <div className="gia-modal__header">
               <div className="gia-modal__title">
-                <h3>解码.gia文件</h3>
+                <h3>{t('app.giaDecode.modalTitle')}</h3>
                 <p>{giaModal.fileName}</p>
               </div>
             </div>
@@ -2591,10 +2642,10 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
             </div>
             <div className="gia-modal__actions">
               <button type="button" onClick={handleDownloadGiaJson}>
-                下载Json
+                {t('common.downloadJson')}
               </button>
               <button type="button" onClick={closeGiaModal}>
-                关闭
+                {t('common.close')}
               </button>
             </div>
           </div>
@@ -2653,10 +2704,9 @@ const groupsForCategory = projectDocument.manifest.groups.filter(
         hidden
       />
       {saveToast && <div className="app__save-toast">{saveToast}</div>}
-    </div>
+      </div>
+    </I18nProvider>
   );
 };
 
 export default App;
-
-

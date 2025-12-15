@@ -20,6 +20,8 @@ import {
   normalizeGraphEnvironment,
   sanitizeExecutionInterval,
 } from '../utils/graphEnvironment';
+import { t as translateText } from '../utils/i18n';
+import { loadEditorSettings } from '../utils/storage';
 
 const HISTORY_LIMIT = 50;
 const CLIENT_SYSTEM_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
@@ -258,6 +260,11 @@ const cloneNodes = (nodes: GraphNode[]) => nodes.map(cloneNode);
 const cloneEdges = (edges: GraphEdge[]) => edges.map(cloneEdge);
 const cloneComments = (comments: GraphCommentState[]) => comments.map((comment) => ({ ...comment }));
 
+const getDefaultGraphName = () => {
+  const settings = loadEditorSettings();
+  return translateText('graph.defaultName', settings.uiPrimaryLanguage, settings.uiSecondaryLanguage);
+};
+
 const createSnapshot = (state: GraphState): GraphSnapshot => ({
   graphId: state.graphId,
   name: state.name,
@@ -285,7 +292,7 @@ const applySnapshot = (snapshot: GraphSnapshot) => ({
 const createDefaultState = (graphId?: string) => {
   const id = graphId ?? nanoid();
   return {
-    name: '新建节点图',
+    name: getDefaultGraphName(),
     nodes: [],
     edges: [],
     comments: [],

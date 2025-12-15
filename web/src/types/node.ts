@@ -32,11 +32,17 @@ export interface PortUiHints {
   decorator?: string;
   decoratorPosition?: PortDecoratorPosition;
   placeholder?: string;
+  placeholderEN?: string;
+  placeholderCHT?: string;
+  placeholderJPN?: string;
 }
 
 export interface PortDefinitionBase {
   id: string;
   label: string;
+  labelEN?: string;
+  labelCHT?: string;
+  labelJPN?: string;
   description?: string;
   allowMultipleConnections?: boolean;
   optional?: boolean;
@@ -65,6 +71,8 @@ export interface NodeDefinition {
   id: string;
   displayName: string;
   displayNameEN: string;
+  displayNameCHT?: string;
+  displayNameJPN?: string;
   officialID: number;
   category: string;
   kind: NodeKind;
@@ -79,6 +87,9 @@ export interface NodeDefinition {
 export interface NodeControlDefinition {
   id: string;
   label: string;
+  labelEN?: string;
+  labelCHT?: string;
+  labelJPN?: string;
   valueType: ValueType;
   defaultValue?: unknown;
   options?: Array<{ label: string; value: string | number }>;

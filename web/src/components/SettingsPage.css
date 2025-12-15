@@ -222,6 +222,21 @@
   color: rgba(255, 255, 255, 0.6);
 }
 
+.settings-select {
+  width: 100%;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.settings-select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .settings-fixed-uid input {
   width: 100%;
   padding: 8px 12px;

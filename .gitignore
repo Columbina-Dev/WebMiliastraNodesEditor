@@ -24,6 +24,7 @@ dist-ssr
 *.code-workspace
 Notes*.txt
 Examples/
+desktop.ini
 
 # Official
 Official/

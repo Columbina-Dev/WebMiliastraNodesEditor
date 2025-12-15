@@ -51,6 +51,7 @@ import {
 } from '../utils/nodeAvailability';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
 import type { EditorSettings } from '../utils/storage';
+import { useI18n } from '../utils/i18nContext';
 import './GraphCanvas.css';
 
 const nodeTypes = { miliastra: MiliastraNode } as const;
@@ -323,6 +324,7 @@ const extractEventPosition = (event: MouseEvent | TouchEvent): ScreenPoint => {
 const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
 
 const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) => {
+  const { t } = useI18n();
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
@@ -402,7 +404,9 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   const clickSelectionStartRef = useRef<ScreenPoint | null>(null);
   const [clickSelectionPreview, setClickSelectionPreview] = useState<ClickSelectionPreview | null>(null);
   const watermarkText =
-    getEnvironmentTopFolder(environment) === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
+    getEnvironmentTopFolder(environment) === 'client'
+      ? t('graphCanvas.watermark.client')
+      : t('graphCanvas.watermark.server');
   const selectionHasProtectedNode =
     floatingPanel?.type === 'selection'
       ? floatingPanel.nodeIds.some((nodeId) => protectedNodeIds.has(nodeId))
@@ -1815,9 +1819,9 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     const { connection } = floatingPanel;
     const targetLabel = connection.port.label ?? connection.port.id;
     return connection.handleType === 'source'
-      ? `筛选 · 可连接从「${targetLabel}」输出的节点`
-      : `筛选 · 可输入到「${targetLabel}」的节点`;
-  }, [floatingPanel]);
+      ? t('graphCanvas.nodeLibrary.filter.source', { label: targetLabel })
+      : t('graphCanvas.nodeLibrary.filter.target', { label: targetLabel });
+  }, [floatingPanel, t]);
 
   const handleWrapperMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
     if (!isMobileMode && event.button === panMouseButton) {
@@ -2232,13 +2236,14 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
           deps={[floatingPanel, connectionValueTypeFilter]}
         >
           <NodeLibrary
-            title="节点库"
+            title={t('nodeLibrary.title')}
             subtitle={connectionSubtitle}
             definitions={availableDefinitions}
             filter={connectionFilter}
             variant="floating"
             isTouchEnvironment={isMobileMode}
             autoFocusSearch={settings.enterInputOnNodeInsert}
+            allowSearchAllLanguageNodeNames={settings.allowSearchAllLanguageNodeNames}
             onSelect={(definition) => {
               if (floatingPanel.type === 'canvas') {
                 handleCreateNode(definition.id, floatingPanel.flowPosition);
@@ -2269,7 +2274,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               disabled={selectionHasProtectedNode}
               onClick={() => handleDeleteSelection(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">删除</span>
+              <span className="graph-context-menu__label">{t('common.delete')}</span>
               <span className="graph-context-menu__shortcut">Delete</span>
             </button>
             <button
@@ -2278,7 +2283,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               disabled={selectionHasProtectedNode}
               onClick={() => handleDuplicateSelection(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">复制</span>
+              <span className="graph-context-menu__label">{t('common.copy')}</span>
               <span className="graph-context-menu__shortcut">Ctrl+C</span>
             </button>
             <button
@@ -2286,7 +2291,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               className="graph-context-menu__item"
               onClick={() => handleDisconnectNodes(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">断开节点连线</span>
+              <span className="graph-context-menu__label">{t('graphCanvas.disconnectNodes')}</span>
             </button>
             <div className="graph-context-menu__divider" />
             <button
@@ -2295,7 +2300,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               disabled={!floatingPanel.nodeIds.some((nodeId) => !commentByNodeId.has(nodeId))}
               onClick={() => handleAddCommentForNodes(floatingPanel.nodeIds, floatingPanel.screen)}
             >
-              <span className="graph-context-menu__label">注释</span>
+              <span className="graph-context-menu__label">{t('common.comment')}</span>
             </button>
           </div>
         </FloatingPanel>
@@ -2311,7 +2316,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
                 disabled={singleNodeIsProtected}
               onClick={() => handleDeleteNode(floatingPanel.nodeId)}
               >
-                <span className="graph-context-menu__label">删除</span>
+                <span className="graph-context-menu__label">{t('common.delete')}</span>
                 <span className="graph-context-menu__shortcut">Delete</span>
               </button>
               <button
@@ -2320,7 +2325,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
                 disabled={singleNodeIsProtected}
               onClick={() => handleDuplicateNode(floatingPanel.nodeId)}
               >
-                <span className="graph-context-menu__label">复制</span>
+                <span className="graph-context-menu__label">{t('common.copy')}</span>
                 <span className="graph-context-menu__shortcut">Ctrl+C</span>
               </button>
               <button
@@ -2328,7 +2333,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
                 className="graph-context-menu__item"
                 onClick={() => handleDisconnectNodes([floatingPanel.nodeId])}
               >
-                <span className="graph-context-menu__label">断开节点连线</span>
+                <span className="graph-context-menu__label">{t('graphCanvas.disconnectNodes')}</span>
               </button>
               <div className="graph-context-menu__divider" />
               <button
@@ -2337,7 +2342,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
                 disabled={commentByNodeId.has(floatingPanel.nodeId)}
                 onClick={() => handleAddCommentForNodes([floatingPanel.nodeId], floatingPanel.screen)}
               >
-                <span className="graph-context-menu__label">注释</span>
+                <span className="graph-context-menu__label">{t('common.comment')}</span>
               </button>
             </div>
           )}
@@ -2348,7 +2353,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
                 className="is-danger"
                 onClick={() => handleDeleteEdge(floatingPanel.edgeId)}
               >
-                删除连线
+                {t('graphCanvas.deleteEdge')}
               </button>
             </div>
           )}
@@ -2365,13 +2370,6 @@ const GraphCanvas = ({ isMobileMode = false, settings }: GraphCanvasProps) => (
 );
 
 export default GraphCanvas;
-
-
-
-
-
-
-
 
 
 

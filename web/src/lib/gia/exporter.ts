@@ -10,6 +10,7 @@ import type {
 } from "../../types/node";
 import { nodeDefinitions } from "../../data/nodeDefinitions";
 import giaProtoSource from "./giaProtoText";
+import type { LocalizedText } from "../../utils/localizedText";
 
 const { root: protoRoot } = protobuf.parse(giaProtoSource, { keepCase: true });
 const ROOT_MESSAGE = protoRoot.lookupType("Root");
@@ -116,7 +117,7 @@ export interface GiaExportOptions {
 export interface GiaExportResult {
   blob: Blob;
   fileName: string;
-  warnings: string[];
+  warnings: LocalizedText[];
 }
 
 /** Experimental GIA exporter (currently supports server/entity graphs). */
@@ -147,7 +148,7 @@ class GiaRootBuilder {
   private readonly graphId: number;
   private readonly uid: string;
   private readonly timestampSeconds: number;
-  private readonly warnings: string[] = [];
+  private readonly warnings: LocalizedText[] = [];
 
   constructor(doc: GraphDocument, options?: GiaExportOptions) {
     this.document = doc;
@@ -157,7 +158,7 @@ class GiaRootBuilder {
     this.timestampSeconds = options?.timestampSeconds ?? Math.floor(Date.now() / 1000);
   }
 
-  build(): { root: GiaRecord; warnings: string[]; fileName: string } {
+  build(): { root: GiaRecord; warnings: LocalizedText[]; fileName: string } {
     const nodeUnit = this.buildNodeUnit();
     const root: GiaRecord = {
       graph: nodeUnit,
@@ -179,7 +180,7 @@ class GiaRootBuilder {
         id: this.graphId,
       },
       relatedIds: [],
-      name: this.document.name ?? "未命名节点图",
+      name: this.document.name?.trim().length ? this.document.name.trim() : "graph",
       type: NODE_UNIT_TYPE_BY_ENV[this.env],
       graph: {
         inner: {
@@ -193,7 +194,7 @@ class GiaRootBuilder {
     const nodeEncoder = new GiaGraphNodeEncoder(this.document, this.env, this.warnings);
     const nodes = nodeEncoder.build();
     if (this.document.nodes.length > 0 && nodes.length === 0) {
-      this.warnings.push("导出为.gia文件：未找到可导出的节点。");
+      this.warnings.push({ key: "gia.export.noExportableNodes" });
     }
     return {
       id: {
@@ -202,7 +203,7 @@ class GiaRootBuilder {
         kind: NODE_GRAPH_KIND.NodeGraph,
         id: this.graphId,
       },
-      name: this.document.name ?? "未命名节点图",
+      name: this.document.name?.trim().length ? this.document.name.trim() : "graph",
       nodes,
       compositePins: [],
       graphValues: [],
@@ -307,7 +308,7 @@ type GraphCommentPayload = { content: string; x: number; y: number };
 class GiaGraphNodeEncoder {
   private readonly document: GraphDocument;
   private readonly env: NormalizedEnvironment;
-  private readonly warnings: string[];
+  private readonly warnings: LocalizedText[];
   private readonly nodeInfos: NodeInfo[];
   private readonly nodeInfoById: Map<string, NodeInfo>;
   private readonly flowConnections = new Map<string, FlowConnection[]>();
@@ -315,7 +316,7 @@ class GiaGraphNodeEncoder {
   private readonly nodeComments = new Map<string, NodeCommentPayload>();
   private readonly graphComments: GraphCommentPayload[] = [];
 
-  constructor(doc: GraphDocument, env: NormalizedEnvironment, warnings: string[]) {
+  constructor(doc: GraphDocument, env: NormalizedEnvironment, warnings: LocalizedText[]) {
     this.document = doc;
     this.env = env;
     this.warnings = warnings;
@@ -343,16 +344,16 @@ class GiaGraphNodeEncoder {
     const definition = info.definition;
     const portMeta = info.portMeta;
     if (!definition || !portMeta) {
-      this.warnings.push(`GIA：节点“${info.node.type}”暂不支持导出，将被忽略。`);
+      this.warnings.push({ key: "gia.export.nodeUnsupported", params: { type: info.node.type } });
       return null;
     }
     if (!definition.officialID || definition.officialID <= 0) {
-      this.warnings.push(`GIA：节点“${info.node.type}”缺少官方 ID，无法导出。`);
+      this.warnings.push({ key: "gia.export.nodeMissingOfficialId", params: { type: info.node.type } });
       return null;
     }
     const property = this.createNodeProperty(definition.officialID);
     if (!property) {
-      this.warnings.push(`GIA：当前环境暂未实现对节点“${info.node.type}”的导出。`);
+      this.warnings.push({ key: "gia.export.nodeUnimplemented", params: { type: info.node.type } });
       return null;
     }
 
@@ -433,11 +434,14 @@ class GiaGraphNodeEncoder {
       if (nodeId) {
         const targetNode = this.nodeInfoById.get(nodeId);
         if (!targetNode) {
-          this.warnings.push(`GIA：注释指向的节点（ID=${nodeId}）不存在，已忽略。`);
+          this.warnings.push({ key: "gia.export.commentNodeMissing", params: { nodeId } });
           continue;
         }
         if (this.nodeComments.has(nodeId)) {
-          this.warnings.push(`GIA：节点“${targetNode.node.type}”存在多个注释，仅导出第一个。`);
+          this.warnings.push({
+            key: "gia.export.multipleComments",
+            params: { type: targetNode.node.type },
+          });
           continue;
         }
         this.nodeComments.set(nodeId, { content: text });
@@ -446,7 +450,7 @@ class GiaGraphNodeEncoder {
       const x = sanitizeCoordinate(rawComment.position?.x);
       const y = sanitizeCoordinate(rawComment.position?.y);
       if (rawComment.position === undefined) {
-        this.warnings.push("GIA：存在未绑定节点且缺少坐标的注释，已放置在 (0, 0)。");
+        this.warnings.push({ key: "gia.export.unboundCommentPlacedAtOrigin" });
       }
       this.graphComments.push({ content: text, x, y });
     }
@@ -464,19 +468,22 @@ class GiaGraphNodeEncoder {
     const sourceInfo = this.nodeInfoById.get(edge.source.nodeId);
     const targetInfo = this.nodeInfoById.get(edge.target.nodeId);
     if (!sourceInfo || !targetInfo) {
-      this.warnings.push(`GIA：无法解析连线 ${edge.id}（节点缺失）。`);
+      this.warnings.push({ key: "gia.export.edgeMissingNode", params: { edgeId: edge.id } });
       return;
     }
     const sourcePort = sourceInfo.definition?.ports.find((port) => port.id === edge.source.portId);
     const targetPort = targetInfo.definition?.ports.find((port) => port.id === edge.target.portId);
     if (!sourcePort || !targetPort) {
-      this.warnings.push(`GIA：连线 ${edge.id} 引用了未知端口。`);
+      this.warnings.push({ key: "gia.export.edgeUnknownPort", params: { edgeId: edge.id } });
       return;
     }
     if (sourcePort.kind === "flow-out" && targetPort.kind === "flow-in") {
       const targetFlowIndex = getPortIndex(targetInfo, targetPort.id, "flowIn");
       if (targetFlowIndex === -1) {
-        this.warnings.push(`GIA：无法定位 ${targetInfo.node.type}.${targetPort.id} 的 flow-in 序号。`);
+        this.warnings.push({
+          key: "gia.export.flowInIndexMissing",
+          params: { nodeType: targetInfo.node.type, portId: targetPort.id },
+        });
         return;
       }
       const key = makePortKey(sourceInfo.node.id, sourcePort.id);
@@ -488,7 +495,10 @@ class GiaGraphNodeEncoder {
     if (sourcePort.kind === "data-out" && targetPort.kind === "data-in") {
       const sourceDataIndex = getPortIndex(sourceInfo, sourcePort.id, "dataOut");
       if (sourceDataIndex === -1) {
-        this.warnings.push(`GIA：无法定位 ${sourceInfo.node.type}.${sourcePort.id} 的 data-out 序号。`);
+        this.warnings.push({
+          key: "gia.export.dataOutIndexMissing",
+          params: { nodeType: sourceInfo.node.type, portId: sourcePort.id },
+        });
         return;
       }
       const key = makePortKey(targetInfo.node.id, targetPort.id);
@@ -497,9 +507,15 @@ class GiaGraphNodeEncoder {
       this.dataConnections.set(key, list);
       return;
     }
-    this.warnings.push(
-      `GIA：暂不支持从 ${sourceInfo.node.type}.${sourcePort.id} 到 ${targetInfo.node.type}.${targetPort.id} 的连线。`,
-    );
+    this.warnings.push({
+      key: "gia.export.edgeUnsupported",
+      params: {
+        sourceType: sourceInfo.node.type,
+        sourcePortId: sourcePort.id,
+        targetType: targetInfo.node.type,
+        targetPortId: targetPort.id,
+      },
+    });
   }
 }
 

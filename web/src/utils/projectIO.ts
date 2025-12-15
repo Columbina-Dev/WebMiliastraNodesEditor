@@ -55,6 +55,13 @@ import {
   resolveEnvironmentFromLocation,
   sanitizeExecutionInterval,
 } from '../utils/graphEnvironment';
+import { t as translateText } from './i18n';
+import { loadEditorSettings } from './storage';
+
+const translateUi = (key: string, params?: Record<string, string | number>) => {
+  const settings = loadEditorSettings();
+  return translateText(key, settings.uiPrimaryLanguage, settings.uiSecondaryLanguage, params);
+};
 
 const cloneNode = (node: GraphNode): GraphNode => ({
   ...node,
@@ -98,11 +105,11 @@ const cloneStructDocument = (doc: StructDocument): StructDocument => ({
   type: 'Struct',
   struct_type: doc.struct_type ?? doc.struct_ype ?? DEFAULT_STRUCT_KIND,
   struct_ype: doc.struct_ype ?? doc.struct_type ?? DEFAULT_STRUCT_KIND,
-  name: sanitizeName(doc.name, '结构体'),
+  name: sanitizeName(doc.name, translateUi('struct.defaultName')),
   config_id: doc.config_id,
   value: Array.isArray(doc.value)
     ? doc.value.map((entry) => ({
-        key: sanitizeName(entry.key, entry.key ?? '变量'),
+        key: sanitizeName(entry.key, translateUi('struct.field.defaultKey')),
         param_type: entry.param_type,
         value: entry.value ? JSON.parse(JSON.stringify(entry.value)) : { param_type: entry.param_type, value: null },
       }))
@@ -115,7 +122,7 @@ const sanitizeManifestGraph = (
   document: ProjectDocument,
 ) => {
   const graphDoc = document.graphs[graphId];
-  const fallbackName = graphDoc ? graphDoc.name : '未命名节点图';
+  const fallbackName = graphDoc ? graphDoc.name : translateUi('graph.defaultName');
   const resolved = resolveGraphLocation(graphId, entry.path, {
     groupNameHint: entry.groupName ?? DEFAULT_GROUP_NAME,
   });
@@ -144,7 +151,7 @@ const sanitizeStructManifest = (
   document: ProjectDocument,
 ) => {
   const structDoc = document.structs?.[structId];
-  const fallbackName = structDoc ? structDoc.name : '未命名结构体';
+  const fallbackName = structDoc ? structDoc.name : translateUi('struct.defaultName');
   const resolved = resolveStructLocation(structId, entry.path, {
     groupNameHint: entry.groupName ?? entry.groupSlug,
     preferredGroupSlug: entry.groupSlug,
@@ -182,7 +189,7 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
       appVersion: document.manifest.appVersion,
       project: {
         id: document.manifest.project.id,
-        name: sanitizeName(document.manifest.project.name, '未命名项目'),
+        name: sanitizeName(document.manifest.project.name, translateUi('project.defaultName')),
       },
       graphs: [],
       groups: [],
@@ -219,7 +226,9 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
   for (const manifestEntry of document.manifest.graphs) {
     if (!manifestEntry?.graphId) continue;
     if (!normalized.graphs[manifestEntry.graphId]) {
-      warnings.push(`节点图 ${manifestEntry.graphId} 缺少对应的 JSON 数据，已跳过。`);
+      warnings.push(
+        translateUi('projectIO.warning.graphMissingJson', { graphId: manifestEntry.graphId }),
+      );
       continue;
     }
     const sanitized = sanitizeManifestGraph(manifestEntry.graphId, manifestEntry, normalized);
@@ -237,7 +246,7 @@ export const normalizeProjectDocument = (document: ProjectDocument): NormalizePr
   for (const entry of document.manifest.structures ?? []) {
     if (!entry?.structId) continue;
     if (normalized.structs && !normalized.structs[entry.structId]) {
-      warnings.push(`结构体 ${entry.structId} 缺少对应 JSON 数据，已跳过。`);
+      warnings.push(translateUi('projectIO.warning.structMissingJson', { structId: entry.structId }));
       continue;
     }
     const sanitized = sanitizeStructManifest(entry.structId, entry, normalized);
@@ -280,15 +289,17 @@ export const loadProjectFromZip = async (
       const content = await manifestFile.async('string');
       manifestData = JSON.parse(content) as Partial<ProjectManifest>;
     } catch (error) {
-      warnings.push(`读取 manifest.json 失败：${String(error)}`);
+      warnings.push(
+        translateUi('projectIO.warning.manifestReadFailed', { error: String(error) }),
+      );
     }
   } else {
-    warnings.push('压缩包缺少 manifest.json，将尝试自动构建。');
+    warnings.push(translateUi('projectIO.warning.manifestMissing'));
   }
 
   const baseDocument = createEmptyProjectDocument({
     projectId: manifestData?.project?.id,
-    name: manifestData?.project?.name ?? '未命名项目',
+    name: manifestData?.project?.name ?? translateUi('project.defaultName'),
     appVersion: manifestData?.appVersion ?? options.fallbackAppVersion,
   });
   const document: ProjectDocument = {
@@ -387,7 +398,12 @@ export const loadProjectFromZip = async (
           groupName = fallback.groupName;
           structType = fallback.structType;
           locationPath = fallback.normalizedPath;
-          warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallback.normalizedPath}`);
+          warnings.push(
+            translateUi('projectIO.warning.unknownFilePathMoved', {
+              path: normalizedPath,
+              target: fallback.normalizedPath,
+            }),
+          );
         }
         const structDocument: StructDocument = cloneStructDocument(parsed);
         availableStructFiles.set(structId, {
@@ -441,7 +457,12 @@ export const loadProjectFromZip = async (
           locationPath = fallbackLocation.normalizedPath;
           groupName = fallbackLocation.location.groupName;
           location = fallbackLocation.location;
-          warnings.push(`文件路径 ${normalizedPath} 无法识别，已自动放入 ${fallbackLocation.normalizedPath}`);
+          warnings.push(
+            translateUi('projectIO.warning.unknownFilePathMoved', {
+              path: normalizedPath,
+              target: fallbackLocation.normalizedPath,
+            }),
+          );
         }
         const environmentFromLocation = resolveEnvironmentFromLocation(location);
         const fallbackKind = clientKindFromEnvironment(environmentFromLocation) ?? undefined;
@@ -479,7 +500,9 @@ export const loadProjectFromZip = async (
         });
       }
     } catch (error) {
-      warnings.push(`解析 ${normalizedPath} 时出错：${String(error)}`);
+      warnings.push(
+        translateUi('projectIO.warning.parseFailed', { path: normalizedPath, error: String(error) }),
+      );
     }
   }
 
@@ -502,12 +525,12 @@ export const loadProjectFromZip = async (
 
     if (!graphId) {
       graphId = createProjectId();
-      warnings.push('manifest.json 中存在缺少 graphId 的记录，已自动分配新的 graphId。');
+      warnings.push(translateUi('projectIO.warning.manifestMissingGraphId'));
     }
 
     const available = availableGraphFiles.get(graphId);
     if (!available) {
-      warnings.push(`manifest.json 中的节点图 ${graphId} 在压缩包中找不到对应的 JSON 文件，已跳过。`);
+      warnings.push(translateUi('projectIO.warning.manifestGraphFileMissing', { graphId }));
       continue;
     }
     assignedGraphIds.add(graphId);
@@ -537,11 +560,11 @@ export const loadProjectFromZip = async (
     }
     if (!structId) {
       structId = createStructId();
-      warnings.push('manifest.json 中存在缺少 structId 的结构体记录，已自动分配新 ID。');
+      warnings.push(translateUi('projectIO.warning.manifestMissingStructId'));
     }
     const available = availableStructFiles.get(structId);
     if (!available) {
-      warnings.push(`manifest.json 中的结构体 ${structId} 在压缩包中找不到对应 JSON 文件，已跳过。`);
+      warnings.push(translateUi('projectIO.warning.manifestStructFileMissing', { structId }));
       continue;
     }
     assignedStructIds.add(structId);
@@ -605,7 +628,7 @@ export const saveProjectToZip = async (
   for (const entry of normalized.manifest.graphs) {
     const graphDoc = normalized.graphs[entry.graphId];
     if (!graphDoc) {
-      warnings.push(`节点图 ${entry.graphId} 缺少 JSON 数据，未导出。`);
+      warnings.push(translateUi('projectIO.warning.exportGraphMissingJson', { graphId: entry.graphId }));
       continue;
     }
     const serialized = JSON.stringify(
@@ -622,7 +645,7 @@ export const saveProjectToZip = async (
   for (const entry of normalized.manifest.structures ?? []) {
     const structDoc = normalized.structs?.[entry.structId];
     if (!structDoc) {
-      warnings.push(`结构体 ${entry.structId} 缺少 JSON 数据，未导出。`);
+      warnings.push(translateUi('projectIO.warning.exportStructMissingJson', { structId: entry.structId }));
       continue;
     }
     const serializedStruct = JSON.stringify(

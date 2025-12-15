@@ -11,6 +11,8 @@ import type {
 } from '../types/node';
 import { useGraphStore } from '../state/graphStore';
 import { canConnectPorts, isDataPort, isFlowPort } from '../utils/graph';
+import { useI18n } from '../utils/i18nContext';
+import { resolveNodeDefinitionDisplayName, resolvePortLabel, resolvePortPlaceholder } from '../utils/nodeText';
 const ICON_EVENT = new URL('../assets/icons/event-stroke.svg', import.meta.url).href;
 const ICON_EXECUTE = new URL('../assets/icons/execute-stroke.svg', import.meta.url).href;
 const ICON_FLOW = new URL('../assets/icons/flow-stroke.svg', import.meta.url).href;
@@ -79,6 +81,7 @@ const parseValue = (port: DataPortDefinition, value: string): unknown => {
 
 const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
   const { data, selected } = props;
+  const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const setOverride = useGraphStore((state) => state.setPortOverride);
   const clearOverride = useGraphStore((state) => state.clearPortOverride);
 
@@ -214,7 +217,7 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
 
   const renderPortLabel = (port: PortDefinition) => (
     <span className="miliastra-port__label">
-      {port.label}
+      {resolvePortLabel(port, primaryLanguage, secondaryLanguage)}
       {port.ui?.accessory === 'gear' && (
         <span className="miliastra-port__badge" aria-hidden="true">
           ⚙
@@ -280,7 +283,7 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
               value={value === undefined ? '' : String(value)}
               onChange={handleInputChange(port)}
             >
-              <option value="">未设置</option>
+              <option value="">{t('common.unset')}</option>
               {port.enumValues.map((option) => (
                 <option key={option.value} value={String(option.value)}>
                   {option.label}
@@ -293,16 +296,18 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
               value={value === undefined ? '' : String(value)}
               onChange={handleInputChange(port)}
             >
-              <option value="">未设置</option>
-              <option value="true">是</option>
-              <option value="false">否</option>
+              <option value="">{t('common.unset')}</option>
+              <option value="true">{t('common.yes')}</option>
+              <option value="false">{t('common.no')}</option>
             </select>
           ) : (
             <input
               className="miliastra-port__control"
               type={port.valueType === 'int' || port.valueType === 'float' ? 'number' : 'text'}
               value={formatValue(port, value)}
-              placeholder={port.ui?.placeholder ?? '输入值'}
+              placeholder={
+                resolvePortPlaceholder(port, primaryLanguage, secondaryLanguage) ?? t('common.enterValue')
+              }
               onChange={handleInputChange(port)}
             />
           )}
@@ -353,7 +358,9 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
     <div className={nodeClassName} style={nodeStyle}>
       <header className="miliastra-node__header">
         <img className="miliastra-node__icon" src={nodeIcon} alt="" aria-hidden="true" />
-        <span className="miliastra-node__title">{label ?? definition.displayName}</span>
+        <span className="miliastra-node__title">
+          {label ?? resolveNodeDefinitionDisplayName(definition, primaryLanguage, secondaryLanguage)}
+        </span>
       </header>
       <div className="miliastra-node__body">
         {flowRows.map((row, index) => (
@@ -384,4 +391,3 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
 MiliastraNode.displayName = 'MiliastraNode';
 
 export default MiliastraNode;
-

@@ -98,35 +98,35 @@ export const DEFAULT_STRUCT_GROUP_SLUG = 'default';
 
 export const STRUCT_PARAM_OPTIONS: Array<{
   value: StructParamType;
-  label: string;
+  labelKey: string;
 }> = [
-  { value: 'String', label: '字符串' },
-  { value: 'StringList', label: '字符串列表' },
-  { value: 'Int32', label: '整数' },
-  { value: 'Int32List', label: '整数列表' },
-  { value: 'Float', label: '浮点数' },
-  { value: 'FloatList', label: '浮点数列表' },
-  { value: 'Bool', label: '布尔值' },
-  { value: 'BoolList', label: '布尔值列表' },
-  { value: 'Vector3', label: '三维向量' },
-  { value: 'Vector3List', label: '三维向量列表' },
-  { value: 'Entity', label: '实体' },
-  { value: 'EntityList', label: '实体列表' },
-  { value: 'Guid', label: 'GUID' },
-  { value: 'GuidList', label: 'GUID列表' },
-  { value: 'ConfigReference', label: '配置ID' },
-  { value: 'ConfigReferenceList', label: '配置ID列表' },
-  { value: 'EntityReference', label: '元件ID' },
-  { value: 'EntityReferenceList', label: '元件ID列表' },
-  { value: 'Army', label: '阵营' },
-  { value: 'ArmyList', label: '阵营列表' },
-  { value: 'Dict', label: '字典' },
-  { value: 'DictList', label: '字典列表' },
-  { value: 'Struct', label: '结构体' },
-  { value: 'StructList', label: '结构体列表' },
+  { value: 'String', labelKey: 'struct.paramType.string' },
+  { value: 'StringList', labelKey: 'struct.paramType.stringList' },
+  { value: 'Int32', labelKey: 'struct.paramType.int32' },
+  { value: 'Int32List', labelKey: 'struct.paramType.int32List' },
+  { value: 'Float', labelKey: 'struct.paramType.float' },
+  { value: 'FloatList', labelKey: 'struct.paramType.floatList' },
+  { value: 'Bool', labelKey: 'struct.paramType.bool' },
+  { value: 'BoolList', labelKey: 'struct.paramType.boolList' },
+  { value: 'Vector3', labelKey: 'struct.paramType.vector3' },
+  { value: 'Vector3List', labelKey: 'struct.paramType.vector3List' },
+  { value: 'Entity', labelKey: 'struct.paramType.entity' },
+  { value: 'EntityList', labelKey: 'struct.paramType.entityList' },
+  { value: 'Guid', labelKey: 'struct.paramType.guid' },
+  { value: 'GuidList', labelKey: 'struct.paramType.guidList' },
+  { value: 'ConfigReference', labelKey: 'struct.paramType.configId' },
+  { value: 'ConfigReferenceList', labelKey: 'struct.paramType.configIdList' },
+  { value: 'EntityReference', labelKey: 'struct.paramType.entityId' },
+  { value: 'EntityReferenceList', labelKey: 'struct.paramType.entityIdList' },
+  { value: 'Army', labelKey: 'struct.paramType.army' },
+  { value: 'ArmyList', labelKey: 'struct.paramType.armyList' },
+  { value: 'Dict', labelKey: 'struct.paramType.dict' },
+  { value: 'DictList', labelKey: 'struct.paramType.dictList' },
+  { value: 'Struct', labelKey: 'struct.paramType.struct' },
+  { value: 'StructList', labelKey: 'struct.paramType.structList' },
 ];
 
-export const STRUCT_KIND_LABELS: Record<StructKind, string> = {
-  basic: '基础结构体',
-  runtime: '局内存档结构体',
+export const STRUCT_KIND_LABEL_KEYS: Record<StructKind, string> = {
+  basic: 'struct.kind.basic',
+  runtime: 'struct.kind.runtime',
 };

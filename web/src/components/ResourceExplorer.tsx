@@ -45,6 +45,7 @@ import {
   resolveEnvironmentFromLocation,
   sanitizeExecutionInterval,
 } from '../utils/graphEnvironment';
+import { useI18n } from '../utils/i18nContext';
 import './ResourceExplorer.css';
 
 interface ResourceExplorerProps {
@@ -118,6 +119,7 @@ type ResourceExplorerDialog = {
 };
 
 const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: ResourceExplorerProps) => {
+  const { t } = useI18n();
   const createGroup = useProjectStore((state) => state.createGroup);
   const duplicateGroup = useProjectStore((state) => state.duplicateGroup);
   const deleteGroup = useProjectStore((state) => state.deleteGroup);
@@ -178,8 +180,8 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         if (declaredTop !== expectedTop) {
           errors.push(
             declaredTop === 'client'
-              ? '节点图标记为客户端，但当前位置为服务器节点图目录'
-              : '节点图标记为服务器，但当前位置为客户端节点图目录',
+              ? t('resourceExplorer.validation.envMismatch.clientInServer')
+              : t('resourceExplorer.validation.envMismatch.serverInClient'),
           );
         } else {
           const declaredKind = clientKindFromEnvironment(declaredEnv);
@@ -209,7 +211,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       );
       if (invalidTypes.length) {
         errors.push(
-          `以下节点类型不属于当前节点库分类：${invalidTypes.join(', ')}`,
+          t('resourceExplorer.validation.invalidNodeTypes', { types: invalidTypes.join(', ') }),
         );
       }
       if (errors.length) {
@@ -217,7 +219,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       }
     }
     return map;
-  }, [clientNodeSets, document, serverNodeSet, systemNodeIdSet]);
+  }, [clientNodeSets, document, serverNodeSet, systemNodeIdSet, t]);
 
   const [activeCategoryKey, setActiveCategoryKey] = useState<string>(() => categories[0]?.key ?? '');
   const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>(() =>
@@ -245,18 +247,18 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     setDialog({
       title,
       message,
-      confirmLabel: '确定',
+      confirmLabel: t('common.ok'),
     });
-  }, []);
+  }, [t]);
 
   const attemptOpenGraph = useCallback(
     (graphId: string) => {
       const issues = graphValidation.get(graphId);
       if (issues && issues.errors.length) {
         openInfoDialog(
-          '无法打开节点图',
+          t('resourceExplorer.openGraph.errorTitle'),
           <div className="resource-explorer__dialog-message">
-            <p>检测到以下问题，请导出 JSON 并手动修复后重新导入：</p>
+            <p>{t('resourceExplorer.openGraph.errorHint')}</p>
             <ul>
               {issues.errors.map((error) => (
                 <li key={error}>{error}</li>
@@ -524,12 +526,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       }
       const project = useProjectStore.getState().document;
       if (!project) {
-        openInfoDialog('无法移动文件夹', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.moveFolder.title'), t('common.noProjectOpen'));
         return null;
       }
       const targetCategory = getCategoryDefinition(toCategoryKey);
       if (!targetCategory) {
-        openInfoDialog('无法移动文件夹', '未找到对应的分类。');
+        openInfoDialog(t('resourceExplorer.error.moveFolder.title'), t('common.categoryNotFound'));
         return null;
       }
       const sourceGroup = project.manifest.groups.find(
@@ -597,12 +599,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   );
 
   const handleCreateFolder = useCallback(() => {
-    const created = createGroup(topFolder, activeCategoryKey, '新建文件夹');
+    const created = createGroup(topFolder, activeCategoryKey, t('resourceExplorer.defaultFolderName'));
     setContextMenu(null);
     if (!created) return;
     setEditing({ type: 'folder', groupSlug: created.groupSlug, categoryKey: activeCategoryKey });
     setEditingValue(created.groupName);
-  }, [activeCategoryKey, createGroup, setContextMenu, topFolder]);
+  }, [activeCategoryKey, createGroup, setContextMenu, t, topFolder]);
 
   const handleCopyFolder = useCallback(
     (groupSlug: string, categoryKey: string, groupName: string) => {
@@ -640,7 +642,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       return;
     }
     if (clipboard.topFolder !== topFolder) {
-      openInfoDialog('无法粘贴', '无法在不同类型的资源管理器之间粘贴文件夹。');
+      openInfoDialog(
+        t('resourceExplorer.error.paste.title'),
+        t('resourceExplorer.error.paste.folderCrossExplorer'),
+      );
       setContextMenu(null);
       return;
     }
@@ -698,22 +703,22 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     ) => {
       const project = useProjectStore.getState().document;
       if (!project) {
-        openInfoDialog('无法复制节点图', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('common.noProjectOpen'));
         return null;
       }
       const sourceEntry = project.manifest.graphs.find((entry) => entry.graphId === graphId);
       if (!sourceEntry) {
-        openInfoDialog('无法复制节点图', '未找到节点图记录。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('resourceExplorer.error.copyGraph.entryNotFound'));
         return null;
       }
       const sourceDoc = project.graphs[graphId];
       if (!sourceDoc) {
-        openInfoDialog('无法复制节点图', '未找到节点图内容。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('resourceExplorer.error.copyGraph.contentNotFound'));
         return null;
       }
       const categoryDefinition = getCategoryDefinition(targetCategoryKey);
       if (!categoryDefinition) {
-        openInfoDialog('无法复制节点图', '未找到目标分类。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('resourceExplorer.error.copyGraph.targetCategoryNotFound'));
         return null;
       }
       const existingNames = new Set(
@@ -778,13 +783,13 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     }
     const categoryDefinition = getCategoryDefinition(activeCategoryKey);
     if (!categoryDefinition) {
-      openInfoDialog('无法新建节点图', '未找到对应的分类。');
+      openInfoDialog(t('resourceExplorer.error.createGraph.title'), t('common.categoryNotFound'));
       setContextMenu(null);
       return;
     }
     const project = useProjectStore.getState().document;
     if (!project) {
-      openInfoDialog('无法新建节点图', '当前没有打开的项目。');
+      openInfoDialog(t('resourceExplorer.error.createGraph.title'), t('common.noProjectOpen'));
       setContextMenu(null);
       return;
     }
@@ -804,7 +809,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         })
         .map((entry) => entry.name),
     );
-    const baseName = '新建节点图';
+    const baseName = t('graph.defaultName');
     let candidate = baseName;
     let index = 1;
     while (existingNames.has(candidate)) {
@@ -866,12 +871,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     (graphId: string) => {
       const project = useProjectStore.getState().document;
       if (!project) {
-        openInfoDialog('无法复制节点图', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('common.noProjectOpen'));
         return;
       }
       const manifestEntry = project.manifest.graphs.find((entry) => entry.graphId === graphId);
       if (!manifestEntry) {
-        openInfoDialog('无法复制节点图', '未找到节点图记录。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('resourceExplorer.error.copyGraph.entryNotFound'));
         return;
       }
       const resolved = resolveGraphLocation(manifestEntry.graphId, manifestEntry.path, {
@@ -879,7 +884,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         preferredTopFolder: topFolder,
       });
       if (resolved.location.topFolder !== topFolder) {
-        openInfoDialog('无法复制节点图', '无法跨类型复制节点图。');
+        openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('resourceExplorer.error.copyGraph.crossType'));
         setContextMenu(null);
         return;
       }
@@ -908,7 +913,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       return;
     }
     if (clipboard.topFolder !== topFolder) {
-      openInfoDialog('无法粘贴节点图', '无法在不同类型的资源管理器之间粘贴节点图。');
+      openInfoDialog(
+        t('resourceExplorer.error.pasteGraph.title'),
+        t('resourceExplorer.error.pasteGraph.crossExplorer'),
+      );
       setContextMenu(null);
       return;
     }
@@ -935,38 +943,38 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     (graphId: string, graphName: string) => {
       setContextMenu(null);
       setDialog({
-        title: '确认删除',
+        title: t('resourceExplorer.deleteGraph.title'),
         message: (
           <p>
-            确定要删除节点图「{graphName || graphId}」吗？此操作无法撤销。
+            {t('resourceExplorer.deleteGraph.message', { name: graphName || graphId })}
           </p>
         ),
-        confirmLabel: '删除',
+        confirmLabel: t('common.delete'),
         confirmVariant: 'danger',
         onConfirm: () => removeManifestEntry(graphId),
-        cancelLabel: '取消',
+        cancelLabel: t('common.cancel'),
       });
     },
-    [removeManifestEntry, setContextMenu],
+    [removeManifestEntry, setContextMenu, t],
   );
 
   const handleExportGraph = useCallback(
     (graphId: string, graphName: string) => {
       const project = useProjectStore.getState().document;
       if (!project) {
-        openInfoDialog('无法导出节点图', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.exportGraph.title'), t('common.noProjectOpen'));
         setContextMenu(null);
         return;
       }
       const doc = project.graphs[graphId];
       if (!doc) {
-        openInfoDialog('无法导出节点图', '未找到节点图内容。');
+        openInfoDialog(t('resourceExplorer.error.exportGraph.title'), t('resourceExplorer.error.exportGraph.contentNotFound'));
         setContextMenu(null);
         return;
       }
       const serialized = JSON.stringify({ ...doc, schemaVersion: GRAPH_SCHEMA_VERSION }, null, 2);
       const blob = new Blob([serialized], { type: 'application/json' });
-      const fileName = `${graphName || '节点图'}-${graphId}.json`;
+      const fileName = `${graphName || t('common.graph')}-${graphId}.json`;
       const link = window.document.createElement('a');
       link.href = URL.createObjectURL(blob);
       link.download = fileName;
@@ -974,7 +982,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       URL.revokeObjectURL(link.href);
       setContextMenu(null);
     },
-    [openInfoDialog, setContextMenu],
+    [openInfoDialog, setContextMenu, t],
   );
 
   const handleCopyGraphId = useCallback(
@@ -985,33 +993,33 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
           .writeText(graphId)
           .then(() => {
             openInfoDialog(
-              '节点图 ID 已复制',
+              t('resourceExplorer.copyGraphId.successTitle'),
               <p>
-                节点图 ID 已复制到剪贴板：
+                {t('resourceExplorer.copyGraphId.successMessage')}
                 <code className="resource-explorer__code">{graphId}</code>
               </p>,
             );
           })
           .catch(() => {
             openInfoDialog(
-              '复制节点图 ID',
+              t('resourceExplorer.copyGraphId.title'),
               <p>
-                无法自动复制，请手动复制：
+                {t('resourceExplorer.copyGraphId.autoCopyFailed')}
                 <code className="resource-explorer__code">{graphId}</code>
               </p>,
             );
           });
       } else {
         openInfoDialog(
-          '复制节点图 ID',
+          t('resourceExplorer.copyGraphId.title'),
           <p>
-            请手动复制：
+            {t('resourceExplorer.copyGraphId.manualCopy')}
             <code className="resource-explorer__code">{graphId}</code>
           </p>,
         );
       }
     },
-    [openInfoDialog, setContextMenu],
+    [openInfoDialog, setContextMenu, t],
   );
 
   const handleToggleCategory = (categoryKey: string) => {
@@ -1130,14 +1138,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   const handleRequestImportGraphs = useCallback(
     (groupSlug: string, categoryKey: string) => {
       if (!document) {
-        openInfoDialog('无法导入', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.import.title'), t('common.noProjectOpen'));
         return;
       }
       setPendingImportTarget({ groupSlug, categoryKey });
       setContextMenu(null);
       importInputRef.current?.click();
     },
-    [document, openInfoDialog],
+    [document, openInfoDialog, t],
   );
 
   const importGraphsTo = useCallback(
@@ -1148,12 +1156,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       const selectedFiles = Array.from(files ?? []);
       if (!selectedFiles.length) return;
       if (!document) {
-        openInfoDialog('无法导入', '当前没有打开的项目。');
+        openInfoDialog(t('resourceExplorer.error.import.title'), t('common.noProjectOpen'));
         return;
       }
       const category = categories.find((item) => item.key === target.categoryKey);
       if (!category) {
-        openInfoDialog('无法导入', '未找到对应的分类。');
+        openInfoDialog(t('resourceExplorer.error.import.title'), t('common.categoryNotFound'));
         return;
       }
       const group = groupMap.get(target.groupSlug);
@@ -1179,7 +1187,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
             groupSlug: target.groupSlug,
             groupName,
           };
-          const fallbackName = file.name.replace(/\.json$/i, '') || '新建节点图';
+          const fallbackName = file.name.replace(/\.json$/i, '') || t('graph.defaultName');
           const trimmedName = parsed.name?.trim();
           const graphName = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
           const timestamp = new Date().toISOString();
@@ -1243,15 +1251,15 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
           setManifestEntry(entry);
           markGraphDirty(graphId, false);
         } catch (error) {
-          console.error('导入节点图失败', error);
+          console.error('Failed to import graph', error);
           failures.push(file.name);
         }
       }
       if (failures.length) {
         openInfoDialog(
-          '部分节点图导入失败',
+          t('resourceExplorer.import.partialFailure.title'),
           <div className="resource-explorer__dialog-message">
-            <p>以下文件导入失败：</p>
+            <p>{t('resourceExplorer.import.partialFailure.hint')}</p>
             <ul>
               {failures.map((name) => (
                 <li key={name}>{name}</li>
@@ -1269,6 +1277,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       openInfoDialog,
       setGraphDocument,
       setManifestEntry,
+      t,
       topFolder,
     ],
   );
@@ -1307,13 +1316,13 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       }
       setContextMenu(null);
       setDialog({
-        title: '确认删除',
+        title: t('resourceExplorer.deleteFolder.title'),
         message: (
           <p>
-            确定要删除文件夹「{targetGroup.groupName}」吗？此操作无法撤销。
+            {t('resourceExplorer.deleteFolder.message', { name: targetGroup.groupName })}
           </p>
         ),
-        confirmLabel: '删除',
+        confirmLabel: t('common.delete'),
         confirmVariant: 'danger',
         onConfirm: () => {
           deleteGroup(topFolder, categoryKey, groupSlug);
@@ -1322,10 +1331,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
             setHistoryIndex(0);
           }
         },
-        cancelLabel: '取消',
+        cancelLabel: t('common.cancel'),
       });
     },
-    [currentHistoryEntry, deleteGroup, groupMap, setHistory, setHistoryIndex, topFolder],
+    [currentHistoryEntry, deleteGroup, groupMap, setHistory, setHistoryIndex, t, topFolder],
   );
 
   const handleNavigateToRoot = useCallback(() => {
@@ -1344,13 +1353,18 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       const isRoot = currentHistoryEntry === null;
       segments.push({
         key: `category:${category.key}`,
-        label: category.label,
+        label: t(category.labelKey),
         onClick: isRoot ? undefined : handleNavigateToRoot,
         disabled: isRoot,
       });
     }
     if (currentHistoryEntry) {
-      const groupLabel = groupMap.get(currentHistoryEntry)?.groupName ?? currentHistoryEntry;
+      const group = groupMap.get(currentHistoryEntry);
+      const groupLabel = group
+        ? group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
+          ? t('common.defaultGroupName')
+          : group.groupName
+        : currentHistoryEntry;
       segments.push({
         key: `group:${currentHistoryEntry}`,
         label: groupLabel,
@@ -1358,7 +1372,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       });
     }
     return segments;
-  }, [activeCategoryKey, categories, currentHistoryEntry, groupMap, handleNavigateToRoot]);
+  }, [activeCategoryKey, categories, currentHistoryEntry, groupMap, handleNavigateToRoot, t]);
 
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
@@ -1432,7 +1446,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       onContextMenu={handleContextMenuOnEmpty}
     >
       {visibleFolders.length === 0 ? (
-        <div className="resource-explorer__empty">暂无文件夹</div>
+        <div className="resource-explorer__empty">{t('resourceExplorer.folders.empty')}</div>
       ) : (
         visibleFolders.map((group, index) => {
           const stripeClass = `resource-explorer__row--${index % 2 === 0 ? 'even' : 'odd'}`;
@@ -1476,15 +1490,21 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                         commitEditing(false);
                       }
                     }}
-                    placeholder="新建文件夹"
+                    placeholder={t('resourceExplorer.defaultFolderName')}
                   />
                 ) : (
-                  <span>{group.groupName}</span>
+                  <span>
+                    {group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
+                      ? t('common.defaultGroupName')
+                      : group.groupName}
+                  </span>
                 )}
               </div>
-              <div className="resource-explorer__cell resource-explorer__cell--type">文件夹</div>
+              <div className="resource-explorer__cell resource-explorer__cell--type">{t('resourceExplorer.itemType.folder')}</div>
               <div className="resource-explorer__cell resource-explorer__cell--meta">
-                {group.graphCount > 0 ? `${group.graphCount} 项` : '空'}
+                {group.graphCount > 0
+                  ? t('resourceExplorer.folder.count', { count: group.graphCount })
+                  : t('common.empty')}
               </div>
             </div>
           );
@@ -1504,11 +1524,11 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     >
       {dropActive && (
         <div className="resource-explorer__drop-overlay">
-          <span>导入JSON节点图</span>
+          <span>{t('resourceExplorer.import.dropOverlay')}</span>
         </div>
       )}
       {visibleGraphs.length === 0 ? (
-        <div className="resource-explorer__empty">暂无节点图</div>
+        <div className="resource-explorer__empty">{t('resourceExplorer.graphs.empty')}</div>
       ) : (
         visibleGraphs.map((descriptor, index) => {
           const validation = graphValidation.get(descriptor.graphId);
@@ -1560,14 +1580,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                         commitEditing(false);
                       }
                     }}
-                    placeholder="输入节点图名称"
+                    placeholder={t('resourceExplorer.graph.rename.placeholder')}
                   />
                 ) : (
                   <span>{descriptor.name}</span>
                 )}
                 {isDirty && <span className="resource-explorer__dirty-indicator">*</span>}
               </div>
-              <div className="resource-explorer__cell resource-explorer__cell--type">节点图</div>
+              <div className="resource-explorer__cell resource-explorer__cell--type">{t('common.graph')}</div>
               <div
                 className={classNames(
                   'resource-explorer__cell',
@@ -1577,7 +1597,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               >
                 {hasError ? (
                   <span title={validation?.errors.join('\n') ?? ''}>
-                    {validation?.errors[0] ?? '节点图存在错误'}
+                    {validation?.errors[0] ?? t('resourceExplorer.graph.error')}
                   </span>
                 ) : (
                   descriptor.graphId
@@ -1615,7 +1635,9 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
             alt=""
             aria-hidden="true"
           />
-          {topFolder === 'server' ? '服务器节点图' : '客户端节点图'}
+          {topFolder === 'server'
+            ? t('resourceExplorer.sidebar.serverGraphs')
+            : t('resourceExplorer.sidebar.clientGraphs')}
         </h2>
         <nav className="resource-explorer__sidebar-groups">
           {categories.map((category) => {
@@ -1649,7 +1671,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                     />
                   </span>
                   <img src={ICON_FOLDER} alt="" aria-hidden="true" />
-                  <span className="resource-explorer__sidebar-group-label">{category.label}</span>
+                  <span className="resource-explorer__sidebar-group-label">{t(category.labelKey)}</span>
                 </button>
                 {isExpanded && (
                   <div className="resource-explorer__sidebar-subgroups">
@@ -1671,13 +1693,18 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                           }}
                         >
                           <span className="resource-explorer__sidebar-subgroup-icon" aria-hidden="true" />
-                          <span>{group.groupName}</span>
+                          <span>
+                            {group.groupSlug === DEFAULT_GROUP_SLUG &&
+                            group.groupName === DEFAULT_GROUP_NAME
+                              ? t('common.defaultGroupName')
+                              : group.groupName}
+                          </span>
                         </button>
                       );
                     })}
                     {groups.length === 0 && (
                       <div className="resource-explorer__sidebar-subgroup resource-explorer__sidebar-subgroup--empty">
-                        暂无文件夹
+                        {t('resourceExplorer.folders.empty')}
                       </div>
                     )}
                   </div>
@@ -1697,7 +1724,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               onClick={handleGoBack}
               disabled={!canGoBack}
             >
-              <img src={ICON_BACK} alt="返回" />
+              <img src={ICON_BACK} alt={t('common.back')} />
             </button>
             <button
               type="button"
@@ -1705,7 +1732,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               onClick={handleGoForward}
               disabled={!canGoForward}
             >
-              <img src={ICON_FORWARD} alt="前进" />
+              <img src={ICON_FORWARD} alt={t('common.forward')} />
             </button>
             <div className="resource-explorer__path">
               {pathSegments.length === 0 ? (
@@ -1733,7 +1760,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
           </div>
           <div className="resource-explorer__actions">
             <button type="button" className="resource-explorer__icon-button" disabled>
-              <img src={ICON_FILTER} alt="筛选" />
+              <img src={ICON_FILTER} alt={t('common.filter')} />
             </button>
             <div className="resource-explorer__search">
               <img src={ICON_SEARCH} alt="" aria-hidden="true" />
@@ -1741,7 +1768,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                 type="text"
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
-                placeholder="搜索当前路径"
+                placeholder={t('resourceExplorer.search.placeholder')}
               />
             </div>
           </div>
@@ -1754,14 +1781,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               className="resource-explorer__thead-cell resource-explorer__thead-cell--sortable"
               onClick={() => setSortAscending((prev) => !prev)}
             >
-              名称
+              {t('common.name')}
               <span className="resource-explorer__sort-indicator" aria-hidden="true">
                 <img src={sortAscending ? ICON_SORT_ASC : ICON_SORT_DESC} alt="" />
               </span>
             </button>
-            <div className="resource-explorer__thead-cell">类型</div>
+            <div className="resource-explorer__thead-cell">{t('common.type')}</div>
             <div className="resource-explorer__thead-cell resource-explorer__thead-cell--meta">
-              信息
+              {t('common.info')}
             </div>
           </div>
           {isRootView ? folderRows : graphRows}
@@ -1776,7 +1803,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               contextMenu.scope === 'root' ? (
                 <>
                   <button type="button" onClick={handleCreateFolder}>
-                    新建文件夹
+                    {t('resourceExplorer.context.newFolder')}
                   </button>
                   <button
                     type="button"
@@ -1784,13 +1811,13 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                     className={classNames({ 'is-disabled': !canPasteFolder })}
                     disabled={!canPasteFolder}
                   >
-                    粘贴文件夹
+                    {t('resourceExplorer.context.pasteFolder')}
                   </button>
                 </>
               ) : (
                 <>
                   <button type="button" onClick={handleCreateGraph}>
-                    新建节点图
+                    {t('resourceExplorer.context.newGraph')}
                   </button>
                   <button
                     type="button"
@@ -1800,7 +1827,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                       }
                     }}
                   >
-                    导入JSON节点图
+                    {t('resourceExplorer.context.importJson')}
                   </button>
                   <button
                     type="button"
@@ -1808,7 +1835,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                     className={classNames({ 'is-disabled': !canPasteGraph })}
                     disabled={!canPasteGraph}
                   >
-                    粘贴节点图
+                    {t('resourceExplorer.context.pasteGraph')}
                   </button>
                 </>
               )
@@ -1829,7 +1856,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                         handleOpenFolder(contextMenu.groupSlug);
                       }}
                     >
-                      打开
+                      {t('common.open')}
                     </button>
                     <button
                       type="button"
@@ -1843,7 +1870,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                       className={classNames({ 'is-disabled': isDefaultFolder })}
                       disabled={isDefaultFolder}
                     >
-                      重命名
+                      {t('common.rename')}
                     </button>
                     <button
                       type="button"
@@ -1851,7 +1878,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                         handleCopyFolder(contextMenu.groupSlug, contextMenu.categoryKey, folderName)
                       }
                     >
-                      复制
+                      {t('common.copy')}
                     </button>
                     <button
                       type="button"
@@ -1861,7 +1888,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                       }
                       disabled={isDefaultFolder}
                     >
-                      剪切
+                      {t('common.cut')}
                     </button>
                     {!isDefaultFolder && (
                       <button
@@ -1871,7 +1898,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                           handleDeleteFolder(contextMenu.groupSlug, contextMenu.categoryKey)
                         }
                       >
-                        删除
+                        {t('common.delete')}
                       </button>
                     )}
                     <button
@@ -1880,7 +1907,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                         handleExportFolder(contextMenu.groupSlug, contextMenu.categoryKey)
                       }
                     >
-                      导出
+                      {t('common.export')}
                     </button>
                   </>
                 );
@@ -1893,7 +1920,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                 const graphName = graphDescriptor?.name ?? contextMenu.graphId;
                 const validation = graphValidation.get(contextMenu.graphId);
                 const hasError = Boolean(validation && validation.errors.length);
-                const errorTooltip = validation?.errors.join('；');
+                const errorTooltip = validation?.errors.join('; ');
                 return (
                   <>
                     <button
@@ -1906,32 +1933,32 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                       disabled={hasError}
                       title={hasError ? errorTooltip : undefined}
                     >
-                      打开
+                      {t('common.open')}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleStartGraphRename(contextMenu.graphId, graphName)}
                     >
-                      重命名
+                      {t('common.rename')}
                     </button>
                     <button type="button" onClick={() => handleCopyGraph(contextMenu.graphId)}>
-                      复制
+                      {t('common.copy')}
                     </button>
                     <button
                       type="button"
                       className="is-danger"
                       onClick={() => handleDeleteGraph(contextMenu.graphId, graphName)}
                     >
-                      删除
+                      {t('common.delete')}
                     </button>
                     <button
                       type="button"
                       onClick={() => handleExportGraph(contextMenu.graphId, graphName)}
                     >
-                      导出
+                      {t('common.export')}
                     </button>
                     <button type="button" onClick={() => handleCopyGraphId(contextMenu.graphId)}>
-                      复制节点图ID
+                      {t('resourceExplorer.context.copyGraphId')}
                     </button>
                   </>
                 );

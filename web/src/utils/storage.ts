@@ -15,6 +15,13 @@ import {
   normalizeGraphEnvironment,
   sanitizeExecutionInterval,
 } from './graphEnvironment';
+import {
+  detectDefaultUiLanguage,
+  getDefaultSecondaryLanguage,
+  isUiLanguage,
+  t as translateText,
+  type UiLanguage,
+} from './i18n';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
@@ -115,7 +122,14 @@ export type EditorMultiSelectBehavior =
 export type GiaUidMode = 'perExport' | 'perSession' | 'fixed';
 export type PointerStyle = 'sandbox' | 'system';
 
+const DEFAULT_UI_PRIMARY_LANGUAGE: UiLanguage = detectDefaultUiLanguage();
+const DEFAULT_UI_SECONDARY_LANGUAGE: UiLanguage = getDefaultSecondaryLanguage(DEFAULT_UI_PRIMARY_LANGUAGE);
+const DEFAULT_GRAPH_NAME = translateText('graph.defaultName', DEFAULT_UI_PRIMARY_LANGUAGE, DEFAULT_UI_SECONDARY_LANGUAGE);
+
 export interface EditorSettings {
+  uiPrimaryLanguage: UiLanguage;
+  uiSecondaryLanguage: UiLanguage;
+  allowSearchAllLanguageNodeNames: boolean;
   panButton: EditorPanButton;
   zoomControl: EditorZoomControl;
   selectionActivation: EditorSelectionActivation;
@@ -129,6 +143,9 @@ export interface EditorSettings {
 }
 
 export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
+  uiPrimaryLanguage: DEFAULT_UI_PRIMARY_LANGUAGE,
+  uiSecondaryLanguage: DEFAULT_UI_SECONDARY_LANGUAGE,
+  allowSearchAllLanguageNodeNames: false,
   panButton: 'right',
   zoomControl: 'wheel',
   selectionActivation: 'drag',
@@ -249,7 +266,7 @@ const convertLegacyAutoSaveEntry = (
   }
   const document = convertLegacyGraphToProjectDocument(
     projectId,
-    candidate.document.name ?? '未命名节点图',
+    candidate.document.name ?? DEFAULT_GRAPH_NAME,
     candidate.document,
     candidate.savedAt,
     LEGACY_TOP_FOLDER,
@@ -489,6 +506,13 @@ export const loadEditorSettings = (): EditorSettings => {
   }
   if (merged.pointerStyle !== 'sandbox' && merged.pointerStyle !== 'system') {
     merged.pointerStyle = DEFAULT_EDITOR_SETTINGS.pointerStyle;
+  }
+  if (!isUiLanguage(merged.uiPrimaryLanguage)) {
+    merged.uiPrimaryLanguage = DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
+  }
+  merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
+    merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;
   }
   return merged;
 };
