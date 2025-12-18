@@ -58,11 +58,27 @@ const SettingsPage = ({
 
   const handlePrimaryLanguageChange = (value: UiLanguage) => {
     onUpdateSettings((prev) => {
-      const secondary = getDefaultSecondaryLanguage(value);
-      if (prev.uiPrimaryLanguage === value && prev.uiSecondaryLanguage === secondary) {
+      const nextPrimary = value;
+      const nextSecondary =
+        prev.uiSecondaryLanguage === nextPrimary
+          ? getDefaultSecondaryLanguage(nextPrimary)
+          : prev.uiSecondaryLanguage;
+      if (prev.uiPrimaryLanguage === nextPrimary && prev.uiSecondaryLanguage === nextSecondary) {
         return prev;
       }
-      return { ...prev, uiPrimaryLanguage: value, uiSecondaryLanguage: secondary };
+      return { ...prev, uiPrimaryLanguage: nextPrimary, uiSecondaryLanguage: nextSecondary };
+    });
+  };
+
+  const handleSecondaryLanguageChange = (value: UiLanguage) => {
+    onUpdateSettings((prev) => {
+      const nextSecondary = value === prev.uiPrimaryLanguage
+        ? getDefaultSecondaryLanguage(prev.uiPrimaryLanguage)
+        : value;
+      if (prev.uiSecondaryLanguage === nextSecondary) {
+        return prev;
+      }
+      return { ...prev, uiSecondaryLanguage: nextSecondary };
     });
   };
 
@@ -132,9 +148,17 @@ const SettingsPage = ({
               </div>
               <div className="settings-option">
                 <div className="settings-option__label">{t('settings.global.secondaryLanguage.label')}</div>
-                <select className="settings-select" value={settings.uiSecondaryLanguage} disabled>
+                <select
+                  className="settings-select"
+                  value={settings.uiSecondaryLanguage}
+                  onChange={(event) => handleSecondaryLanguageChange(event.target.value as UiLanguage)}
+                >
                   {UI_LANGUAGE_OPTIONS.map((option) => (
-                    <option key={option.value} value={option.value}>
+                    <option
+                      key={option.value}
+                      value={option.value}
+                      disabled={option.value === settings.uiPrimaryLanguage}
+                    >
                       {t(option.labelKey)}
                     </option>
                   ))}

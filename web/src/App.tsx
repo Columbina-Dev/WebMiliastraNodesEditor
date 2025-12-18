@@ -462,6 +462,11 @@ const App = () => {
     [editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage],
   );
   const defaultProjectName = t('project.defaultName');
+  const defaultGroupNameLabelRaw = t('common.defaultGroupName');
+  const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
+    defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
+    ? defaultGroupNameLabelRaw
+    : DEFAULT_GROUP_NAME;
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
@@ -2509,7 +2514,7 @@ const handleSaveGraphAs = useCallback(() => {
                 {saveAsGroups.map((group) => (
                   <option key={group.groupSlug} value={group.groupSlug}>
                     {group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
-                      ? t('common.defaultGroupName')
+                      ? defaultGroupNameLabel
                       : group.groupName}
                   </option>
                 ))}

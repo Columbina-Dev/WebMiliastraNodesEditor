@@ -510,7 +510,9 @@ export const loadEditorSettings = (): EditorSettings => {
   if (!isUiLanguage(merged.uiPrimaryLanguage)) {
     merged.uiPrimaryLanguage = DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
   }
-  merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  if (!isUiLanguage(merged.uiSecondaryLanguage) || merged.uiSecondaryLanguage === merged.uiPrimaryLanguage) {
+    merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  }
   if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
     merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;
   }
