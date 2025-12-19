@@ -1,9 +1,9 @@
 import { useMemo, useState } from 'react';
 import classNames from 'classnames';
 import type { EditorSettings } from '../utils/storage';
+// import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
 import { UI_LANGUAGE_OPTIONS, getDefaultSecondaryLanguage, type UiLanguage } from '../utils/i18n';
 import { useI18n } from '../utils/i18nContext';
-// import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
 import './SettingsPage.css';
 const ICON_INFO = new URL('../assets/icons/info.png', import.meta.url).href;
 
