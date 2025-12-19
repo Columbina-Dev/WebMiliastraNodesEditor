@@ -515,6 +515,11 @@ const createDraftFingerprint = (
 
 const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: StructureManagerProps) => {
   const { t } = useI18n();
+  const defaultGroupNameLabelRaw = t('common.defaultGroupName');
+  const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
+    defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
+    ? defaultGroupNameLabelRaw
+    : DEFAULT_STRUCT_GROUP_NAME;
   const updateDocument = useProjectStore((state) => state.updateDocument);
   const setStructDocument = useProjectStore((state) => state.setStructDocument);
   const setStructManifestEntry = useProjectStore((state) => state.setStructManifestEntry);
@@ -2086,7 +2091,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   <span className="structure-manager__group-label">
                     {group.groupSlug === DEFAULT_STRUCT_GROUP_SLUG &&
                     group.groupName === DEFAULT_STRUCT_GROUP_NAME
-                      ? t('common.defaultGroupName')
+                      ? defaultGroupNameLabel
                       : group.groupName}
                   </span>
                 </button>
@@ -2372,7 +2377,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   <span>
                     {group.groupSlug === DEFAULT_STRUCT_GROUP_SLUG &&
                     group.groupName === DEFAULT_STRUCT_GROUP_NAME
-                      ? t('common.defaultGroupName')
+                      ? defaultGroupNameLabel
                       : group.groupName}
                   </span>
                 </label>

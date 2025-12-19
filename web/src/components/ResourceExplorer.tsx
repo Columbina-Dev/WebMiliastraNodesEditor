@@ -131,6 +131,11 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   const removeManifestEntry = useProjectStore((state) => state.removeManifestEntry);
 
   const categories = PROJECT_CATEGORIES_BY_TOP[topFolder];
+  const defaultGroupNameLabelRaw = t('common.defaultGroupName');
+  const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
+    defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
+    ? defaultGroupNameLabelRaw
+    : DEFAULT_GROUP_NAME;
 
   const systemNodeIdSet = useMemo(
     () => new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]),
@@ -1362,7 +1367,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       const group = groupMap.get(currentHistoryEntry);
       const groupLabel = group
         ? group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
-          ? t('common.defaultGroupName')
+          ? defaultGroupNameLabel
           : group.groupName
         : currentHistoryEntry;
       segments.push({
@@ -1372,7 +1377,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       });
     }
     return segments;
-  }, [activeCategoryKey, categories, currentHistoryEntry, groupMap, handleNavigateToRoot, t]);
+  }, [activeCategoryKey, categories, currentHistoryEntry, defaultGroupNameLabel, groupMap, handleNavigateToRoot, t]);
 
   const canGoBack = historyIndex > 0;
   const canGoForward = historyIndex < history.length - 1;
@@ -1495,7 +1500,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                 ) : (
                   <span>
                     {group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
-                      ? t('common.defaultGroupName')
+                      ? defaultGroupNameLabel
                       : group.groupName}
                   </span>
                 )}
@@ -1696,7 +1701,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                           <span>
                             {group.groupSlug === DEFAULT_GROUP_SLUG &&
                             group.groupName === DEFAULT_GROUP_NAME
-                              ? t('common.defaultGroupName')
+                              ? defaultGroupNameLabel
                               : group.groupName}
                           </span>
                         </button>
