@@ -742,6 +742,7 @@ option {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
   padding: 18px;
+  user-select: text;
 }
 
 .gia-modal__code {

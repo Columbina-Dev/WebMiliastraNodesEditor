@@ -11,8 +11,8 @@
 509,action.list.iterate,列表迭代循环,List Iteration Loop
 100,action.list.concat,拼接列表,Concatenate List
 107,action.list.clear,清除列表,Clear List
-323,action.setCustomVariable,设置自定义变量,Set Custom Variable
-22,action.setGraphVariable,设置节点图变量,Set Node Graph Variable
+22,action.setCustomVariable,设置自定义变量,Set Custom Variable
+323,action.setGraphVariable,设置节点图变量,Set Node Graph Variable
 66,action.setPresetState,设置预设状态,Set Preset Status
 252,action.createComponent,创建元件,Create Prefab
 757,action.createComponentGroup,创建元件组,Create Prefab Group
@@ -134,12 +134,13 @@
 704,action.shop.modifyCustomSellInfo,修改自定义商店商品出售信息,Modify Custom Shop Item Sales Info
 707,action.shop.modifyBuyInfo,修改物品收购表中道具收购信息,Modify Item Purchase Info in the Purchase List
 706,action.shop.modifyBackpackSellInfo,修改背包商店商品出售信息,Modify Inventory Shop Item Sales Info
+674,action.affix.modifyValue,设置装备词条值,(EN_TBC)Modify Equipment Affix Value
+791,action.affix.replaceAtIndex,替换装备到指定栏位,(test)Official_action.replaceAffixAtIndex
 673,action.affix.remove,移除装备词条,Remove Equipment Affix
-674,action.affix.modifyValue,修改装备词条值,Modify Equipment Affix Value
-742,action.affix.addAtIndex,装备指定序号添加词条,Add Affix to Equipment at Specified ID
 672,action.affix.add,装备添加词条,Add Affix to Equipment
-724,action.loot.setDropContent,设置战利品掉落内容,Set Loot Drop Content
-725,action.loot.setDropType,设置战利品掉落类型,Set Loot Drop Type
+742,action.affix.addAtIndex,装备指定序号添加词条,Add Affix to Equipment at Specified ID
+725,action.loot.setDropContent,设置战利品掉落内容,Set Loot Drop Content
+724,action.loot.setDropType,触发战利品掉落,Trigger Loot Drop
 687,action.backpack.setDropItemCurrencyCount,设置背包掉落道具/货币数量,Set Inventory Drop Items/Currency Amount
 720,action.backpack.setItemDropContent,设置背包道具掉落内容,Set Inventory Item Drop Contents
 685,action.backpack.increaseMaxCapacity,增加背包最大容量,Increase Maximum Inventory Capacity
@@ -167,6 +168,9 @@
 771,action.chat.setPlayerCurrentChannel,设置玩家当前频道,Set Player's Current Channel
 770,action.chat.modifyPlayerChannelPermission,修改玩家频道权限,Modify Player Channel Permission
 772,action.giftBox.consume,消耗礼盒,Consume Gift Box
+790,action.pathBlocking.toggle,激活/关闭寻路阻挡,(test)Official_action.pathBlocking.toggle
+789,action.pathBlocking.funcToggle,激活/关闭寻路阻挡功能,(test)Official_action.pathBlocking.funcToggle
+798,action.complexConstruct.setPresetState,设置复杂造物的预设状态值,(test)Official_action.construct.setPresetState
 351,event.graphVariableChanged,节点图变量变化时,When Node Graph Variable Changes
 36,event.customVariableChanged,自定义变量变化时,When Custom Variable Changes
 67,event.presetStateChanged,预设状态变化时,When Preset Status Changes
@@ -358,66 +362,66 @@
 179,query.entityLayoutGroups.active,查询当前激活的实体布设组列表,Get Currently Active Entity Deployment Groups
 773,query.giftBox.count,查询对应礼盒数量,Query Corresponding Gift Box Quantity
 774,query.giftBox.consumeCount,查询对应礼盒消耗数量,Query Corresponding Gift Box Consumption
-0,math.enumEquals,枚举是否相等,Enumerations Equal
-0,math.list.assemble,拼装列表,Assembly List
-0,math.equals,是否相等,Equal
-0,math.typeCast,数据类型转换,Data Type Conversion
-0,math.vector3.dot,三维向量内积,3D Vector Dot Product
-0,math.vector3.sub,三维向量减法,3D Vector Subtraction
-0,math.vector3.add,三维向量加法,3D Vector Addition
-0,math.vector3.cross,三维向量外积,3D Vector Cross Product
-0,math.vector3.angle,三维向量夹角,3D Vector Angle
-0,math.vector3.normalize,三维向量归一化,3D Vector Normalization
-0,math.vector3.rotate,三维向量旋转,3D Vector Rotation
-0,math.vector3.magnitude,三维向量模运算,3D Vector Modulo Operation
-0,math.vector3.scale,三维向量缩放,3D Vector Zoom
-0,math.vector3.distance,两坐标点距离,Distance Between Two Coordinate Points
-0,math.mul,乘法运算,Multiplication
-0,math.cos,余弦函数,Cosine Function
-0,math.sub,减法运算,Subtraction
-0,math.div,除法运算,Division
-0,math.vector3.create,创建三维向量,Create 3D Vector
-0,math.add,加法运算,Addition
-0,math.acos,反余弦函数,Arccosine Function
-0,math.atan,反正切函数,Arctangent Function
-0,math.asin,反正弦函数,Arcsine Function
-0,math.truncate,取整数运算,Round to Integer Operation
-0,math.sign,取符号运算,Sign Operation
-0,math.max,取较大值,Take Larger Value
-0,math.min,取较小值,Take Smaller Value
-0,math.shift.right,右移运算,Right Shift Operation
-0,math.log,对数运算,Logarithm Operation
-0,math.shift.left,左移运算,Left Shift Operation
-0,math.pow,幂运算,Exponentiation
-0,math.rad2deg,弧度转角度,Radians to Degrees
-0,math.vector3.split,拆分三维向量,Split 3D Vector
-0,math.bit.and,按位与,Bitwise AND
-0,math.bit.write,按位写入,Write by bit
-0,math.bit.not,按位取补,Bitwise Complement
-0,math.bit.xor,按位异或,XOR (Exclusive OR)
-0,math.bit.or,按位或,Bitwise OR
-0,math.bit.read,按位读出,Read by bit
-0,math.gt,数值大于,Greater Than
-0,math.gte,数值大于等于,Greater Than or Equal To
-0,math.lt,数值小于,Less Than
-0,math.lte,数值小于等于,Less Than or Equal To
-0,math.direction.rotate,方向向量旋转,Direction Vector to Rotation
-0,math.time.weekdayFromTimestamp,根据时间戳计算星期几,Calculate Day of the Week From Timestamp
-0,math.time.formatFromTimestamp,根据时间戳计算格式化时间,Calculate Formatted Time From Timestamp
-0,math.time.timestampFromFormat,根据格式化时间计算时间戳,Calculate Timestamp From Formatted Time
-0,math.mod,模运算,Modulo Operation
-0,math.tan,正切函数,Tangent Function
-0,math.sin,正弦函数,Sine Function
-0,math.sqrt,算术平方根运算,Arithmetic Square Root Operation
-0,math.abs,绝对值运算,Absolute Value Operation
-0,math.clamp,范围限制运算,Range Limiting Operation
-0,math.deg2rad,角度转弧度,Degrees to Radians
-0,math.logic.and,逻辑与运算,Logical AND Operation
-0,math.logic.xor,逻辑异或运算,Logical XOR Operation
-0,math.logic.or,逻辑或运算,Logical OR Operation
-0,math.logic.not,逻辑非运算,Logical NOT Operation
-0,math.dict.create,建立字典,Create Dictionary
-0,math.dict.assemble,拼装字典,Assembly Dictionary
+475,math.enumEquals,枚举是否相等,Enumerations Equal
+169,math.list.assemble,拼装列表,Assembly List
+14,math.equals,是否相等,Equal
+180,math.typeCast,数据类型转换,Data Type Conversion
+505,math.vector3.dot,三维向量内积,3D Vector Dot Product
+11,math.vector3.sub,三维向量减法,3D Vector Subtraction
+10,math.vector3.add,三维向量加法,3D Vector Addition
+506,math.vector3.cross,三维向量外积,3D Vector Cross Product
+13,math.vector3.angle,三维向量夹角,3D Vector Angle
+74,math.vector3.normalize,三维向量归一化,3D Vector Normalization
+474,math.vector3.rotate,三维向量旋转,3D Vector Rotation
+220,math.vector3.magnitude,三维向量模运算,3D Vector Modulo Operation
+12,math.vector3.scale,三维向量缩放,3D Vector Zoom
+244,math.vector3.distance,两坐标点距离,Distance Between Two Coordinate Points
+204,math.mul,乘法运算,Multiplication
+292,math.cos,余弦函数,Cosine Function
+202,math.sub,减法运算,Subtraction
+206,math.div,除法运算,Division
+225,math.vector3.create,创建三维向量,Create 3D Vector
+200,math.add,加法运算,Addition
+295,math.acos,反余弦函数,Arccosine Function
+296,math.atan,反正切函数,Arctangent Function
+294,math.asin,反正弦函数,Arcsine Function
+224,math.truncate,取整数运算,Round to Integer Operation
+218,math.sign,取符号运算,Sign Operation
+211,math.max,取较大值,Take Larger Value
+213,math.min,取较小值,Take Smaller Value
+779,math.shift.right,右移运算,Right Shift Operation
+215,math.log,对数运算,Logarithm Operation
+778,math.shift.left,左移运算,Left Shift Operation
+209,math.pow,幂运算,Exponentiation
+321,math.rad2deg,弧度转角度,Radians to Degrees
+9,math.vector3.split,拆分三维向量,Split 3D Vector
+780,math.bit.and,按位与,Bitwise AND
+784,math.bit.write,按位写入,Write by bit
+783,math.bit.not,按位取补,Bitwise Complement
+782,math.bit.xor,按位异或,XOR (Exclusive OR)
+781,math.bit.or,按位或,Bitwise OR
+785,math.bit.read,按位读出,Read by bit
+232,math.gt,数值大于,Greater Than
+233,math.gte,数值大于等于,Greater Than or Equal To
+230,math.lt,数值小于,Less Than
+231,math.lte,数值小于等于,Less Than or Equal To
+519,math.direction.rotate,方向向量旋转,Direction Vector to Rotation
+754,math.time.weekdayFromTimestamp,根据时间戳计算星期几,Calculate Day of the Week From Timestamp
+752,math.time.formatFromTimestamp,根据时间戳计算格式化时间,Calculate Formatted Time From Timestamp
+753,math.time.timestampFromFormat,根据格式化时间计算时间戳,Calculate Timestamp From Formatted Time
+208,math.mod,模运算,Modulo Operation
+293,math.tan,正切函数,Tangent Function
+291,math.sin,正弦函数,Sine Function
+221,math.sqrt,算术平方根运算,Arithmetic Square Root Operation
+216,math.abs,绝对值运算,Absolute Value Operation
+222,math.clamp,范围限制运算,Range Limiting Operation
+322,math.deg2rad,角度转弧度,Degrees to Radians
+226,math.logic.and,逻辑与运算,Logical AND Operation
+228,math.logic.xor,逻辑异或运算,Logical XOR Operation
+227,math.logic.or,逻辑或运算,Logical OR Operation
+229,math.logic.not,逻辑非运算,Logical NOT Operation
+1088,math.dict.create,建立字典,Create Dictionary
+1788,math.dict.assemble,拼装字典,Assembly Dictionary
 0,math.struct.decompose,拆分结构体,Split Structure
 0,math.struct.assemble,拼装结构体,Assemble Structure
 客户端节点图可用
@@ -468,44 +472,44 @@
 0,client.query.getEntityScanTag,获取实体当前生效的扫描标签,Get Entity's Current Active Scan Tags
 0,client.query.getEntityScanState,获取实体扫描状态,Get Entity's Scan Status
 0,client.math.enumMatch,枚举匹配,Enumeration Match
-0,client.math.isEqual,是否相等,Equal
-0,client.math.typeCast,数据类型转换,Data Type Conversion
-0,client.math.vector3.split,拆分三维向量,Split 3D Vector
-0,client.math.math.multiply,乘法运算,Multiplication
-0,client.math.math.divide,除法运算,Division
-0,client.math.sin,正弦函数,Sine Function
-0,client.math.cos,余弦函数,Cosine Function
-0,client.math.tan,正切函数,Tangent Function
-0,client.math.degToRad,角度转弧度,Degrees to Radians
-0,client.math.radToDeg,弧度转角度,Radians to Degrees
-0,client.math.arcCos,反余弦函数,Arccosine Function
-0,client.math.arcTan,反正切函数,Arctangent Function
-0,client.math.arcSin,反正弦函数,Arcsine Function
-0,client.math.directionVectorToRotation,方向向量转旋转,Direction Vector to Rotation
+14,client.math.isEqual,是否相等,Equal
+180,client.math.typeCast,数据类型转换,Data Type Conversion
+9,client.math.vector3.split,拆分三维向量,Split 3D Vector
+204,client.math.math.multiply,乘法运算,Multiplication
+206,client.math.math.divide,除法运算,Division
+291,client.math.sin,正弦函数,Sine Function
+292,client.math.cos,余弦函数,Cosine Function
+293,client.math.tan,正切函数,Tangent Function
+322,client.math.degToRad,角度转弧度,Degrees to Radians
+321,client.math.radToDeg,弧度转角度,Radians to Degrees
+295,client.math.arcCos,反余弦函数,Arccosine Function
+296,client.math.arcTan,反正切函数,Arctangent Function
+294,client.math.arcSin,反正弦函数,Arcsine Function
+519,client.math.directionVectorToRotation,方向向量转旋转,Direction Vector to Rotation
 0,client.math.randomInRange,获取随机数,Get Random Number
-0,client.math.add,加法运算,Addition
-0,client.math.subtract,减法运算,Subtraction
-0,client.math.abs,绝对值运算,Absolute Value Operation
-0,client.math.logicalNot,逻辑非运算,Logical NOT Operation
-0,client.math.logicalOr,逻辑或运算,Logical OR Operation
-0,client.math.logicalXor,逻辑异或运算,Logical XOR Operation
-0,client.math.logicalAnd,逻辑与运算,Logical AND Operation
-0,client.math.normalizeVector3,三维向量归一化,3D Vector Normalization
-0,client.math.addVector3,三维向量加法,3D Vector Addition
-0,client.math.angleBetweenVector3,三维向量夹角,3D Vector Angle
-0,client.math.subtractVector3,三维向量减法,3D Vector Subtraction
-0,client.math.vector3Length,三维向量模运算,3D Vector Modulo Operation
-0,client.math.dotVector3,三维向量内积,3D Vector Dot Product
-0,client.math.scaleVector3,三维向量缩放,3D Vector Zoom
-0,client.math.crossVector3,三维向量外积,3D Vector Cross Product
-0,client.math.rotateVector3,三维向量旋转,3D Vector Rotation
-0,client.math.greaterThan,是否大于,Greater Than
-0,client.math.greaterOrEqual,是否大于等于,Greater Than or Equal To
-0,client.math.lessThan,是否小于,Less Than
-0,client.math.lessOrEqual,是否小于等于,Less Than or Equal To
-0,client.math.tan,正切函数,Tangent Function
-0,client.math.makeVector3,创建三维向量,Create 3D Vector
-0,client.math.assembleList,拼装列表,Assembly List
+200,client.math.add,加法运算,Addition
+202,client.math.subtract,减法运算,Subtraction
+216,client.math.abs,绝对值运算,Absolute Value Operation
+229,client.math.logicalNot,逻辑非运算,Logical NOT Operation
+227,client.math.logicalOr,逻辑或运算,Logical OR Operation
+228,client.math.logicalXor,逻辑异或运算,Logical XOR Operation
+226,client.math.logicalAnd,逻辑与运算,Logical AND Operation
+74,client.math.normalizeVector3,三维向量归一化,3D Vector Normalization
+10,client.math.addVector3,三维向量加法,3D Vector Addition
+13,client.math.angleBetweenVector3,三维向量夹角,3D Vector Angle
+11,client.math.subtractVector3,三维向量减法,3D Vector Subtraction
+220,client.math.vector3Length,三维向量模运算,3D Vector Modulo Operation
+505,client.math.dotVector3,三维向量内积,3D Vector Dot Product
+12,client.math.scaleVector3,三维向量缩放,3D Vector Zoom
+506,client.math.crossVector3,三维向量外积,3D Vector Cross Product
+474,client.math.rotateVector3,三维向量旋转,3D Vector Rotation
+232,client.math.greaterThan,是否大于,Greater Than
+233,client.math.greaterOrEqual,是否大于等于,Greater Than or Equal To
+230,client.math.lessThan,是否小于,Less Than
+231,client.math.lessOrEqual,是否小于等于,Less Than or Equal To
+293,client.math.tan,正切函数,Tangent Function
+225,client.math.makeVector3,创建三维向量,Create 3D Vector
+169,client.math.assembleList,拼装列表,Assembly List
 0,client.action.iterateEntities,遍历实体列表,Traverse Entity List
 0,client.action.playTimedEffect,播放限时特效,Play Timed Effects
 0,client.action.fireProjectileAtPoint,定点发射投射物,Fixed-Point Projectile Launch

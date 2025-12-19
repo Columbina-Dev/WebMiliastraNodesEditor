@@ -7969,6 +7969,51 @@ displayNameEN: "Modify Inventory Item Quantity",
     ],
   },
 
+  // ───────────────────────────── 26-造物预设状态 ─────────────────────────────
+  // 事件节点/造物预设状态
+  {
+    // 6.3 新
+    id: "event.complexConstructPresetStateChanged",
+    displayName: "复杂造物预设状态变化时",
+    displayNameEN: "(test)Official_event.complexConstructPresetStateChanged",
+    officialID: 799,
+    category: "事件节点/造物预设状态",
+    kind: "event",
+    headerColor: EVENT_HEADER,
+    ports: [
+      { id: "flowOut", label: "事件", kind: "flow-out" },
+      {
+        id: "sourceEntity",
+        label: "事件源实体",
+        kind: "data-out",
+        valueType: "entity",
+      },
+      {
+        id: "constructGuid",
+        label: "事件源GUID",
+        kind: "data-out",
+        valueType: "guid",
+      },
+      {
+        id: "presetIndex",
+        label: "预设状态索引",
+        kind: "data-out",
+        valueType: "int",
+      },
+      {
+        id: "oldValue",
+        label: "变化前值",
+        kind: "data-out",
+        valueType: "int",
+      },
+      {
+        id: "newValue",
+        label: "变化后值",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 流程控制节点/通用
   {
@@ -8839,6 +8884,96 @@ displayNameEN: "Modify Inventory Item Quantity",
         label: "物理抗性",
         kind: "data-out",
         valueType: "float",
+      },
+    ],
+  },
+  {
+    // 6.3 新
+    id: "query.entity.elementAttachment",
+    displayName: "查询实体的元素附着状态",
+    displayNameEN: "(test)Official_query.entity.elementAttachment",
+    officialID: 788,
+    category: "查询节点/实体相关",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "hydroAttached",
+        label: "水附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "cryoAttached",
+        label: "冰附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "electroAttached",
+        label: "雷附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "pyroAttached",
+        label: "火附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "dendroAttached",
+        label: "草附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "anemoAttached",
+        label: "风附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "geoAttached",
+        label: "岩附着",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "frozenState",
+        label: "冻结状态",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "electroChargedState",
+        label: "感电状态",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "burningState",
+        label: "燃烧状态",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "petrifiedState",
+        label: "石化状态",
+        kind: "data-out",
+        valueType: "bool",
+      },
+      {
+        id: "quickenState",
+        label: "激化状态",
+        kind: "data-out",
+        valueType: "bool",
       },
     ],
   },
@@ -10181,6 +10316,31 @@ displayNameEN: "Modify Inventory Item Quantity",
       },
     ],
   },
+  {
+    // 6.3 新
+    id: "query.path.pointCount",
+    displayName: "获得全局路径的路点个数",
+    displayNameEN: "(test)Official_query.path.pointCount",
+    officialID: 787,
+    category: "查询节点/路径",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "pathIndex",
+        label: "路径索引",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "pointCount",
+        label: "路点个数",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
 
   // ───────────────────────────── 19-预设点 ─────────────────────────────
   // 查询节点/预设点
@@ -10815,6 +10975,44 @@ displayNameEN: "Modify Inventory Item Quantity",
       },
     ],
   },
+  {
+    // 6.3 新
+    id: "query.equip.indexBySlot",
+    displayName: "获取指定装备栏位的装备索引",
+    displayNameEN: "(test)Official_query.equip.indexBySlot",
+    officialID: 792,
+    category: "查询节点/装备",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "row",
+        label: "行",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "column",
+        label: "列",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "equipIndex",
+        label: "装备索引",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
 
   // ───────────────────────────── 24-道具 ─────────────────────────────
   // 查询节点/道具
@@ -11408,6 +11606,40 @@ displayNameEN: "Modify Inventory Item Quantity",
       { id: "count", label: "数量", kind: "data-out", valueType: "int" },
     ],
   },
+  // ───────────────────────────── 33-造物预设状态 ─────────────────────────────
+  // 查询节点/造物预设状态
+  {
+    // 6.3 新
+    id: "query.presetState.complexValue",
+    displayName: "获取复杂造物的预设状态值",
+    displayNameEN: "(test)Official_query.presetState.complexValue",
+    officialID: 797,
+    category: "查询节点/造物预设状态",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "presetIndex",
+        label: "预设状态索引",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "presetValue",
+        label: "预设状态值",
+        kind: "data-out",
+        valueType: "int",
+      },
+    ],
+  },
+
 
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 运算节点/通用
