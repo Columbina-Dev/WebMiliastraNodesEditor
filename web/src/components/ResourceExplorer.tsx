@@ -157,9 +157,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       return new Set(source.filter((id) => !systemNodeIdSet.has(id)));
     };
     return {
+      'role-skill': buildSet(clientNodeAvailability['role-skill']),
+      'creation-skill': buildSet(clientNodeAvailability['creation-skill']),
+      'creation-state': buildSet(clientNodeAvailability['creation-state']),
+      'creation-state-decision': buildSet(clientNodeAvailability['creation-state-decision']),
       boolean: buildSet(clientNodeAvailability.boolean),
       integer: buildSet(clientNodeAvailability.integer),
-      skill: buildSet(clientNodeAvailability.skill),
     };
   }, [fallbackNodeIds, systemNodeIdSet]);
 

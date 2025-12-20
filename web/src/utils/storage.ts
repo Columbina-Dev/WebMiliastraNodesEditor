@@ -188,7 +188,7 @@ const convertLegacyGraphToProjectDocument = (
   savedAt: string,
   topFolder: ProjectTopFolder = LEGACY_TOP_FOLDER,
 ): ProjectDocument => {
-  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:skill' : 'server';
+  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:role-skill' : 'server';
   const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
   const environment: GraphEnvironment = graph.environment
     ? normalizeGraphEnvironment(graph.environment, { fallbackClientKind: fallbackKind })
@@ -488,6 +488,10 @@ export const loadEditorSettings = (): EditorSettings => {
   if (!storage) return { ...DEFAULT_EDITOR_SETTINGS };
   const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
   const merged = { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+  const normalizeLegacyUiLanguage = (value: unknown): UiLanguage | null => {
+    if (value === 'eng') return 'en-us';
+    return isUiLanguage(value) ? value : null;
+  };
   // sanitize legacy values
   const legacySelectionActivation = parsed.selectionActivation as
     | EditorSelectionActivation
@@ -507,11 +511,13 @@ export const loadEditorSettings = (): EditorSettings => {
   if (merged.pointerStyle !== 'sandbox' && merged.pointerStyle !== 'system') {
     merged.pointerStyle = DEFAULT_EDITOR_SETTINGS.pointerStyle;
   }
-  if (!isUiLanguage(merged.uiPrimaryLanguage)) {
-    merged.uiPrimaryLanguage = DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
-  }
-  if (!isUiLanguage(merged.uiSecondaryLanguage) || merged.uiSecondaryLanguage === merged.uiPrimaryLanguage) {
+  merged.uiPrimaryLanguage =
+    normalizeLegacyUiLanguage(merged.uiPrimaryLanguage) ?? DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
+  const normalizedSecondary = normalizeLegacyUiLanguage(merged.uiSecondaryLanguage);
+  if (!normalizedSecondary || normalizedSecondary === merged.uiPrimaryLanguage) {
     merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  } else {
+    merged.uiSecondaryLanguage = normalizedSecondary;
   }
   if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
     merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;

@@ -130,7 +130,14 @@ export interface GraphComment {
 
 export type GraphSchemaVersion = 1 | 2;
 
-export const CLIENT_GRAPH_TYPES = ['boolean', 'integer', 'skill'] as const;
+export const CLIENT_GRAPH_TYPES = [
+  'role-skill',
+  'creation-skill',
+  'creation-state',
+  'creation-state-decision',
+  'boolean',
+  'integer',
+] as const;
 export type ClientGraphType = (typeof CLIENT_GRAPH_TYPES)[number];
 export type ClientGraphEnvironment = `client:${ClientGraphType}`;
 

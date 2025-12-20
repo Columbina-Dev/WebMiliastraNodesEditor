@@ -86,26 +86,42 @@ const NODE_GRAPH_TYPE = {
 const HEADER_MAGIC = 0x00000326;
 const FOOTER_MAGIC = 0x00000679;
 
-type NormalizedEnvironment = "server" | "client:boolean" | "client:integer" | "client:skill";
+type NormalizedEnvironment =
+  | "server"
+  | "client:role-skill"
+  | "client:creation-skill"
+  | "client:creation-state"
+  | "client:creation-state-decision"
+  | "client:boolean"
+  | "client:integer";
 
 const NODE_UNIT_TYPE_BY_ENV: Record<NormalizedEnvironment, number> = {
   server: NODE_UNIT_TYPE.Server,
+  "client:role-skill": NODE_UNIT_TYPE.Skills,
+  "client:creation-skill": NODE_UNIT_TYPE.Skills,
+  "client:creation-state": NODE_UNIT_TYPE.Skills,
+  "client:creation-state-decision": NODE_UNIT_TYPE.Skills,
   "client:boolean": NODE_UNIT_TYPE.BooleanFilter,
   "client:integer": NODE_UNIT_TYPE.IntegerFilter,
-  "client:skill": NODE_UNIT_TYPE.Skills,
 };
 
 const NODE_GRAPH_TYPE_BY_ENV: Record<NormalizedEnvironment, number> = {
   server: NODE_GRAPH_TYPE.Server,
+  "client:role-skill": NODE_GRAPH_TYPE.Skills,
+  "client:creation-skill": NODE_GRAPH_TYPE.Skills,
+  "client:creation-state": NODE_GRAPH_TYPE.Skills,
+  "client:creation-state-decision": NODE_GRAPH_TYPE.Skills,
   "client:boolean": NODE_GRAPH_TYPE.BooleanFilter,
   "client:integer": NODE_GRAPH_TYPE.IntegerFilter,
-  "client:skill": NODE_GRAPH_TYPE.Skills,
 };
 
 const NODE_UNIT_KIND_BY_ENV: Partial<Record<NormalizedEnvironment, number>> = {
+  "client:role-skill": NODE_UNIT_ID_KIND.ClientGraph,
+  "client:creation-skill": NODE_UNIT_ID_KIND.ClientGraph,
+  "client:creation-state": NODE_UNIT_ID_KIND.ClientGraph,
+  "client:creation-state-decision": NODE_UNIT_ID_KIND.ClientGraph,
   "client:boolean": NODE_UNIT_ID_KIND.ClientGraph,
   "client:integer": NODE_UNIT_ID_KIND.ClientGraph,
-  "client:skill": NODE_UNIT_ID_KIND.ClientGraph,
 };
 
 export interface GiaExportOptions {
@@ -233,18 +249,24 @@ const INVALID_PATH_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|
 const normalizeEnvironment = (env?: GraphEnvironment): NormalizedEnvironment => {
   if (!env || env === "server") return "server";
   if (env.startsWith("client:")) {
+    if (
+      env === "client:role-skill" ||
+      env === "client:creation-skill" ||
+      env === "client:creation-state" ||
+      env === "client:creation-state-decision"
+    ) {
+      return env;
+    }
     switch (env) {
       case "client:boolean":
         return "client:boolean";
       case "client:integer":
         return "client:integer";
-      case "client:skill":
-        return "client:skill";
       default:
-        return "client:boolean";
+        return "client:role-skill";
     }
   }
-  return env === "client" ? "client:boolean" : "server";
+  return env === "client" ? "client:role-skill" : "server";
 };
 
 const RANDOM_SOURCE = "0123456789";

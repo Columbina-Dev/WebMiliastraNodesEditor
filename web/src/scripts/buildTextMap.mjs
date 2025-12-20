@@ -10,7 +10,7 @@ const SRC_ROOT = path.resolve(__dirname, '..');
 const CSV_PATH = path.resolve(SRC_ROOT, 'assets', 'textMap.csv');
 const OUTPUT_PATH = path.resolve(SRC_ROOT, 'utils', 'i18n.ts');
 
-const LANGUAGE_KEYS = ['chs', 'cht', 'eng', 'jpn'];
+const LANGUAGE_KEYS = ['chs', 'cht', 'en-us', 'en-uk', 'jpn'];
 
 const fail = (message) => {
   console.error(`[buildTextMap] ${message}`);
@@ -166,25 +166,26 @@ const generateI18nTs = (map) => {
   lines.push(`// Comment in https://docs.google.com/spreadsheets/d/1Ed6lFZ9gCsbkMXFpX-UNnFm70zo4deoUghjqLibRudU/edit?usp=sharing to suggest changes.`);
   lines.push(`// Textmap generated at: ${toHumanTimestamp(now)} (UTC+8)`);
   lines.push('');
-  lines.push("export type UiLanguage = 'chs' | 'cht' | 'eng' | 'jpn';");
+  lines.push("export type UiLanguage = 'chs' | 'cht' | 'en-us' | 'en-uk' | 'jpn';");
   lines.push('');
   lines.push('export const UI_LANGUAGE_OPTIONS = [');
   lines.push("  { value: 'chs', labelKey: 'common.uiLanguage.chs' },");
   lines.push("  { value: 'cht', labelKey: 'common.uiLanguage.cht' },");
-  lines.push("  { value: 'eng', labelKey: 'common.uiLanguage.eng' },");
+  lines.push("  { value: 'en-us', labelKey: 'common.uiLanguage.enUs' },");
+  lines.push("  { value: 'en-uk', labelKey: 'common.uiLanguage.enUk' },");
   lines.push("  { value: 'jpn', labelKey: 'common.uiLanguage.jpn' },");
   lines.push('] as const;');
   lines.push('');
   lines.push('export const getDefaultSecondaryLanguage = (primary: UiLanguage): UiLanguage =>');
-  lines.push("  primary === 'eng' ? 'chs' : 'eng';");
+  lines.push("  primary === 'en-us' || primary === 'en-uk' ? 'chs' : 'en-us';");
   lines.push('');
   lines.push('export const isUiLanguage = (value: unknown): value is UiLanguage =>');
   lines.push(
-    "  value === 'chs' || value === 'cht' || value === 'eng' || value === 'jpn';"
+    "  value === 'chs' || value === 'cht' || value === 'en-us' || value === 'en-uk' || value === 'jpn';"
   );
   lines.push('');
   lines.push('export const detectDefaultUiLanguage = (): UiLanguage => {');
-  lines.push("  if (typeof navigator === 'undefined') return 'eng';");
+  lines.push("  if (typeof navigator === 'undefined') return 'en-us';");
   lines.push("  const candidates = Array.isArray(navigator.languages) ? navigator.languages : [];");
   lines.push("  const fallback = navigator.language ? [navigator.language] : [];");
   lines.push('  const languages = [...candidates, ...fallback].filter(Boolean);');
@@ -197,12 +198,15 @@ const generateI18nTs = (map) => {
   lines.push("      return 'chs';");
   lines.push('    }');
   lines.push("    if (language.startsWith('ja')) return 'jpn';");
-  lines.push("    if (language.startsWith('en')) return 'eng';");
+  lines.push("    if (language.startsWith('en')) {");
+  lines.push("      if (language.includes('gb') || language.includes('uk')) return 'en-uk';");
+  lines.push("      return 'en-us';");
+  lines.push('    }');
   lines.push('  }');
-  lines.push("  return 'eng';");
+  lines.push("  return 'en-us';");
   lines.push('};');
   lines.push('');
-  lines.push('type TextMapEntry = { chs?: string; cht?: string; eng?: string; jpn?: string };');
+  lines.push("type TextMapEntry = { chs?: string; cht?: string; 'en-us'?: string; 'en-uk'?: string; jpn?: string };");
   lines.push('');
   lines.push('export const TEXT_MAP: Record<string, TextMapEntry> = {');
   for (const key of keys) {

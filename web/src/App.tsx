@@ -25,6 +25,7 @@ import {
   sanitizeName,
 } from "./utils/project";
 import {
+  clientKindFromCategoryKey,
   clientKindFromEnvironment,
   getEnvironmentTopFolder,
   getDefaultExecutionInterval,
@@ -666,16 +667,25 @@ const App = () => {
   ]);
 
   const showSaveToast = useCallback((message: string) => {
+    setSaveToast(message);
+  }, []);
+  useEffect(() => {
+    if (!saveToast) return;
     if (saveToastTimerRef.current) {
       window.clearTimeout(saveToastTimerRef.current);
       saveToastTimerRef.current = null;
     }
-    setSaveToast(message);
     saveToastTimerRef.current = window.setTimeout(() => {
       setSaveToast(null);
       saveToastTimerRef.current = null;
-    }, 2200);
-  }, []);
+    }, 3000);
+    return () => {
+      if (saveToastTimerRef.current) {
+        window.clearTimeout(saveToastTimerRef.current);
+        saveToastTimerRef.current = null;
+      }
+    };
+  }, [saveToast]);
   const clearTabTooltipTimer = useCallback(() => {
     if (tabTooltipTimerRef.current) {
       window.clearTimeout(tabTooltipTimerRef.current);
@@ -1481,15 +1491,7 @@ const handleSaveGraphAs = useCallback(() => {
     }
     const sourceKind = sourceEnv ? clientKindFromEnvironment(sourceEnv) : null;
     const targetKind =
-      saveAsDialog.topFolder === 'client'
-        ? category.key === 'boolean-filter'
-          ? 'boolean'
-          : category.key === 'integer-filter'
-            ? 'integer'
-            : category.key === 'skill'
-              ? 'skill'
-              : null
-        : null;
+      saveAsDialog.topFolder === 'client' ? clientKindFromCategoryKey(category.key) : null;
     if (sourceKind && targetKind && sourceKind !== targetKind) {
       setSaveAsError(t('app.saveAs.error.clientKindMismatch'));
       return;

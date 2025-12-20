@@ -13,9 +13,12 @@ const ALL_NODE_ID_SET = new Set(nodeDefinitions.map((definition) => definition.i
 
 const SERVER_NODE_ID_SET = new Set(serverNodeList);
 const CLIENT_NODE_ID_SETS: Record<ClientGraphType, Set<string>> = {
+  'role-skill': new Set(clientNodeAvailability['role-skill']),
+  'creation-skill': new Set(clientNodeAvailability['creation-skill']),
+  'creation-state': new Set(clientNodeAvailability['creation-state']),
+  'creation-state-decision': new Set(clientNodeAvailability['creation-state-decision']),
   boolean: new Set(clientNodeAvailability.boolean),
   integer: new Set(clientNodeAvailability.integer),
-  skill: new Set(clientNodeAvailability.skill),
 };
 
 const withFallback = (candidate: Set<string>) =>

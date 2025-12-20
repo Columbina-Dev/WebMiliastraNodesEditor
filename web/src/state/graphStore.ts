@@ -78,10 +78,9 @@ const computeResultNodePosition = (nodes: GraphNode[]) => {
 const getRequiredSystemNodeTypes = (environment: GraphEnvironment): SystemNodeType[] => {
   const kind = clientKindFromEnvironment(environment);
   if (!kind) return [];
-  if (kind === 'skill') return [CLIENT_GRAPH_START_NODE_ID];
   if (kind === 'boolean') return [CLIENT_BOOLEAN_RESULT_NODE_ID];
   if (kind === 'integer') return [CLIENT_INTEGER_RESULT_NODE_ID];
-  return [];
+  return [CLIENT_GRAPH_START_NODE_ID];
 };
 
 const createSystemNode = (type: SystemNodeType, nodes: GraphNode[]): GraphNode => {

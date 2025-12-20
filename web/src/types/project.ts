@@ -75,9 +75,12 @@ export const PROJECT_CATEGORY_DEFINITIONS: ProjectCategoryDefinition[] = [
   { topFolder: 'server', key: 'stats', directory: 'stats', labelKey: 'project.category.stats' },
   { topFolder: 'server', key: 'profession', directory: 'profession', labelKey: 'project.category.profession' },
   { topFolder: 'server', key: 'item', directory: 'item', labelKey: 'project.category.item' },
+  { topFolder: 'client', key: 'role-skill', directory: 'role-skill', labelKey: 'project.category.roleSkill' },
+  { topFolder: 'client', key: 'creation-skill', directory: 'creation-skill', labelKey: 'project.category.creationSkill' },
+  { topFolder: 'client', key: 'creation-state', directory: 'creation-state', labelKey: 'project.category.creationState' },
+  { topFolder: 'client', key: 'creation-state-decision', directory: 'creation-state-decision', labelKey: 'project.category.creationStateDecision' },
   { topFolder: 'client', key: 'boolean-filter', directory: 'boolean-filter', labelKey: 'project.category.booleanFilter' },
   { topFolder: 'client', key: 'integer-filter', directory: 'integer-filter', labelKey: 'project.category.integerFilter' },
-  { topFolder: 'client', key: 'skill', directory: 'skill', labelKey: 'project.category.skill' },
 ];
 
 export const PROJECT_CATEGORIES_BY_TOP: Record<ProjectTopFolder, ProjectCategoryDefinition[]> = {

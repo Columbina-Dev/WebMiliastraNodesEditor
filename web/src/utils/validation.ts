@@ -25,7 +25,16 @@ export const graphDocumentSchema = z.object({
   name: z.string(),
   createdAt: z.string().optional(),
   updatedAt: z.string().optional(),
-  environment: z.enum(['server', 'client', 'client:boolean', 'client:integer', 'client:skill']).optional(),
+  environment: z.enum([
+    'server',
+    'client',
+    'client:role-skill',
+    'client:creation-skill',
+    'client:creation-state',
+    'client:creation-state-decision',
+    'client:boolean',
+    'client:integer',
+  ]).optional(),
   nodes: z
     .array(
       z.object({

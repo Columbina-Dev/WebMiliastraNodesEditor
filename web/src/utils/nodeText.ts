@@ -13,7 +13,8 @@ export const getNodeDefinitionDisplayNameForLanguage = (
   switch (language) {
     case 'chs':
       return normalize(definition.displayName);
-    case 'eng':
+    case 'en-us':
+    case 'en-uk':
       return normalize(definition.displayNameEN);
     case 'cht':
       return normalize(definition.displayNameCHT);
@@ -45,7 +46,8 @@ export const getPortLabelForLanguage = (
   switch (language) {
     case 'chs':
       return normalize(port.label);
-    case 'eng':
+    case 'en-us':
+    case 'en-uk':
       return normalize(port.labelEN);
     case 'cht':
       return normalize(port.labelCHT);
@@ -76,7 +78,8 @@ export const getPortPlaceholderForLanguage = (
   switch (language) {
     case 'chs':
       return normalize(port.ui?.placeholder);
-    case 'eng':
+    case 'en-us':
+    case 'en-uk':
       return normalize(port.ui?.placeholderEN);
     case 'cht':
       return normalize(port.ui?.placeholderCHT);
@@ -95,4 +98,3 @@ export const resolvePortPlaceholder = (
   getPortPlaceholderForLanguage(port, primaryLanguage) ??
   getPortPlaceholderForLanguage(port, secondaryLanguage) ??
   normalize(port.ui?.placeholder);
-
