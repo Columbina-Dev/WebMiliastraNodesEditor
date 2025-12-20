@@ -1,5 +1,4 @@
-﻿import { memo, useMemo } from 'react';
-import type { ChangeEvent } from 'react';
+﻿import { memo, useMemo, type ChangeEvent, type MouseEvent as ReactMouseEvent } from 'react';
 import { Handle, Position } from 'reactflow';
 import type { NodeProps } from 'reactflow';
 import classNames from 'classnames';
@@ -11,6 +10,14 @@ import type {
 } from '../types/node';
 import { useGraphStore } from '../state/graphStore';
 import { canConnectPorts, isDataPort, isFlowPort } from '../utils/graph';
+import {
+  MAX_BRANCH_FLOW_OUTS,
+  MAX_SEQUENCE_FLOW_OUTS,
+  MULTI_BRANCH_NODE_ID,
+  SEQUENCE_NODE_ID,
+  parseBranchFlowOutIndex,
+  parseSequenceFlowOutIndex,
+} from '../utils/dynamicFlowOuts';
 import { useI18n } from '../utils/i18nContext';
 import { resolveNodeDefinitionDisplayName, resolvePortLabel, resolvePortPlaceholder } from '../utils/nodeText';
 const ICON_EVENT = new URL('../assets/icons/event-stroke.svg', import.meta.url).href;
@@ -30,10 +37,14 @@ type Vector3Value = { x: number; y: number; z: number };
 export interface MiliastraNodeData {
   nodeId: string;
   definition: NodeDefinition;
+  ports: PortDefinition[];
   label?: string;
   overrides?: Record<string, unknown>;
   controls?: Record<string, unknown>;
+  sequenceFlowOutCount?: number;
+  branchFlowOutLabels?: string[];
   connectionPreview?: ConnectionPreview | null;
+  onPortContextMenu?: (event: ReactMouseEvent, portId: string) => void;
 }
 
 const vector3From = (value: unknown): Vector3Value => {
@@ -84,8 +95,21 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
   const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const setOverride = useGraphStore((state) => state.setPortOverride);
   const clearOverride = useGraphStore((state) => state.clearPortOverride);
+  const addSequenceFlowOut = useGraphStore((state) => state.addSequenceFlowOut);
+  const removeSequenceFlowOut = useGraphStore((state) => state.removeSequenceFlowOut);
+  const addBranchFlowOut = useGraphStore((state) => state.addBranchFlowOut);
+  const removeBranchFlowOut = useGraphStore((state) => state.removeBranchFlowOut);
+  const setBranchFlowOutLabel = useGraphStore((state) => state.setBranchFlowOutLabel);
 
-  const { definition, label, overrides, connectionPreview } = data;
+  const {
+    definition,
+    label,
+    overrides,
+    connectionPreview,
+    ports,
+    branchFlowOutLabels,
+    onPortContextMenu,
+  } = data;
 
   const handleInputChange = (port: DataPortDefinition) => (
     event: ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -134,10 +158,14 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
     nodeStyle['--miliastra-header-bg'] = undefined;
   }
 
+  const isSequenceNode = definition.id === SEQUENCE_NODE_ID;
+  const isMultiBranchNode = definition.id === MULTI_BRANCH_NODE_ID;
+  const effectiveBranchLabels = (branchFlowOutLabels ?? []).slice(0, MAX_BRANCH_FLOW_OUTS);
+
   const compatibilityMap = useMemo(() => {
     if (!connectionPreview) return null;
     const result = new Map<string, boolean>();
-    definition.ports.forEach((port) => {
+    ports.forEach((port) => {
       let compatible = false;
       if (
         connectionPreview.nodeId === data.nodeId &&
@@ -152,29 +180,37 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
       result.set(port.id, compatible);
     });
     return result;
-  }, [connectionPreview, data.nodeId, definition.ports]);
+  }, [connectionPreview, data.nodeId, ports]);
 
   const partitionedPorts = useMemo(() => {
     const flowIn: PortDefinition[] = [];
     const flowOut: PortDefinition[] = [];
     const dataIn: DataPortDefinition[] = [];
     const dataOut: DataPortDefinition[] = [];
-    definition.ports.forEach((port) => {
+    ports.forEach((port) => {
       if (port.kind === 'flow-in') flowIn.push(port);
       else if (port.kind === 'flow-out') flowOut.push(port);
       else if (port.kind === 'data-in') dataIn.push(port as DataPortDefinition);
       else if (port.kind === 'data-out') dataOut.push(port as DataPortDefinition);
     });
     return { flowIn, flowOut, dataIn, dataOut };
-  }, [definition.ports]);
+  }, [ports]);
+
+  const branchFlowOutPorts = useMemo(() => {
+    if (!isMultiBranchNode) return [];
+    return partitionedPorts.flowOut.filter((port) => parseBranchFlowOutIndex(port.id));
+  }, [isMultiBranchNode, partitionedPorts.flowOut]);
 
   const flowRows = useMemo(() => {
-    const count = Math.max(partitionedPorts.flowIn.length, partitionedPorts.flowOut.length);
+    const flowOutPorts = isMultiBranchNode
+      ? partitionedPorts.flowOut.filter((port) => !parseBranchFlowOutIndex(port.id))
+      : partitionedPorts.flowOut;
+    const count = Math.max(partitionedPorts.flowIn.length, flowOutPorts.length);
     return Array.from({ length: count }, (_, index) => ({
       left: partitionedPorts.flowIn[index] ?? null,
-      right: partitionedPorts.flowOut[index] ?? null,
+      right: flowOutPorts[index] ?? null,
     }));
-  }, [partitionedPorts.flowIn, partitionedPorts.flowOut]);
+  }, [isMultiBranchNode, partitionedPorts.flowIn, partitionedPorts.flowOut]);
 
   const dataRows = useMemo(() => {
     const count = Math.max(partitionedPorts.dataIn.length, partitionedPorts.dataOut.length);
@@ -183,6 +219,11 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
       right: partitionedPorts.dataOut[index] ?? null,
     }));
   }, [partitionedPorts.dataIn, partitionedPorts.dataOut]);
+
+  const sequenceFlowOutCount = isSequenceNode ? partitionedPorts.flowOut.length : 0;
+  const canAddSequenceFlowOut = isSequenceNode && sequenceFlowOutCount < MAX_SEQUENCE_FLOW_OUTS;
+  const canAddBranchFlowOut =
+    isMultiBranchNode && branchFlowOutPorts.length < MAX_BRANCH_FLOW_OUTS;
 
   const renderHandle = (
     port: PortDefinition,
@@ -225,6 +266,14 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
       )}
     </span>
   );
+
+  const getPortContextMenuHandler = (port: PortDefinition) => {
+    if (!onPortContextMenu) return undefined;
+    const sequenceIndex = isSequenceNode ? parseSequenceFlowOutIndex(port.id) : null;
+    const branchIndex = isMultiBranchNode ? parseBranchFlowOutIndex(port.id) : null;
+    if (sequenceIndex == null && branchIndex == null) return undefined;
+    return (event: ReactMouseEvent) => onPortContextMenu(event, port.id);
+  };
 
   const renderVector3Control = (port: DataPortDefinition) => {
     const value = valueForPort(port) as Vector3Value;
@@ -338,12 +387,70 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
     );
   };
 
-  const renderFlowOut = (port: PortDefinition | null) => {
+  const renderFlowOut = (
+    port: PortDefinition | null,
+    options?: {
+      hideLabel?: boolean;
+      onDelete?: () => void;
+      deleteDisabled?: boolean;
+      onContextMenu?: (event: ReactMouseEvent) => void;
+    }
+  ) => {
     if (!port) return <div className="miliastra-port-placeholder" />;
     return (
-      <div className="miliastra-port miliastra-port--flow-out" key={port.id}>
-        {renderPortLabel(port)}
+      <div
+        className="miliastra-port miliastra-port--flow-out"
+        key={port.id}
+        onContextMenu={options?.onContextMenu}
+      >
+        {options?.onDelete && (
+          <button
+            type="button"
+            className="miliastra-flowout-action miliastra-flowout-action--delete"
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              options.onDelete?.();
+            }}
+            disabled={options.deleteDisabled}
+            aria-label={t('graphCanvas.flowOutDelete')}
+            title={t('graphCanvas.flowOutDelete')}
+          >
+            -
+          </button>
+        )}
+        {!options?.hideLabel && renderPortLabel(port)}
         {renderHandle(port, Position.Right)}
+      </div>
+    );
+  };
+
+  const renderBranchFlowOutRow = (port: PortDefinition) => {
+    const index = parseBranchFlowOutIndex(port.id);
+    if (!index) return null;
+    const value = effectiveBranchLabels[index - 1] ?? '';
+    return (
+      <div className="miliastra-row miliastra-row--branch" key={`branch-${port.id}`}>
+        <div className="miliastra-row__cell miliastra-row__cell--left">
+          <div className="miliastra-port miliastra-port--branch-label">
+            <input
+              className="miliastra-port__control miliastra-port__control--branch"
+              type="text"
+              value={value}
+              placeholder={t('common.enterValue')}
+              onChange={(event) => {
+                setBranchFlowOutLabel(data.nodeId, index, event.target.value);
+              }}
+            />
+          </div>
+        </div>
+        <div className="miliastra-row__cell miliastra-row__cell--right">
+          {renderFlowOut(port, {
+            hideLabel: true,
+            onDelete: () => removeBranchFlowOut(data.nodeId, index),
+            onContextMenu: getPortContextMenuHandler(port),
+          })}
+        </div>
       </div>
     );
   };
@@ -363,16 +470,52 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
         </span>
       </header>
       <div className="miliastra-node__body">
-        {flowRows.map((row, index) => (
-          <div className="miliastra-row miliastra-row--flow" key={`flow-${index}`}>
+        {flowRows.map((row, index) => {
+          const sequenceIndex =
+            isSequenceNode && row.right ? parseSequenceFlowOutIndex(row.right.id) : null;
+          return (
+            <div className="miliastra-row miliastra-row--flow" key={`flow-${index}`}>
+              <div className="miliastra-row__cell miliastra-row__cell--left">
+                {renderFlowIn(row.left)}
+              </div>
+              <div className="miliastra-row__cell miliastra-row__cell--right">
+                {renderFlowOut(row.right, {
+                  onContextMenu: row.right
+                    ? getPortContextMenuHandler(row.right)
+                    : undefined,
+                  onDelete:
+                    sequenceIndex != null
+                      ? () => removeSequenceFlowOut(data.nodeId, sequenceIndex)
+                      : undefined,
+                  deleteDisabled: sequenceIndex != null && sequenceFlowOutCount <= 1,
+                })}
+              </div>
+            </div>
+          );
+        })}
+        {isSequenceNode && (
+          <div className="miliastra-row miliastra-row--flow miliastra-row--flow-actions">
             <div className="miliastra-row__cell miliastra-row__cell--left">
-              {renderFlowIn(row.left)}
+              <div className="miliastra-port-placeholder" />
             </div>
             <div className="miliastra-row__cell miliastra-row__cell--right">
-              {renderFlowOut(row.right)}
+              <button
+                type="button"
+                className="miliastra-flowout-action miliastra-flowout-action--add"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  addSequenceFlowOut(data.nodeId);
+                }}
+                disabled={!canAddSequenceFlowOut}
+                aria-label={t('graphCanvas.flowOutAdd')}
+                title={t('graphCanvas.flowOutAdd')}
+              >
+                +
+              </button>
             </div>
           </div>
-        ))}
+        )}
         {dataRows.map((row, index) => (
           <div className="miliastra-row" key={`data-${index}`}>
             <div className="miliastra-row__cell miliastra-row__cell--left">
@@ -383,6 +526,42 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
             </div>
           </div>
         ))}
+        {isMultiBranchNode && (
+          <div className="miliastra-row miliastra-row--branch-label">
+            <div className="miliastra-row__cell miliastra-row__cell--left">
+              <span className="miliastra-port__label miliastra-port__label--muted">
+                {t('graphCanvas.branchParamLabel')}
+              </span>
+            </div>
+            <div className="miliastra-row__cell miliastra-row__cell--right">
+              <div className="miliastra-port-placeholder" />
+            </div>
+          </div>
+        )}
+        {isMultiBranchNode && branchFlowOutPorts.map(renderBranchFlowOutRow)}
+        {isMultiBranchNode && (
+          <div className="miliastra-row miliastra-row--flow miliastra-row--flow-actions">
+            <div className="miliastra-row__cell miliastra-row__cell--left">
+              <div className="miliastra-port-placeholder" />
+            </div>
+            <div className="miliastra-row__cell miliastra-row__cell--right">
+              <button
+                type="button"
+                className="miliastra-flowout-action miliastra-flowout-action--add"
+                onClick={(event) => {
+                  event.preventDefault();
+                  event.stopPropagation();
+                  addBranchFlowOut(data.nodeId);
+                }}
+                disabled={!canAddBranchFlowOut}
+                aria-label={t('graphCanvas.flowOutAdd')}
+                title={t('graphCanvas.flowOutAdd')}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

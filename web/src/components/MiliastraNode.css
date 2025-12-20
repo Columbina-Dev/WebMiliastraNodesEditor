@@ -143,6 +143,10 @@
   appearance: none;
 }
 
+.miliastra-port__control--branch {
+  text-align: left;
+}
+
 .miliastra-port__control:focus {
   outline: 1px solid #4c9cff;
 }
@@ -184,9 +188,56 @@
   transform: translateY(-50%) rotate(45deg);
 }
 
+.miliastra-port__label--muted {
+  opacity: 0.7;
+}
+
 .miliastra-port--flow-out .miliastra-port__label,
 .miliastra-port--data-out .miliastra-port__label {
   text-align: right;
+}
+
+.miliastra-port--branch-label {
+  padding-left: 16px;
+}
+
+.miliastra-row--flow-actions {
+  margin-top: 4px;
+}
+
+.miliastra-flowout-action {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  cursor: var(--cursor-pointer);
+  flex-shrink: 0;
+}
+
+.miliastra-flowout-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.miliastra-flowout-action--delete {
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+}
+
+.miliastra-flowout-action--delete:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.miliastra-flowout-action--add:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .miliastra-vector3 {

@@ -110,7 +110,11 @@ interface ProjectWorkspaceState {
   ) => { groupSlug: string; groupName: string } | null;
   duplicateGroup: (topFolder: ProjectTopFolder, categoryKey: string, groupSlug: string) => string | null;
   deleteGroup: (topFolder: ProjectTopFolder, categoryKey: string, groupSlug: string) => void;
-  exportGroup: (topFolder: ProjectTopFolder, categoryKey: string, groupSlug: string) => Promise<void>;
+  exportGroup: (
+    topFolder: ProjectTopFolder,
+    categoryKey: string,
+    groupSlug: string,
+  ) => Promise<{ ok: true } | { ok: false; errorKey: string }>;
   reset: () => void;
 }
 const createInitialState = (): ProjectWorkspaceState => ({
@@ -146,7 +150,7 @@ const createInitialState = (): ProjectWorkspaceState => ({
   createGroup: () => null,
   duplicateGroup: () => null,
   deleteGroup: () => undefined,
-  exportGroup: async () => undefined,
+  exportGroup: async () => ({ ok: true }),
   reset: () => undefined,
 });
 const ensureExplorerTabs = (tabs: ProjectTab[]): ProjectTab[] => {
@@ -932,9 +936,13 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
   },
   exportGroup: async (topFolder, categoryKey, groupSlug) => {
     const projectDocument = get().document;
-    if (!projectDocument) return;
+    if (!projectDocument) {
+      return { ok: false, errorKey: 'common.noProjectOpen' };
+    }
     const category = getCategoryDefinition(topFolder, categoryKey);
-    if (!category) return;
+    if (!category) {
+      return { ok: false, errorKey: 'common.categoryNotFound' };
+    }
     const group = projectDocument.manifest.groups.find(
       (item) =>
         item.topFolder === topFolder &&
@@ -942,8 +950,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
         item.groupSlug === groupSlug,
     );
     if (!group) {
-      window.alert(translateUi('resourceExplorer.error.exportFolder.notFound'));
-      return;
+      return { ok: false, errorKey: 'resourceExplorer.error.exportFolder.notFound' };
     }
     const entries = projectDocument.manifest.graphs.filter((entry) => {
       const { location } = resolveGraphLocation(entry.graphId, entry.path, {
@@ -956,8 +963,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
       );
     });
     if (!entries.length) {
-      window.alert(translateUi('resourceExplorer.error.exportFolder.empty'));
-      return;
+      return { ok: false, errorKey: 'resourceExplorer.error.exportFolder.empty' };
     }
     const zip = new JSZip();
     const timestamp = new Date().toISOString();
@@ -991,6 +997,7 @@ export const useProjectStore = create<ProjectWorkspaceState>((set, get) => ({
     link.click();
     window.document.body.removeChild(link);
     URL.revokeObjectURL(link.href);
+    return { ok: true };
   },
   reset: () => {
     set(() => createInitialState());

@@ -98,6 +98,8 @@ export interface NodeControlDefinition {
 export interface GraphNodeData {
   overrides?: Record<string, unknown>;
   controls?: Record<string, unknown>;
+  sequenceFlowOutCount?: number;
+  branchFlowOutLabels?: string[];
 }
 
 export interface GraphNode {
@@ -157,10 +159,12 @@ export interface GraphDocument {
 
 export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
 export const CLIENT_GRAPH_START_NODE_ID = 'event.graphStart';
+export const CLIENT_SEQUENCE_START_NODE_ID = 'event.executeByOrderUniquely';
 export const CLIENT_BOOLEAN_RESULT_NODE_ID = 'flow.graphEndBoolean';
 export const CLIENT_INTEGER_RESULT_NODE_ID = 'flow.graphEndInteger';
 export const GRAPH_SYSTEM_NODE_IDS = [
   CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_SEQUENCE_START_NODE_ID,
   CLIENT_BOOLEAN_RESULT_NODE_ID,
   CLIENT_INTEGER_RESULT_NODE_ID,
 ] as const;

@@ -359,7 +359,11 @@ export const parseGraphPath = (path: string): ParsedGraphPathResult | null => {
   if (topSegment !== 'server' && topSegment !== 'client') {
     return null;
   }
-  const category = PROJECT_CATEGORY_BY_DIRECTORY.get(categorySegment);
+  const normalizedCategorySegment =
+    topSegment === 'client' && categorySegment === 'skill'
+      ? 'role-skill'
+      : categorySegment;
+  const category = PROJECT_CATEGORY_BY_DIRECTORY.get(normalizedCategorySegment);
   if (!category || category.topFolder !== topSegment) {
     return null;
   }

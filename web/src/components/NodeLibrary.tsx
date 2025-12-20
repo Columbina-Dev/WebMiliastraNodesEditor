@@ -170,7 +170,17 @@ const NodeLibrary = ({
     const term = search.trim().toLowerCase();
     const displayNameById = new Map<string, string>();
     const matchNameById = new Map<string, string>();
-    const candidateLanguageOrder: UiLanguage[] = ['eng', 'cht', 'jpn', 'chs'];
+    const candidateLanguageOrder: UiLanguage[] = Array.from(
+      new Set<UiLanguage>([
+        primaryLanguage,
+        secondaryLanguage,
+        'en-us',
+        'en-uk',
+        'chs',
+        'cht',
+        'jpn',
+      ])
+    );
 
     const filteredDefinitions = definitions.filter((definition) => {
       if (filter && !filter(definition)) return false;

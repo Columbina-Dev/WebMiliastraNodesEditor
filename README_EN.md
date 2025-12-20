@@ -61,7 +61,7 @@ npm run dev
   7. Compress and export all zip node graph project files saved in the browser's local storage
   8. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
   9. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
-  10. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
+  10. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
 
 
 #### Editor UI - Resource Manager
@@ -78,7 +78,7 @@ npm run dev
   3. Node version information, please include this version information when submitting an issue. If modified, please provide the original Genshin version number on which the modification is based.
   4. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
   5. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
-  6. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
+  6. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
   7. `Server Node Graph Resource Manager` tab
   8. `Client Node Graph Resource Manager` tab
   9. `Node Graph` tab, hovering for 0.5s will display the path of this node graph file
@@ -165,7 +165,7 @@ When submitting an issue, please include the version information at the top. If 
 ### Effects Preview
 ![Screenshot-05](/media/tut5.png)  
 
-This web app also allows you to preview effects from the Miliastra sandbox. Click the <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> icon at the bottom of the homepage, or click the effects preview button at the top right corner of the node graph editing page to open the effects preview page.
+This web app also allows you to preview effects from the Miliastra sandbox. Click the <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> icon at the bottom of the homepage, or click the effects preview button at the top right corner of the node graph editing page to open the effects preview page.
 
 The original author of this effects preview is [Bilibili: Ayaya小王](https://space.bilibili.com/2448140). Some CSS has been modified to ensure a consistent overall style for the website.
 

@@ -60,7 +60,7 @@ npm run dev
   7. 压缩并导出所有保存在浏览器本地储存的Zip节点图项目文件
   8. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
   9. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
-  10. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
+  10. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
 
 
 #### 编辑器界面-资源管理器介绍
@@ -78,7 +78,7 @@ npm run dev
   3. 节点版本信息，提交Issue时请附上此版本信息。如有修改，请提供修改所基于的原神版本号
   4. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
   5. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
-  6. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
+  6. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
   7. `服务器节点图资源管理器`标签
   8. `客户端节点图资源管理器`标签
   9. `节点图`标签，停留0.5s会显示此节点图文件的路径
@@ -164,7 +164,7 @@ npm run dev
 ### 特效预览
 ![Screenshot-05](/media/tut5.png)  
 
-此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
+此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
 
 此特效预览原作者为[B站：Ayaya小王](https://space.bilibili.com/2448140)。修改了部分css以保证网站的整体风格统一。
 

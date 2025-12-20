@@ -31,6 +31,9 @@ export const isGraphEnvironmentValue = (value: unknown): value is GraphEnvironme
   typeof value === 'string' &&
   (GRAPH_ENVIRONMENT_VALUES as readonly string[]).includes(value as GraphEnvironmentValue);
 
+export const normalizeLegacyGraphEnvironmentValue = (value: unknown): unknown =>
+  value === 'client:skill' ? 'client:role-skill' : value;
+
 const CLIENT_KIND_BY_CATEGORY_KEY: Record<string, ClientGraphType> = Object.entries(
   CLIENT_CATEGORY_BY_KIND,
 ).reduce<Record<string, ClientGraphType>>((acc, [kind, key]) => {
@@ -56,6 +59,9 @@ export const clientKindFromEnvironment = (
   }
   if (environment.startsWith('client:')) {
     const [, rawKind] = environment.split(':', 2);
+    if (rawKind === 'skill') {
+      return 'role-skill';
+    }
     if (
       rawKind === 'role-skill' ||
       rawKind === 'creation-skill' ||

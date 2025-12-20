@@ -76,7 +76,7 @@ const ICON_EXPORT = new URL("./assets/icons/export.png", import.meta.url).href;
 const ICON_UNDO = new URL("./assets/icons/undo.png", import.meta.url).href;
 const ICON_REDO = new URL("./assets/icons/redo.png", import.meta.url).href;
 const ICON_TUTORIAL = new URL("./assets/icons/tutorial.png", import.meta.url).href;
-const ICON_EFFECTS = new URL("./assets/icons/effects.svg", import.meta.url).href;
+const ICON_EFFECTS = new URL("./assets/icons/effects.png", import.meta.url).href;
 const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
 const ICON_SETTING = new URL("./assets/icons/setting.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
@@ -516,6 +516,16 @@ const App = () => {
       }),
     [setGilDialog],
   );
+  const openInfoDialog = useCallback(
+    (title: string, message: ReactNode, confirmLabel?: string) => {
+      setGilDialog({
+        title,
+        message,
+        confirmLabel: confirmLabel ?? t('common.close'),
+      });
+    },
+    [setGilDialog, t],
+  );
   const ensureImportVersionSafe = useCallback(
     async (incomingVersion?: string) => {
       const currentVersion = VERSION_INFO.editor;
@@ -870,14 +880,14 @@ const App = () => {
   const handleOpenProjectInfo = useCallback(() => {
     setOpenMenu(null);
     if (!projectDocument || !projectId) {
-      window.alert(t('common.noProjectOpen'));
+      openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       return;
     }
     setProjectInfoDialog({
       name: projectDocument.manifest.project.name || projectName || defaultProjectName,
       error: null,
     });
-  }, [defaultProjectName, projectDocument, projectId, projectName, t]);
+  }, [defaultProjectName, openInfoDialog, projectDocument, projectId, projectName, t]);
 
   const handleProjectInfoNameChange = useCallback((value: string) => {
     setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
@@ -890,7 +900,7 @@ const App = () => {
   const handleProjectInfoConfirm = useCallback(() => {
     if (!projectInfoDialog) return;
     if (!projectDocument || !projectId) {
-      window.alert(t('common.noProjectOpen'));
+      openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       setProjectInfoDialog(null);
       return;
     }
@@ -928,6 +938,7 @@ const App = () => {
   }, [
     defaultProjectName,
     history,
+    openInfoDialog,
     projectDocument,
     projectId,
     projectInfoDialog,
@@ -1057,16 +1068,33 @@ const App = () => {
         applyProjectDocument(prepared, primaryGraphId);
         const combinedWarnings = [...loadWarnings, ...normalizeWarnings];
         if (combinedWarnings.length) {
-          window.alert(combinedWarnings.join("\n"));
+          openInfoDialog(
+            t('common.info'),
+            <>
+              {combinedWarnings.map((warning, index) => (
+                <span key={`${index}-${warning}`}>
+                  {warning}
+                  <br />
+                </span>
+              ))}
+            </>,
+          );
         } else {
           showSaveToast(t('app.importProject.successToast'));
         }
       } catch (error) {
         console.error(error);
-        window.alert(t('app.importProject.failedAlert'));
+        openInfoDialog(t('common.error'), t('app.importProject.failedAlert'));
       }
     },
-    [applyProjectDocument, ensureImportVersionSafe, prepareProjectDocument, showSaveToast, t],
+    [
+      applyProjectDocument,
+      ensureImportVersionSafe,
+      openInfoDialog,
+      prepareProjectDocument,
+      showSaveToast,
+      t,
+    ],
   );
 
   const handleProjectFiles = useCallback(
@@ -1139,7 +1167,7 @@ const App = () => {
   const performProjectSave = useCallback(() => {
     const store = useProjectStore.getState();
     if (!store.document || !store.projectId) {
-      window.alert(t('common.noProjectOpen'));
+      openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       return false;
     }
     const { document: normalized } = normalizeProjectDocument(store.document);
@@ -1162,7 +1190,7 @@ const App = () => {
     autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
     showSaveToast(t('app.save.savedToast'));
     return true;
-  }, [refreshHistory, showSaveToast, t, updateDocument]);
+  }, [openInfoDialog, refreshHistory, showSaveToast, t, updateDocument]);
 
   const handleManualSave = useCallback(() => {
     const store = useProjectStore.getState();
@@ -1176,7 +1204,7 @@ const App = () => {
   const handleExportProject = useCallback(async () => {
     const store = useProjectStore.getState();
     if (!store.document) {
-      window.alert(t('common.noProjectOpen'));
+      openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       return;
     }
     try {
@@ -1196,9 +1224,9 @@ const App = () => {
       }
     } catch (error) {
       console.error(error);
-      window.alert(t('app.exportProject.failedAlert'));
+      openInfoDialog(t('common.error'), t('app.exportProject.failedAlert'));
     }
-  }, [t]);
+  }, [openInfoDialog, t]);
 
   
   const performGilExport = useCallback(
@@ -1288,7 +1316,7 @@ const App = () => {
 
 const handleSaveGraphAs = useCallback(() => {
     if (!projectDocument || !activeGraphId) {
-      window.alert(t('common.noGraphOpen'));
+      openInfoDialog(t('common.info'), t('common.noGraphOpen'));
       return;
     }
     const graphState = useGraphStore.getState();
@@ -1302,7 +1330,7 @@ const handleSaveGraphAs = useCallback(() => {
     const topFolder = resolved.location.topFolder;
     const categoriesForTop = PROJECT_CATEGORIES_BY_TOP[topFolder];
     if (!categoriesForTop.length) {
-      window.alert(t('app.saveAs.noCategories'));
+      openInfoDialog(t('app.saveAs.title'), t('app.saveAs.noCategories'));
       return;
     }
     const initialCategory =
@@ -1325,7 +1353,7 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, projectDocument, t]);
+  }, [activeGraphId, openInfoDialog, projectDocument, t]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {
@@ -1606,11 +1634,11 @@ const handleSaveGraphAs = useCallback(() => {
         }
       } catch (error) {
         console.error(error);
-        window.alert(t('app.history.loadFailedAlert'));
+        openInfoDialog(t('common.error'), t('app.history.loadFailedAlert'));
         refreshHistory();
       }
     },
-    [applyProjectDocument, prepareProjectDocument, refreshHistory, t],
+    [applyProjectDocument, openInfoDialog, prepareProjectDocument, refreshHistory, t],
   );
 
   const handleDeleteProject = useCallback(
@@ -2072,6 +2100,7 @@ const handleSaveGraphAs = useCallback(() => {
         saveAsCategories[0] ??
         null
       : null;
+    const selectedCategoryKey = selectedCategory?.key ?? saveAsDialog?.categoryKey ?? '';
     const saveAsGroups =
       saveAsDialog && projectDocument
         ? projectDocument.manifest.groups
@@ -2500,7 +2529,11 @@ const handleSaveGraphAs = useCallback(() => {
                 onChange={(event) => handleSaveAsCategoryChange(event.target.value)}
               >
                 {saveAsCategories.map((category) => (
-                  <option key={category.key} value={category.key}>
+                  <option
+                    key={category.key}
+                    value={category.key}
+                    disabled={category.key !== selectedCategoryKey}
+                  >
                     {t(category.labelKey)}
                   </option>
                 ))}

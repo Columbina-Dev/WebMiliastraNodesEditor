@@ -44,6 +44,7 @@ import {
   isDataPort,
   isFlowPort,
 } from '../utils/graph';
+import { getDynamicFlowOutInfo, resolveNodePorts } from '../utils/dynamicFlowOuts';
 import { getEnvironmentTopFolder } from '../utils/graphEnvironment';
 import {
   getNodeDefinitionsForEnvironment,
@@ -215,6 +216,12 @@ type FloatingPanelState =
       screen: ScreenPoint;
     }
   | {
+      type: 'port';
+      nodeId: string;
+      portId: string;
+      screen: ScreenPoint;
+    }
+  | {
       type: 'canvas';
       screen: ScreenPoint;
       flowPosition: ScreenPoint;
@@ -353,6 +360,10 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode);
   const upsertEdge = useGraphStore((state) => state.upsertEdge);
   const clearOverride = useGraphStore((state) => state.clearPortOverride);
+  const insertSequenceFlowOut = useGraphStore((state) => state.insertSequenceFlowOut);
+  const removeSequenceFlowOut = useGraphStore((state) => state.removeSequenceFlowOut);
+  const insertBranchFlowOut = useGraphStore((state) => state.insertBranchFlowOut);
+  const removeBranchFlowOut = useGraphStore((state) => state.removeBranchFlowOut);
   const setZoomLevel = useGraphStore((state) => state.setZoomLevel);
   const requestedZoom = useGraphStore((state) => state.requestedZoom);
   const setRequestedZoom = useGraphStore((state) => state.setRequestedZoom);
@@ -383,6 +394,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     useState<string>('all');
   const connectionSuccessRef = useRef(false);
   const skipGlobalClickCloseRef = useRef(false);
+  const skipPaneClickRef = useRef(false);
   const [currentSelectionMode, setCurrentSelectionMode] = useState<SelectionMode>(SelectionMode.Full);
   const [isCrossSelection, setIsCrossSelection] = useState(false);
   const [connectionCursor, setConnectionCursor] = useState<'valid' | 'invalid' | null>(null);
@@ -770,10 +782,26 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     }
   }, [floatingPanel]);
 
+  const openPortMenu = useCallback(
+    (event: ReactMouseEvent, nodeId: string, portId: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedNode(nodeId);
+      setFloatingPanel({
+        type: 'port',
+        nodeId,
+        portId,
+        screen: { x: event.clientX, y: event.clientY },
+      });
+    },
+    [setFloatingPanel, setSelectedNode],
+  );
+
   const rfNodes: Node[] = useMemo(() => {
     return nodes.flatMap((node) => {
       const definition = nodeDefinitionsById[node.type];
       if (!definition) return [];
+      const ports = resolveNodePorts(node, definition);
       const rfNode: Node = {
         id: node.id,
         type: 'miliastra',
@@ -781,21 +809,26 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         data: {
           nodeId: node.id,
           definition,
+          ports,
           label: node.label,
           overrides: node.data?.overrides,
           controls: node.data?.controls,
+          sequenceFlowOutCount: node.data?.sequenceFlowOutCount,
+          branchFlowOutLabels: node.data?.branchFlowOutLabels,
           connectionPreview: activeConnection,
+          onPortContextMenu: (event: ReactMouseEvent, portId: string) =>
+            openPortMenu(event, node.id, portId),
         },
       };
       return [rfNode];
     });
-  }, [nodes, activeConnection]);
+  }, [nodes, activeConnection, openPortMenu]);
   const portKindMap = useMemo(() => {
     const map = new Map<string, PortDefinition['kind']>();
     nodes.forEach((node) => {
       const definition = nodeDefinitionsById[node.type];
       if (!definition) return;
-      definition.ports.forEach((port) => {
+      resolveNodePorts(node, definition).forEach((port) => {
         map.set(`${node.id}:${port.id}`, port.kind);
       });
     });
@@ -892,10 +925,10 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       const sourceDefinition = nodeDefinitionsById[sourceNode.type];
       const targetDefinition = nodeDefinitionsById[targetNode.type];
       if (!sourceDefinition || !targetDefinition) return false;
-      const sourcePort = sourceDefinition.ports.find(
+      const sourcePort = resolveNodePorts(sourceNode, sourceDefinition).find(
         (port) => port.id === connection.sourceHandle
       );
-      const targetPort = targetDefinition.ports.find(
+      const targetPort = resolveNodePorts(targetNode, targetDefinition).find(
         (port) => port.id === connection.targetHandle
       );
       if (!sourcePort || !targetPort) return false;
@@ -930,9 +963,12 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       const targetDefinition = targetNode
         ? nodeDefinitionsById[targetNode.type]
         : undefined;
-      const targetPort = targetDefinition?.ports.find(
-        (port) => port.id === connection.targetHandle
-      );
+      const targetPort =
+        targetDefinition && targetNode
+          ? resolveNodePorts(targetNode, targetDefinition).find(
+              (port) => port.id === connection.targetHandle
+            )
+          : undefined;
 
       if (targetPort && isDataPort(targetPort) && targetPort.kind === 'data-in') {
         if (!targetPort.allowMultipleConnections) {
@@ -971,7 +1007,10 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       }
       const node = nodes.find((item) => item.id === params.nodeId);
       const definition = node ? nodeDefinitionsById[node.type] : undefined;
-      const port = definition?.ports.find((item) => item.id === params.handleId);
+      const port =
+        definition && node
+          ? resolveNodePorts(node, definition).find((item) => item.id === params.handleId)
+          : undefined;
       if (!port) {
         setActiveConnection(null);
         return;
@@ -991,6 +1030,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       const targetPosition = extractEventPosition(event);
       if (!connectionSuccessRef.current) {
         skipGlobalClickCloseRef.current = true;
+        skipPaneClickRef.current = true;
         setFloatingPanel({
           type: 'connection',
           screen: targetPosition,
@@ -1318,6 +1358,10 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
 
   const handlePaneClick = useCallback(
     (event?: ReactMouseEvent<Element>) => {
+      if (skipPaneClickRef.current) {
+        skipPaneClickRef.current = false;
+        return;
+      }
       if (event) {
         event.preventDefault();
         event.stopPropagation();
@@ -1722,7 +1766,11 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       });
 
       const connection = panel.connection;
-      const sourcePortCandidates = definition.ports.filter((port) => {
+      const newNode = store.nodes.find((node) => node.id === newNodeId);
+      const portCandidates = newNode
+        ? resolveNodePorts(newNode, definition)
+        : definition.ports;
+      const sourcePortCandidates = portCandidates.filter((port) => {
         if (connection.handleType === 'source') {
           return canConnectPorts(connection.port, port);
         }
@@ -1775,17 +1823,60 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       ? floatingPanel.screen
       : null;
 
+  const portAnchor =
+    floatingPanel && floatingPanel.type === 'port'
+      ? floatingPanel.screen
+      : null;
+
   const selectionAnchor =
     floatingPanel && floatingPanel.type === 'selection'
       ? floatingPanel.screen
       : null;
+
+  const portMenuInfo = useMemo(() => {
+    if (floatingPanel?.type !== 'port') return null;
+    const node = nodes.find((candidate) => candidate.id === floatingPanel.nodeId);
+    if (!node) return null;
+    const info = getDynamicFlowOutInfo(node, floatingPanel.portId);
+    if (!info) return null;
+    return { nodeId: node.id, info };
+  }, [floatingPanel, nodes]);
+
+  const handlePortInsert = useCallback(
+    (mode: 'above' | 'below') => {
+      if (!portMenuInfo) return;
+      const { nodeId, info } = portMenuInfo;
+      if (info.kind === 'sequence') {
+        insertSequenceFlowOut(nodeId, info.index, mode);
+      } else {
+        insertBranchFlowOut(nodeId, info.index, mode);
+      }
+      setFloatingPanel(null);
+    },
+    [insertBranchFlowOut, insertSequenceFlowOut, portMenuInfo, setFloatingPanel],
+  );
+
+  const handlePortDelete = useCallback(() => {
+    if (!portMenuInfo) return;
+    const { nodeId, info } = portMenuInfo;
+    if (info.kind === 'sequence') {
+      removeSequenceFlowOut(nodeId, info.index);
+    } else {
+      removeBranchFlowOut(nodeId, info.index);
+    }
+    setFloatingPanel(null);
+  }, [portMenuInfo, removeBranchFlowOut, removeSequenceFlowOut, setFloatingPanel]);
 
   const connectionFilter = useMemo(() => {
     if (floatingPanel?.type !== 'connection') return undefined;
     const connection = floatingPanel.connection;
 
     return (definition: (typeof nodeDefinitions)[number]) => {
-      const matches = definition.ports.some((port) => {
+      const ports = resolveNodePorts(
+        { id: 'candidate', type: definition.id, position: { x: 0, y: 0 }, data: {} },
+        definition,
+      );
+      const matches = ports.some((port) => {
         const compatible =
           connection.handleType === 'source'
             ? canConnectPorts(connection.port, port)
@@ -2301,6 +2392,52 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
               onClick={() => handleAddCommentForNodes(floatingPanel.nodeIds, floatingPanel.screen)}
             >
               <span className="graph-context-menu__label">{t('common.comment')}</span>
+            </button>
+          </div>
+        </FloatingPanel>
+      )}
+
+      {floatingPanel?.type === 'port' && portMenuInfo && (
+        <FloatingPanel
+          anchor={portAnchor}
+          className="graph-context-menu"
+          deps={[floatingPanel, portMenuInfo]}
+        >
+          <div className="graph-context-menu__section">
+            <button
+              type="button"
+              className={classNames('graph-context-menu__item', 'is-danger')}
+              disabled={
+                portMenuInfo.info.kind === 'sequence'
+                  ? portMenuInfo.info.count <= 1
+                  : portMenuInfo.info.count <= 0
+              }
+              onClick={handlePortDelete}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutDelete')}
+              </span>
+            </button>
+            <div className="graph-context-menu__divider" />
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              disabled={portMenuInfo.info.count >= portMenuInfo.info.max}
+              onClick={() => handlePortInsert('above')}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutInsertAbove')}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              disabled={portMenuInfo.info.count >= portMenuInfo.info.max}
+              onClick={() => handlePortInsert('below')}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutInsertBelow')}
+              </span>
             </button>
           </div>
         </FloatingPanel>

@@ -46,6 +46,8 @@ export const graphDocumentSchema = z.object({
           .object({
             overrides: z.record(z.string(), z.unknown()).optional(),
             controls: z.record(z.string(), z.unknown()).optional(),
+            sequenceFlowOutCount: z.number().optional(),
+            branchFlowOutLabels: z.array(z.string()).optional(),
           })
           .optional(),
       }),

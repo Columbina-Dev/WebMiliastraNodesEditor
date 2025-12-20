@@ -51,6 +51,7 @@ import {
   getDefaultExecutionInterval,
   getEnvironmentTopFolder,
   isGraphEnvironmentValue,
+  normalizeLegacyGraphEnvironmentValue,
   normalizeGraphEnvironment,
   resolveEnvironmentFromLocation,
   sanitizeExecutionInterval,
@@ -61,6 +62,16 @@ import { loadEditorSettings } from './storage';
 const translateUi = (key: string, params?: Record<string, string | number>) => {
   const settings = loadEditorSettings();
   return translateText(key, settings.uiPrimaryLanguage, settings.uiSecondaryLanguage, params);
+};
+
+const normalizeLegacyGraphPayload = (value: unknown) => {
+  if (!value || typeof value !== 'object') return value;
+  const payload = value as { environment?: unknown };
+  const normalized = normalizeLegacyGraphEnvironmentValue(payload.environment);
+  if (normalized === payload.environment) {
+    return value;
+  }
+  return { ...payload, environment: normalized };
 };
 
 const cloneNode = (node: GraphNode): GraphNode => ({
@@ -415,7 +426,8 @@ export const loadProjectFromZip = async (
           document: structDocument,
         });
       } else {
-        const parsed = graphDocumentSchema.parse(JSON.parse(content));
+        const rawDocument = normalizeLegacyGraphPayload(JSON.parse(content));
+        const parsed = graphDocumentSchema.parse(rawDocument);
         const declaredEnvironment = isGraphEnvironmentValue(parsed.environment)
           ? normalizeGraphEnvironment(parsed.environment)
           : undefined;

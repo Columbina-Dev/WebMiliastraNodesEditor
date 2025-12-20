@@ -41,6 +41,7 @@ import {
   getDefaultExecutionInterval,
   getEnvironmentTopFolder,
   isGraphEnvironmentValue,
+  normalizeLegacyGraphEnvironmentValue,
   normalizeGraphEnvironment,
   resolveEnvironmentFromLocation,
   sanitizeExecutionInterval,
@@ -1136,11 +1137,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   };
 
   const handleExportFolder = useCallback(
-    (groupSlug: string, categoryKey: string) => {
-      void exportGroup(topFolder, categoryKey, groupSlug);
+    async (groupSlug: string, categoryKey: string) => {
+      const result = await exportGroup(topFolder, categoryKey, groupSlug);
+      if (!result.ok) {
+        openInfoDialog(t('common.info'), t(result.errorKey));
+      }
       setContextMenu(null);
     },
-    [exportGroup, topFolder],
+    [exportGroup, openInfoDialog, t, topFolder],
   );
 
   const handleRequestImportGraphs = useCallback(
@@ -1180,7 +1184,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       for (const file of selectedFiles) {
         try {
           const raw = await file.text();
-          const parsedResult = graphDocumentSchema.safeParse(JSON.parse(raw));
+          const rawDocument = JSON.parse(raw);
+          if (rawDocument && typeof rawDocument === 'object') {
+            (rawDocument as { environment?: unknown }).environment =
+              normalizeLegacyGraphEnvironmentValue(
+                (rawDocument as { environment?: unknown }).environment,
+              );
+          }
+          const parsedResult = graphDocumentSchema.safeParse(rawDocument);
           if (!parsedResult.success) {
             console.error(parsedResult.error);
             failures.push(file.name);

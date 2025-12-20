@@ -9,6 +9,7 @@ import type {
   ValueType,
 } from "../../types/node";
 import { nodeDefinitions } from "../../data/nodeDefinitions";
+import { resolveNodePorts } from "../../utils/dynamicFlowOuts";
 import giaProtoSource from "./giaProtoText";
 import type { LocalizedText } from "../../utils/localizedText";
 
@@ -344,11 +345,14 @@ class GiaGraphNodeEncoder {
     this.warnings = warnings;
     this.nodeInfos = this.document.nodes.map((node, idx) => {
       const definition = NODE_DEFINITION_MAP.get(node.type);
+      const resolvedDefinition = definition
+        ? { ...definition, ports: resolveNodePorts(node, definition) }
+        : undefined;
       return {
         node,
-        definition,
+        definition: resolvedDefinition,
         index: idx + 1,
-        portMeta: definition ? computePortMeta(definition) : undefined,
+        portMeta: resolvedDefinition ? computePortMeta(resolvedDefinition) : undefined,
       };
     });
     this.nodeInfoById = new Map(this.nodeInfos.map((info) => [info.node.id, info]));

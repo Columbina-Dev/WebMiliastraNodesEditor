@@ -37,7 +37,7 @@ const formatTimestamp = (iso?: string) => {
 
 const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
 const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).href;
-const ICON_EFFECTS = new URL('../assets/icons/effects.svg', import.meta.url).href;
+const ICON_EFFECTS = new URL('../assets/icons/effects.png', import.meta.url).href;
 const ICON_SETTING = new URL('../assets/icons/setting.png', import.meta.url).href;
 
 const HomePage = ({
