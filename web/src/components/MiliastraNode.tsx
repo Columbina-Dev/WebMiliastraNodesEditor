@@ -288,9 +288,11 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
           <label key={axis.key} className="miliastra-vector3__axis">
             <span>{axis.label}</span>
             <input
-              className="miliastra-port__control"
+              className="miliastra-port__control nodrag"
               type="number"
               value={String(value[axis.key] ?? 0)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               onChange={(event) => {
                 const raw = event.target.value;
                 const parsed = Number.parseFloat(raw);
@@ -328,8 +330,10 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
           {renderPortLabel(port)}
           {port.enumValues ? (
             <select
-              className="miliastra-port__control"
+              className="miliastra-port__control nodrag"
               value={value === undefined ? '' : String(value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               onChange={handleInputChange(port)}
             >
               <option value="">{t('common.unset')}</option>
@@ -341,8 +345,10 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
             </select>
           ) : port.valueType === 'bool' ? (
             <select
-              className="miliastra-port__control"
+              className="miliastra-port__control nodrag"
               value={value === undefined ? '' : String(value)}
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               onChange={handleInputChange(port)}
             >
               <option value="">{t('common.unset')}</option>
@@ -351,12 +357,14 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
             </select>
           ) : (
             <input
-              className="miliastra-port__control"
+              className="miliastra-port__control nodrag"
               type={port.valueType === 'int' || port.valueType === 'float' ? 'number' : 'text'}
               value={formatValue(port, value)}
               placeholder={
                 resolvePortPlaceholder(port, primaryLanguage, secondaryLanguage) ?? t('common.enterValue')
               }
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               onChange={handleInputChange(port)}
             />
           )}
@@ -434,10 +442,12 @@ const MiliastraNode = memo((props: NodeProps<MiliastraNodeData>) => {
         <div className="miliastra-row__cell miliastra-row__cell--left">
           <div className="miliastra-port miliastra-port--branch-label">
             <input
-              className="miliastra-port__control miliastra-port__control--branch"
+              className="miliastra-port__control miliastra-port__control--branch nodrag"
               type="text"
               value={value}
               placeholder={t('common.enterValue')}
+              onPointerDown={(event) => event.stopPropagation()}
+              onMouseDown={(event) => event.stopPropagation()}
               onChange={(event) => {
                 setBranchFlowOutLabel(data.nodeId, index, event.target.value);
               }}

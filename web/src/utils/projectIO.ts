@@ -81,6 +81,10 @@ const cloneNode = (node: GraphNode): GraphNode => ({
     ? {
         overrides: node.data.overrides ? { ...node.data.overrides } : undefined,
         controls: node.data.controls ? { ...node.data.controls } : undefined,
+        sequenceFlowOutCount: node.data.sequenceFlowOutCount,
+        branchFlowOutLabels: Array.isArray(node.data.branchFlowOutLabels)
+          ? [...node.data.branchFlowOutLabels]
+          : undefined,
       }
     : undefined,
 });
