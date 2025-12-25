@@ -83,12 +83,22 @@
   font-size: 16px;
   color: rgba(255, 255, 255, 0.75);
   transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
+  position: relative;
 }
 
 .home__dropzone.is-active {
   border-color: rgba(92, 186, 255, 0.65);
   background: rgba(92, 186, 255, 0.35);
   color: rgba(255, 255, 255, 0.95);
+  position: fixed;
+  inset: 0;
+  z-index: 1400;
+  border-radius: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(6px);
+  font-size: 18px;
 }
 
 .home__history-header {
@@ -208,6 +218,72 @@
   padding: 32px 0;
 }
 
+.home__divider {
+  width: 100%;
+  border: none;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  margin: 0;
+}
+
+.home__network-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.home__network-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.home__network {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home__network-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.home__network-item {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 16px;
+  padding: 14px 18px;
+  background: rgba(28, 30, 40, 0.92);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.home__network-item:hover {
+  border-color: rgba(92, 186, 255, 0.45);
+  background: rgba(36, 40, 54, 0.95);
+}
+
+.home__network-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.home__network-address {
+  font-size: 12px;
+  color: rgba(200, 200, 200, 0.7);
+}
+
+.home__network-empty {
+  text-align: center;
+  opacity: 0.65;
+  padding: 24px 0;
+}
+
 .home__confirm-backdrop {
   position: fixed;
   inset: 0;
@@ -277,10 +353,26 @@
 }
 
 .home__links {
-  margin-top: auto;
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
   gap: 16px;
   align-items: center;
+  padding: 12px 18px;
+  z-index: 1200;
+}
+
+.home__links-glass {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 20, 30, 0.55);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 20px;
+  backdrop-filter: blur(14px);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.35);
+  z-index: -1;
 }
 
 .home__github,
@@ -315,6 +407,96 @@
   color: rgba(92, 186, 255, 0.85);
   opacity: 0.85;
   cursor: var(--cursor-pointer);
+}
+
+.home__join-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 8, 8, 0.72);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1400;
+  padding: 24px;
+}
+
+.home__join-modal {
+  background: rgba(16, 16, 16, 0.95);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 18px;
+  padding: 24px;
+  max-width: 420px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  color: #f6f6ff;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.45);
+}
+
+.home__join-modal h3 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.home__join-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.home__join-field label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.home__join-field input {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.home__join-password {
+  display: flex;
+  gap: 8px;
+}
+
+.home__join-password button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  white-space: nowrap;
+}
+
+.home__join-password button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.home__join-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.home__join-actions button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.home__join-actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 @media (max-width: 720px) {

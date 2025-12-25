@@ -60,7 +60,19 @@ const nodeTypes = { miliastra: MiliastraNode } as const;
 interface GraphCanvasProps {
   isMobileMode?: boolean;
   settings: EditorSettings;
+  lockedNodeIds?: string[];
+  collabCursors?: CollaborationCursor[];
 }
+
+type CollaborationCursor = {
+  id: string;
+  nickname: string;
+  x: number;
+  y: number;
+  color: string;
+  avatar?: string;
+  cursorImage?: string;
+};
 
 type ScreenPoint = { x: number; y: number };
 
@@ -330,7 +342,12 @@ const extractEventPosition = (event: MouseEvent | TouchEvent): ScreenPoint => {
 
 const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
 
-const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) => {
+const GraphCanvasInner = ({
+  isMobileMode = false,
+  settings,
+  lockedNodeIds = [],
+  collabCursors = [],
+}: GraphCanvasProps) => {
   const { t } = useI18n();
   const reactFlow = useReactFlow();
   const nodes = useGraphStore((state) => state.nodes);
@@ -797,15 +814,21 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
     [setFloatingPanel, setSelectedNode],
   );
 
+  const lockedNodeIdSet = useMemo(() => new Set(lockedNodeIds), [lockedNodeIds]);
+
   const rfNodes: Node[] = useMemo(() => {
     return nodes.flatMap((node) => {
       const definition = nodeDefinitionsById[node.type];
       if (!definition) return [];
       const ports = resolveNodePorts(node, definition);
+      const isLocked = lockedNodeIdSet.has(node.id);
       const rfNode: Node = {
         id: node.id,
         type: 'miliastra',
         position: node.position,
+        draggable: !isLocked,
+        selectable: !isLocked,
+        className: isLocked ? 'graph-node--locked' : undefined,
         data: {
           nodeId: node.id,
           definition,
@@ -822,7 +845,7 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
       };
       return [rfNode];
     });
-  }, [nodes, activeConnection, openPortMenu]);
+  }, [nodes, activeConnection, lockedNodeIdSet, openPortMenu]);
   const portKindMap = useMemo(() => {
     const map = new Map<string, PortDefinition['kind']>();
     nodes.forEach((node) => {
@@ -844,16 +867,24 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         const targetKind = portKindMap.get(targetKey);
         const isDataEdge =
           sourceKind?.startsWith('data') && targetKind?.startsWith('data');
+        const isLockedEdge =
+          lockedNodeIdSet.has(edge.source.nodeId) || lockedNodeIdSet.has(edge.target.nodeId);
+        const className = [
+          isDataEdge ? 'graph-edge--data' : '',
+          isLockedEdge ? 'graph-edge--locked' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         return {
           id: edge.id,
           source: edge.source.nodeId,
           sourceHandle: edge.source.portId,
           target: edge.target.nodeId,
           targetHandle: edge.target.portId,
-          className: isDataEdge ? 'graph-edge--data' : undefined,
+          className: className || undefined,
         };
       }),
-    [edges, portKindMap]
+    [edges, lockedNodeIdSet, portKindMap]
   );
 
   const draggingNodesRef = useRef(new Set<string>());
@@ -2304,6 +2335,27 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
         onMoveEnd={(_, viewport) => setZoomLevel(viewport.zoom)}
         fitView
       />
+      {collabCursors.length > 0 && (
+        <div className="graph-collab-cursors" aria-hidden="true">
+          {collabCursors.map((cursor) => (
+            <div
+              key={cursor.id}
+              className="graph-collab-cursor"
+              style={{ left: cursor.x, top: cursor.y }}
+            >
+              {cursor.cursorImage && (
+                <img src={cursor.cursorImage} alt="" aria-hidden="true" />
+              )}
+              <span
+                className="graph-collab-cursor__label"
+                style={{ backgroundColor: cursor.color }}
+              >
+                {cursor.nickname}
+              </span>
+            </div>
+          ))}
+        </div>
+      )}
       {clickSelectionPreview && (
         <div
           className={classNames('graph-click-selection', {
@@ -2500,9 +2552,19 @@ const GraphCanvasInner = ({ isMobileMode = false, settings }: GraphCanvasProps) 
   );
 };
 
-const GraphCanvas = ({ isMobileMode = false, settings }: GraphCanvasProps) => (
+const GraphCanvas = ({
+  isMobileMode = false,
+  settings,
+  lockedNodeIds,
+  collabCursors,
+}: GraphCanvasProps) => (
   <ReactFlowProvider>
-    <GraphCanvasInner isMobileMode={isMobileMode} settings={settings} />
+    <GraphCanvasInner
+      isMobileMode={isMobileMode}
+      settings={settings}
+      lockedNodeIds={lockedNodeIds}
+      collabCursors={collabCursors}
+    />
   </ReactFlowProvider>
 );
 

@@ -2003,6 +2003,16 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
               <h3>{dialog.title}</h3>
               <div className="resource-explorer__dialog-message">{dialog.message}</div>
               <div className="home__confirm-actions">
+                <button
+                  type="button"
+                  className={classNames({ 'is-danger': dialog.confirmVariant === 'danger' })}
+                  onClick={() => {
+                    dialog.onConfirm?.();
+                    setDialog(null);
+                  }}
+                >
+                  {dialog.confirmLabel}
+                </button>
                 {dialog.cancelLabel && (
                   <button
                     type="button"
@@ -2014,16 +2024,6 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
                     {dialog.cancelLabel}
                   </button>
                 )}
-                <button
-                  type="button"
-                  className={classNames({ 'is-danger': dialog.confirmVariant === 'danger' })}
-                  onClick={() => {
-                    dialog.onConfirm?.();
-                    setDialog(null);
-                  }}
-                >
-                  {dialog.confirmLabel}
-                </button>
               </div>
             </div>
           </div>

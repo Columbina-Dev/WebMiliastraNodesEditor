@@ -1,15 +1,16 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, CSSProperties, MouseEvent, ReactNode } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import JSZip from "jszip";
 
 import GraphCanvas from "./components/GraphCanvas";
-import HomePage from "./components/HomePage";
+import HomePage, { type NetworkProject } from "./components/HomePage";
 import ResourceExplorer from "./components/ResourceExplorer";
 import StructureManager from "./components/StructureManager";
 import TutorialPage, { type TutorialRoute } from "./components/TutorialPage";
 import EffectsPage from "./components/EffectsPage";
 import NodeInspector from "./components/NodeInspector";
 import NodePalette from "./components/NodePalette";
+import Avatar from "./components/Avatar";
 import SettingsPage from "./components/SettingsPage";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
@@ -61,6 +62,7 @@ import {
 import { I18nProvider } from "./utils/i18nContext";
 import { t as translateText } from "./utils/i18n";
 import { isLocalizedError } from "./utils/localizedText";
+import { sanitizeNickname } from "./utils/collaborationProfile";
 import "./App.css";
 
 const AUTO_SAVE_INTERVAL = 30_000;
@@ -89,8 +91,21 @@ const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.u
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
 const ICON_DOCK_COMMENT = new URL("./assets/icons/dock-comment.png", import.meta.url).href;
 const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
+const ICON_SHARE_LOCK = new URL("./assets/icons/lock.png", import.meta.url).href;
+const ICON_SHARE_GLOBAL = new URL("./assets/icons/global.png", import.meta.url).href;
+const ICON_CHAT = new URL("./assets/icons/chat.png", import.meta.url).href;
+const ICON_CURSOR_DEFAULT = new URL("./assets/cursor/Default-60.png", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
+const MAX_COLLAB_MEMBERS = 6;
+const COLLAB_CURSOR_COLORS = [
+  '#6AB3FF',
+  '#F7B955',
+  '#8CE99A',
+  '#C77DFF',
+  '#FF6B6B',
+  '#63E6BE',
+] as const;
 
 type LightweightDialog = {
   title: string;
@@ -102,12 +117,56 @@ type LightweightDialog = {
 };
 type DialogRequest = Omit<LightweightDialog, 'onConfirm' | 'onCancel'>;
 
+type CollaborationAccess = 'restricted' | 'local-open' | 'local-password' | 'link';
+type CollaborationPermission = 'viewer' | 'editor';
+type CollaborationMode = 'idle' | 'host' | 'client';
+
+type CollaborationMember = {
+  id: string;
+  nickname: string;
+  avatar?: string;
+  permission: CollaborationPermission;
+  isOwner?: boolean;
+};
+
+type CollaborationRequest = {
+  id: string;
+  nickname: string;
+  requestedAt: number;
+};
+
+type CollaborationCursor = {
+  id: string;
+  nickname: string;
+  x: number;
+  y: number;
+  color: string;
+  avatar?: string;
+  cursorImage?: string;
+};
+
+type ChatMessage = {
+  id: string;
+  senderId: string;
+  nickname: string;
+  avatar?: string;
+  content: string;
+  createdAt: number;
+};
+
 const sanitizeFileName = (name: string) => {
   const trimmed = name.trim();
   const safe = Array.from(trimmed)
     .map((char) => (INVALID_FILENAME_CHARS.has(char) ? "_" : char))
     .join("");
   return safe.length ? safe : "project";
+};
+
+const createCollabId = () => {
+  if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+    return crypto.randomUUID();
+  }
+  return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
 const formatExecutionInterval = (value: number) => {
@@ -463,11 +522,142 @@ const App = () => {
     [editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage],
   );
   const defaultProjectName = t('project.defaultName');
+  const shareTargetName = graphName || projectName || defaultProjectName;
+  const fallbackNickname = t('collab.nickname.fallback');
+  const localNickname = sanitizeNickname(editorSettings.collabDefaultNickname) || fallbackNickname;
+  const localAvatar = editorSettings.collabAvatar || undefined;
+  const [collabMode, setCollabMode] = useState<CollaborationMode>('idle');
+  const [collabAccessMode, setCollabAccessMode] = useState<CollaborationAccess>('restricted');
+  const [collabPermission, setCollabPermission] = useState<CollaborationPermission>('editor');
+  const [collabEditorLimit, setCollabEditorLimit] = useState(0);
+  const [collabPassword, setCollabPassword] = useState('');
+  const [collabOwnerNickname, setCollabOwnerNickname] = useState('');
+  const [collabMembers, setCollabMembers] = useState<CollaborationMember[]>([]);
+  const [collabRequests, setCollabRequests] = useState<CollaborationRequest[]>([]);
+  const [collabCursors, setCollabCursors] = useState<CollaborationCursor[]>([]);
+  const [isShareOpen, setIsShareOpen] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+  const [isChatOpen, setIsChatOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatDraft, setChatDraft] = useState('');
+  const [lastChatReadAt, setLastChatReadAt] = useState(() => Date.now());
+  const chatPanelRef = useRef<HTMLDivElement | null>(null);
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
   const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
     defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
     ? defaultGroupNameLabelRaw
     : DEFAULT_GROUP_NAME;
+  const isSharing = collabMode === 'host';
+  const isCollaborating = collabMode !== 'idle';
+  const shareReadOnly = collabMode === 'client';
+  const ownerNicknameValue = collabOwnerNickname || localNickname;
+  const localMember: CollaborationMember = {
+    id: 'local',
+    nickname: localNickname,
+    avatar: localAvatar,
+    permission: collabPermission,
+    isOwner: collabMode !== 'client',
+  };
+  const ownerMember: CollaborationMember = collabMode === 'client'
+    ? {
+      id: 'remote-owner',
+      nickname: ownerNicknameValue,
+      avatar: undefined,
+      permission: 'editor',
+      isOwner: true,
+    }
+    : { ...localMember, isOwner: true };
+  const presenceMembers =
+    collabMode === 'client'
+      ? [ownerMember, localMember, ...collabMembers]
+      : collabMode === 'host'
+        ? [ownerMember, ...collabMembers]
+        : [localMember];
+  const networkProjects = useMemo<NetworkProject[]>(() => {
+    if (!isSharing) return [];
+    if (collabAccessMode !== 'local-open' && collabAccessMode !== 'local-password') {
+      return [];
+    }
+    const hostname = typeof window !== 'undefined' ? window.location.hostname : '';
+    const address = hostname || '127.0.0.1';
+    return [
+      {
+        id: projectId || 'local-share',
+        name: shareTargetName || defaultProjectName,
+        address,
+        requiresPassword: collabAccessMode === 'local-password',
+        ownerNickname: ownerNicknameValue,
+        document: projectDocument ?? undefined,
+      },
+    ];
+  }, [
+    collabAccessMode,
+    defaultProjectName,
+    isSharing,
+    ownerNicknameValue,
+    projectDocument,
+    projectId,
+    shareTargetName,
+  ]);
+  const effectiveEditorLimit =
+    collabEditorLimit === 0 ? MAX_COLLAB_MEMBERS : Math.min(MAX_COLLAB_MEMBERS, collabEditorLimit);
+  const currentMemberCount = (isSharing ? 1 : 0) + collabMembers.length;
+  const isAtCapacity = effectiveEditorLimit > 0 && currentMemberCount >= effectiveEditorLimit;
+  const unreadCount = useMemo(
+    () =>
+      chatMessages.filter(
+        (message) => message.senderId !== localMember.id && message.createdAt > lastChatReadAt,
+      ).length,
+    [chatMessages, lastChatReadAt, localMember.id],
+  );
+  const lockedNodeIds = useMemo(() => [] as string[], []);
+  const displayedCursors = useMemo(
+    () =>
+      collabCursors.map((cursor, index) => ({
+        ...cursor,
+        color: cursor.color || COLLAB_CURSOR_COLORS[index % COLLAB_CURSOR_COLORS.length],
+        cursorImage: cursor.cursorImage || ICON_CURSOR_DEFAULT,
+      })),
+    [collabCursors],
+  );
+  useEffect(() => {
+    if (isShareOpen && !collabOwnerNickname) {
+      setCollabOwnerNickname(localNickname);
+    }
+  }, [collabOwnerNickname, isShareOpen, localNickname]);
+  useEffect(() => {
+    if (!isCollaborating) {
+      setIsChatOpen(false);
+      return;
+    }
+    if (isChatOpen) {
+      setLastChatReadAt(Date.now());
+    }
+  }, [isChatOpen, isCollaborating]);
+  useEffect(() => {
+    if (!isChatOpen) return;
+    const handleOutsideClick = (event: globalThis.MouseEvent) => {
+      if (!chatPanelRef.current) return;
+      if (!chatPanelRef.current.contains(event.target as Node)) {
+        setIsChatOpen(false);
+      }
+    };
+    window.addEventListener('mousedown', handleOutsideClick);
+    return () => window.removeEventListener('mousedown', handleOutsideClick);
+  }, [isChatOpen]);
+  useEffect(() => {
+    if (collabMode === 'idle') {
+      setCollabMembers([]);
+      setCollabRequests([]);
+      setCollabCursors([]);
+      setShareError(null);
+    }
+  }, [collabMode]);
+  useEffect(() => {
+    if (isChatOpen) {
+      setLastChatReadAt(Date.now());
+    }
+  }, [chatMessages, isChatOpen]);
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
@@ -754,7 +944,7 @@ const App = () => {
     });
   }, []);
 
-  const handleZoomButtonClick = useCallback((event: MouseEvent<HTMLButtonElement>) => {
+  const handleZoomButtonClick = useCallback((event: ReactMouseEvent<HTMLButtonElement>) => {
     event.stopPropagation();
     setZoomMenuOpen((prev) => !prev);
   }, []);
@@ -1110,6 +1300,47 @@ const App = () => {
     [handleImportProjectDocument],
   );
 
+  const handleJoinNetworkProject = useCallback(
+    (project: NetworkProject, nickname: string, password?: string) => {
+      const cleanedNickname = sanitizeNickname(nickname) || localNickname;
+      if (project.requiresPassword && collabPassword && password !== collabPassword) {
+        openInfoDialog(t('common.error'), t('collab.join.password.invalid'));
+        return;
+      }
+      if (project.document) {
+        const { document: prepared, primaryGraphId, warnings } = prepareProjectDocument(
+          project.document,
+        );
+        applyProjectDocument(prepared, primaryGraphId);
+        if (warnings.length) {
+          console.warn('Collaboration project normalization warnings:', warnings);
+        }
+      }
+      setCollabOwnerNickname(project.ownerNickname ?? cleanedNickname);
+      setCollabMode('client');
+    },
+    [
+      applyProjectDocument,
+      collabPassword,
+      localNickname,
+      openInfoDialog,
+      prepareProjectDocument,
+      t,
+    ],
+  );
+
+  const handleSendJoinRequest = useCallback(
+    (project: NetworkProject, nickname: string) => {
+      if (!isSharing || project.id !== projectId) return;
+      const cleanedNickname = sanitizeNickname(nickname) || localNickname;
+      setCollabRequests((prev) => [
+        ...prev,
+        { id: createCollabId(), nickname: cleanedNickname, requestedAt: Date.now() },
+      ]);
+    },
+    [isSharing, localNickname, projectId],
+  );
+
   const handleProjectFileChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       const file = event.target.files?.[0];
@@ -1201,11 +1432,11 @@ const App = () => {
     return performProjectSave();
   }, [performProjectSave]);
 
-  const handleExportProject = useCallback(async () => {
+  const exportProjectZip = useCallback(async () => {
     const store = useProjectStore.getState();
     if (!store.document) {
       openInfoDialog(t('common.info'), t('common.noProjectOpen'));
-      return;
+      return false;
     }
     try {
       const { blob, document: normalized, warnings } = await saveProjectToZip(store.document, {
@@ -1222,11 +1453,121 @@ const App = () => {
       if (warnings.length) {
         console.warn('Project normalization warnings:', warnings);
       }
+      return true;
     } catch (error) {
       console.error(error);
       openInfoDialog(t('common.error'), t('app.exportProject.failedAlert'));
+      return false;
     }
   }, [openInfoDialog, t]);
+
+  const handleExportProject = useCallback(() => {
+    void exportProjectZip();
+  }, [exportProjectZip]);
+
+  const handleShareOpen = () => {
+    setShareError(null);
+    setIsShareOpen(true);
+  };
+
+  const handleShareClose = () => {
+    setShareError(null);
+    setIsShareOpen(false);
+  };
+
+  const handleShareConfirm = useCallback(async () => {
+    if (shareReadOnly) return;
+    setShareError(null);
+    const sharingEnabled = collabAccessMode !== 'restricted' && collabEditorLimit !== 1;
+    if (!sharingEnabled) {
+      if (isSharing) {
+        setCollabMode('idle');
+        setIsShareOpen(false);
+      } else {
+        setShareError(t('collab.share.disabled'));
+      }
+      return;
+    }
+    if (!isSharing) {
+      const downloaded = await exportProjectZip();
+      if (!downloaded) {
+        return;
+      }
+      setCollabMode('host');
+    }
+  }, [
+    collabAccessMode,
+    collabEditorLimit,
+    exportProjectZip,
+    isSharing,
+    shareReadOnly,
+    t,
+  ]);
+
+  const handleOwnerNicknameChange = (value: string) => {
+    setCollabOwnerNickname(sanitizeNickname(value));
+  };
+
+  const handleEditorLimitInput = (value: string) => {
+    if (shareReadOnly) return;
+    const parsed = Number.parseInt(value, 10);
+    if (Number.isNaN(parsed)) {
+      setCollabEditorLimit(1);
+      return;
+    }
+    const clamped = Math.max(0, Math.min(MAX_COLLAB_MEMBERS, parsed));
+    setCollabEditorLimit(clamped);
+  };
+
+  const handleApproveRequest = (requestId: string) => {
+    if (shareReadOnly || !isSharing) return;
+    setShareError(null);
+    if (isAtCapacity) {
+      setShareError(t('collab.share.limitReached'));
+      return;
+    }
+    setCollabRequests((prev) => {
+      const request = prev.find((item) => item.id === requestId);
+      if (!request) return prev;
+      setCollabMembers((members) => [
+        ...members,
+        {
+          id: request.id,
+          nickname: request.nickname,
+          avatar: undefined,
+          permission: collabPermission,
+        },
+      ]);
+      return prev.filter((item) => item.id !== requestId);
+    });
+  };
+
+  const handleIgnoreRequest = (requestId: string) => {
+    if (shareReadOnly) return;
+    setCollabRequests((prev) => prev.filter((item) => item.id !== requestId));
+  };
+
+  const handleRemoveMember = (memberId: string) => {
+    if (shareReadOnly) return;
+    setCollabMembers((prev) => prev.filter((member) => member.id !== memberId));
+  };
+
+  const handleChatSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    if (!isCollaborating) return;
+    const trimmed = chatDraft.trim();
+    if (!trimmed) return;
+    const message: ChatMessage = {
+      id: createCollabId(),
+      senderId: localMember.id,
+      nickname: localMember.nickname,
+      avatar: localMember.avatar,
+      content: trimmed,
+      createdAt: Date.now(),
+    };
+    setChatMessages((prev) => [...prev, message]);
+    setChatDraft('');
+  };
 
   
   const performGilExport = useCallback(
@@ -2027,69 +2368,365 @@ const handleSaveGraphAs = useCallback(() => {
       return next;
     });
   }, []);
-  const renderTabs = () => (
-    <div className="app__tabs">
-      {openTabs.map((tab: ProjectTab) => {
-        const isActive = tab.id === activeTabId;
-        const isDirtyGraph = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
-        const isDirtyStruct = tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
-        const isDirty = isDirtyGraph || isDirtyStruct;
-        const tabLabel =
-          tab.type === 'explorer'
-            ? tab.topFolder === 'server'
-              ? t('tabs.explorer.server')
-              : t('tabs.explorer.client')
-            : tab.type === 'struct'
-              ? t('tabs.structManager')
-              : tab.label;
-        let iconSrc = ICON_TAB_GRAPH;
-        if (tab.type === 'explorer') {
-          iconSrc = tab.topFolder === 'server' ? ICON_TAB_SERVER : ICON_TAB_CLIENT;
-        } else if (tab.type === 'struct') {
-          iconSrc = ICON_STRUCT;
-        }
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            className={`app__tab ${isActive ? 'is-active' : ''}`}
-            onClick={() => handleTabSelect(tab.id)}
-            onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
-            onMouseLeave={handleTabHoverEnd}
-            onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
-            onBlur={handleTabHoverEnd}
-          >
-            <span className="app__tab-label">
-              <img src={iconSrc} alt="" aria-hidden="true" />
-              {tabLabel}
-              {isDirty && <span className="app__tab-dirty">*</span>}
-            </span>
-            {(tab.type === "graph" || tab.type === "struct") && (
-              <span
-                role="button"
-                aria-label={t('app.tabs.closeAria', { label: tabLabel })}
-                className="app__tab-close"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  handleTabClose(tab.id);
-                }}
+  const renderTabs = () => {
+    const hasOverflowPresence = presenceMembers.length > 3;
+    const visiblePresence = hasOverflowPresence
+      ? [presenceMembers[0], presenceMembers[1]]
+      : presenceMembers.slice(0, 3);
+    return (
+      <div className="app__tabs">
+        <div className="app__tabs-presence">
+          {visiblePresence.map((member) => (
+            <Avatar
+              key={member.id}
+              src={member.avatar}
+              label={member.nickname}
+              size={26}
+              className="app__tabs-avatar"
+            />
+          ))}
+          {hasOverflowPresence && (
+            <div
+              className="app__tabs-avatar app__tabs-avatar--overflow"
+              title={t('collab.presence.more', { count: presenceMembers.length - 2 })}
+            >
+              ...
+            </div>
+          )}
+        </div>
+        <div className="app__tabs-scroll">
+          {openTabs.map((tab: ProjectTab) => {
+            const isActive = tab.id === activeTabId;
+            const isDirtyGraph = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
+            const isDirtyStruct = tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
+            const isDirty = isDirtyGraph || isDirtyStruct;
+            const tabLabel =
+              tab.type === 'explorer'
+                ? tab.topFolder === 'server'
+                  ? t('tabs.explorer.server')
+                  : t('tabs.explorer.client')
+                : tab.type === 'struct'
+                  ? t('tabs.structManager')
+                  : tab.label;
+            let iconSrc = ICON_TAB_GRAPH;
+            if (tab.type === 'explorer') {
+              iconSrc = tab.topFolder === 'server' ? ICON_TAB_SERVER : ICON_TAB_CLIENT;
+            } else if (tab.type === 'struct') {
+              iconSrc = ICON_STRUCT;
+            }
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                className={`app__tab ${isActive ? 'is-active' : ''}`}
+                onClick={() => handleTabSelect(tab.id)}
+                onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
+                onMouseLeave={handleTabHoverEnd}
+                onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
+                onBlur={handleTabHoverEnd}
               >
-                ×
+                <span className="app__tab-label">
+                  <img src={iconSrc} alt="" aria-hidden="true" />
+                  {tabLabel}
+                  {isDirty && <span className="app__tab-dirty">*</span>}
+                </span>
+                {(tab.type === "graph" || tab.type === "struct") && (
+                  <span
+                    role="button"
+                    aria-label={t('app.tabs.closeAria', { label: tabLabel })}
+                    className="app__tab-close"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      handleTabClose(tab.id);
+                    }}
+                  >
+                    ×
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
+        <div className="app__tabs-actions">
+          <button
+            type="button"
+            className="app__tabs-action"
+            onClick={handleShareOpen}
+            aria-label={isSharing ? t('collab.share.open.sharedAria') : t('collab.share.open.aria')}
+          >
+            <img src={isSharing ? ICON_SHARE_GLOBAL : ICON_SHARE_LOCK} alt="" aria-hidden="true" />
+            {collabRequests.length > 0 && (
+              <span className="app__tabs-badge">
+                {collabRequests.length > 99 ? '99+' : collabRequests.length}
               </span>
             )}
           </button>
-        );
-      })}
-      {tabTooltip && (
-        <div
-          className="app__tab-tooltip"
-          style={{ left: tabTooltip.left, top: tabTooltip.top }}
-        >
-          {tabTooltip.path}
+          {isCollaborating && (
+            <button
+              type="button"
+              className="app__tabs-action"
+              onClick={() => setIsChatOpen((prev) => !prev)}
+              aria-label={t('collab.chat.button')}
+            >
+              <img src={ICON_CHAT} alt="" aria-hidden="true" />
+              {unreadCount > 0 && (
+                <span className="app__tabs-badge app__tabs-badge--chat">
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </span>
+              )}
+            </button>
+          )}
         </div>
-      )}
-    </div>
-  );
+        {tabTooltip && (
+          <div
+            className="app__tab-tooltip"
+            style={{ left: tabTooltip.left, top: tabTooltip.top }}
+          >
+            {tabTooltip.path}
+          </div>
+        )}
+      </div>
+    );
+  };
+
+  const renderShareModal = () => {
+    if (!isShareOpen) return null;
+    const showPasswordField = collabAccessMode === 'local-password';
+    const passwordValue = shareReadOnly ? '******' : collabPassword;
+    const passwordLabel = isSharing
+      ? t('collab.share.password.change')
+      : t('collab.share.password.label');
+    return (
+      <div className="collab-overlay" role="dialog" aria-modal="true">
+        <div className="collab-modal" role="document">
+          <div className="collab-modal__header">
+            <div>
+              <h2>{t('collab.share.title', { name: shareTargetName })}</h2>
+              {shareReadOnly && <p className="collab-modal__note">{t('collab.share.readOnly')}</p>}
+            </div>
+          </div>
+          <div className="collab-section">
+            <h3>{t('collab.share.section.owner')}</h3>
+            <div className="collab-field">
+              <label htmlFor="collab-owner-name">{t('collab.share.owner.nickname')}</label>
+              <input
+                id="collab-owner-name"
+                value={collabOwnerNickname}
+                onChange={(event) => handleOwnerNicknameChange(event.target.value)}
+                placeholder={localNickname}
+                maxLength={12}
+                disabled={shareReadOnly}
+                autoComplete="off"
+              />
+            </div>
+          </div>
+          <div className="collab-section">
+            <h3>{t('collab.share.section.access')}</h3>
+            <div className="collab-field">
+              <label htmlFor="collab-editor-limit">{t('collab.share.editorLimit.label')}</label>
+              <input
+                id="collab-editor-limit"
+                type="number"
+                min={0}
+                max={MAX_COLLAB_MEMBERS}
+                value={collabEditorLimit}
+                onChange={(event) => handleEditorLimitInput(event.target.value)}
+                disabled={shareReadOnly}
+                inputMode="numeric"
+              />
+              <p className="collab-hint">{t('collab.share.editorLimit.hint')}</p>
+            </div>
+            <div className="collab-field">
+              <label>{t('collab.share.scope.label')}</label>
+              <div className="collab-options">
+                {([
+                  { value: 'restricted', label: t('collab.share.scope.restricted') },
+                  { value: 'local-open', label: t('collab.share.scope.localOpen') },
+                  { value: 'local-password', label: t('collab.share.scope.localPassword') },
+                  { value: 'link', label: t('collab.share.scope.link') },
+                ] as const).map((option) => (
+                  <label key={option.value} className="collab-option">
+                    <input
+                      type="radio"
+                      name="collab-scope"
+                      value={option.value}
+                      checked={collabAccessMode === option.value}
+                      onChange={() => setCollabAccessMode(option.value)}
+                      disabled={shareReadOnly || option.value === 'link'}
+                    />
+                    <span>{option.label}</span>
+                    {option.value === 'link' && (
+                      <span className="collab-option__hint">{t('collab.share.scope.linkHint')}</span>
+                    )}
+                  </label>
+                ))}
+              </div>
+            </div>
+            <div className="collab-field">
+              <label>{t('collab.share.permission.label')}</label>
+              <div className="collab-options">
+                {([
+                  { value: 'viewer', label: t('collab.share.permission.viewer') },
+                  { value: 'editor', label: t('collab.share.permission.editor') },
+                ] as const).map((option) => (
+                  <label key={option.value} className="collab-option">
+                    <input
+                      type="radio"
+                      name="collab-permission"
+                      value={option.value}
+                      checked={collabPermission === option.value}
+                      onChange={() => setCollabPermission(option.value)}
+                      disabled={shareReadOnly}
+                    />
+                    <span>{option.label}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+            {showPasswordField && (
+              <div className="collab-field">
+                <label htmlFor="collab-password">{passwordLabel}</label>
+                <input
+                  id="collab-password"
+                  type="password"
+                  value={passwordValue}
+                  onChange={(event) => setCollabPassword(event.target.value)}
+                  placeholder={t('collab.share.password.placeholder')}
+                  disabled={shareReadOnly}
+                  autoComplete="off"
+                />
+              </div>
+            )}
+          </div>
+          {isSharing && (
+            <>
+              <div className="collab-section">
+                <h3>{t('collab.share.requests.title')}</h3>
+                {collabRequests.length ? (
+                  <div className="collab-list">
+                    {collabRequests.map((request) => (
+                      <div key={request.id} className="collab-row">
+                        <span className="collab-row__name">{request.nickname}</span>
+                        <div className="collab-row__actions">
+                          <button
+                            type="button"
+                            onClick={() => handleApproveRequest(request.id)}
+                            disabled={shareReadOnly || isAtCapacity}
+                            aria-label={t('collab.share.requests.approve')}
+                          >
+                            ✓
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleIgnoreRequest(request.id)}
+                            disabled={shareReadOnly}
+                            aria-label={t('collab.share.requests.ignore')}
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="collab-empty">{t('collab.share.requests.empty')}</div>
+                )}
+              </div>
+              <div className="collab-section">
+                <h3>{t('collab.share.members.title')}</h3>
+                {collabMembers.length ? (
+                  <div className="collab-list">
+                    {collabMembers.map((member) => (
+                      <div key={member.id} className="collab-member">
+                        <Avatar src={member.avatar} label={member.nickname} size={30} />
+                        <div className="collab-member__info">
+                          <span className="collab-member__name">{member.nickname}</span>
+                          <span className="collab-member__role">
+                            {member.permission === 'viewer'
+                              ? t('collab.share.permission.viewer')
+                              : t('collab.share.permission.editor')}
+                          </span>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveMember(member.id)}
+                          disabled={shareReadOnly}
+                        >
+                          {t('collab.share.members.remove')}
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="collab-empty">{t('collab.share.members.empty')}</div>
+                )}
+              </div>
+            </>
+          )}
+          {shareError && <div className="collab-error">{shareError}</div>}
+          <div className="collab-actions">
+            <button type="button" onClick={handleShareConfirm} disabled={shareReadOnly}>
+              {t('collab.share.button')}
+            </button>
+            <button type="button" onClick={handleShareClose}>
+              {t('common.cancel')}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  const renderChatPanel = () => {
+    if (!isCollaborating) return null;
+    return (
+      <div
+        className={`app__chat-panel${isChatOpen ? ' is-open' : ''}`}
+        ref={chatPanelRef}
+        aria-hidden={!isChatOpen}
+      >
+        <div className="app__chat-header">
+          <span>{t('collab.chat.title')}</span>
+          <button type="button" onClick={() => setIsChatOpen(false)} aria-label={t('common.close')}>
+            ×
+          </button>
+        </div>
+        <div className="app__chat-messages">
+          {chatMessages.length ? (
+            chatMessages.map((message) => {
+              const isSelf = message.senderId === localMember.id;
+              return (
+                <div
+                  key={message.id}
+                  className={`app__chat-message${isSelf ? ' is-self' : ''}`}
+                >
+                  {!isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
+                  <div className="app__chat-bubble">
+                    <div className="app__chat-name">{message.nickname}</div>
+                    <div className="app__chat-text">{message.content}</div>
+                  </div>
+                  {isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
+                </div>
+              );
+            })
+          ) : (
+            <div className="app__chat-empty">{t('collab.chat.empty')}</div>
+          )}
+        </div>
+        <form className="app__chat-input" onSubmit={handleChatSubmit}>
+          <input
+            value={chatDraft}
+            onChange={(event) => setChatDraft(event.target.value)}
+            placeholder={t('collab.chat.placeholder')}
+            disabled={!isCollaborating}
+          />
+          <button type="submit" disabled={!isCollaborating || !chatDraft.trim()}>
+            {t('collab.chat.send')}
+          </button>
+        </form>
+      </div>
+    );
+  };
 
   const renderEditor = () => {
     const saveAsCategories = saveAsDialog
@@ -2256,7 +2893,12 @@ const handleSaveGraphAs = useCallback(() => {
               isTouchEnvironment={isMobileMode}
               allowSearchAllLanguageNodeNames={editorSettings.allowSearchAllLanguageNodeNames}
             />
-            <GraphCanvas isMobileMode={isMobileMode} settings={editorSettings} />
+            <GraphCanvas
+              isMobileMode={isMobileMode}
+              settings={editorSettings}
+              lockedNodeIds={lockedNodeIds}
+              collabCursors={displayedCursors}
+            />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
           </>
         ) : isStructTab ? (
@@ -2615,6 +3257,10 @@ const handleSaveGraphAs = useCallback(() => {
         onOpenSettings={handleOpenSettingsFromHome}
         isDecodingGia={isDecodingGia}
         onDecodeGia={handleDecodeGiaFile}
+        networkProjects={networkProjects}
+        defaultNickname={localNickname}
+        onJoinNetworkProject={handleJoinNetworkProject}
+        onSendJoinRequest={handleSendJoinRequest}
       />
     </>
   );
@@ -2665,6 +3311,8 @@ const handleSaveGraphAs = useCallback(() => {
              : view === 'notFound'
                ? renderNotFound()
                : renderHome()}
+      {view === 'editor' && renderChatPanel()}
+      {view === 'editor' && renderShareModal()}
       {giaModal && (
         <div className="gia-modal-overlay" role="dialog" aria-modal="true">
           <div className="gia-modal" role="document">

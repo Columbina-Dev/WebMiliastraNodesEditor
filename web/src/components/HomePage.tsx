@@ -1,9 +1,20 @@
-import type { DragEvent, KeyboardEvent } from 'react';
-import { useMemo, useRef, useState } from 'react';
+import type { DragEvent as ReactDragEvent, KeyboardEvent } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { StoredProject } from '../utils/storage';
+import type { ProjectDocument } from '../types/project';
 import { useI18n } from '../utils/i18nContext';
+import { sanitizeNickname } from '../utils/collaborationProfile';
 import './HomePage.css';
+
+export type NetworkProject = {
+  id: string;
+  name: string;
+  address: string;
+  requiresPassword: boolean;
+  ownerNickname?: string;
+  document?: ProjectDocument;
+};
 
 interface HomePageProps {
   projects: StoredProject[];
@@ -20,6 +31,10 @@ interface HomePageProps {
   onOpenSettings: () => void;
   isDecodingGia: boolean;
   onDecodeGia: (file: File) => Promise<void> | void;
+  networkProjects: NetworkProject[];
+  defaultNickname: string;
+  onJoinNetworkProject: (project: NetworkProject, nickname: string, password?: string) => void;
+  onSendJoinRequest: (project: NetworkProject, nickname: string) => void;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -55,31 +70,95 @@ const HomePage = ({
   onOpenSettings,
   isDecodingGia,
   onDecodeGia,
+  networkProjects,
+  defaultNickname,
+  onJoinNetworkProject,
+  onSendJoinRequest,
 }: HomePageProps) => {
   const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
   const [pendingDelete, setPendingDelete] = useState<StoredProject | null>(null);
+  const [pendingJoin, setPendingJoin] = useState<NetworkProject | null>(null);
+  const [joinNickname, setJoinNickname] = useState(defaultNickname);
+  const [joinPassword, setJoinPassword] = useState('');
+  const [requestCooldown, setRequestCooldown] = useState(0);
   const decodeInputRef = useRef<HTMLInputElement | null>(null);
+  const dragCounterRef = useRef(0);
 
   const sortedProjects = useMemo(
     () => [...projects].sort((a, b) => Date.parse(b.savedAt) - Date.parse(a.savedAt)),
     [projects],
   );
 
-  const handleDragOver = (event: DragEvent<HTMLDivElement>) => {
+  const hasDragFiles = (transfer: DataTransfer | null) =>
+    Boolean(transfer && Array.from(transfer.types).includes('Files'));
+
+  useEffect(() => {
+    if (!pendingJoin) return;
+    setJoinNickname(defaultNickname);
+    setJoinPassword('');
+    setRequestCooldown(0);
+  }, [defaultNickname, pendingJoin]);
+
+  useEffect(() => {
+    if (requestCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setRequestCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [requestCooldown]);
+
+  useEffect(() => {
+    const handleWindowDragEnter = (event: DragEvent) => {
+      if (!hasDragFiles(event.dataTransfer)) return;
+      dragCounterRef.current += 1;
+      setIsDragging(true);
+    };
+    const handleWindowDragLeave = (event: DragEvent) => {
+      if (!hasDragFiles(event.dataTransfer)) return;
+      dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
+      if (dragCounterRef.current === 0) {
+        setIsDragging(false);
+      }
+    };
+    const handleWindowDragOver = (event: DragEvent) => {
+      if (!hasDragFiles(event.dataTransfer)) return;
+      event.preventDefault();
+    };
+    const handleWindowDrop = (event: DragEvent) => {
+      if (!hasDragFiles(event.dataTransfer)) return;
+      if (event.defaultPrevented) return;
+      event.preventDefault();
+      dragCounterRef.current = 0;
+      setIsDragging(false);
+      if (event.dataTransfer?.files?.length) {
+        onDropFiles(event.dataTransfer.files);
+      }
+    };
+    window.addEventListener('dragenter', handleWindowDragEnter);
+    window.addEventListener('dragleave', handleWindowDragLeave);
+    window.addEventListener('dragover', handleWindowDragOver);
+    window.addEventListener('drop', handleWindowDrop);
+    return () => {
+      window.removeEventListener('dragenter', handleWindowDragEnter);
+      window.removeEventListener('dragleave', handleWindowDragLeave);
+      window.removeEventListener('dragover', handleWindowDragOver);
+      window.removeEventListener('drop', handleWindowDrop);
+    };
+  }, [onDropFiles]);
+
+  const handleDragOver = (event: ReactDragEvent<HTMLDivElement>) => {
+    if (!hasDragFiles(event.dataTransfer)) return;
     event.preventDefault();
     setIsDragging(true);
   };
 
-  const handleDragLeave = (event: DragEvent<HTMLDivElement>) => {
-    if (!event.currentTarget.contains(event.relatedTarget as Node)) {
-      setIsDragging(false);
-    }
-  };
-
-  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+  const handleDrop = (event: ReactDragEvent<HTMLDivElement>) => {
+    if (!hasDragFiles(event.dataTransfer)) return;
     event.preventDefault();
+    event.stopPropagation();
     setIsDragging(false);
+    dragCounterRef.current = 0;
     if (event.dataTransfer?.files?.length) {
       onDropFiles(event.dataTransfer.files);
     }
@@ -127,7 +206,6 @@ const HomePage = ({
         <div
           className={classNames('home__dropzone', { 'is-active': isDragging })}
           onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
           {t('home.dropzone')}</div>
@@ -179,8 +257,32 @@ const HomePage = ({
             <div className="home__history-empty">{t('home.history.empty')}</div>
           )}
         </div>
+        <hr className="home__divider" />
+        <div className="home__network-header">
+          <h2>{t('home.network.title')}</h2>
+        </div>
+        <div className="home__network">
+          {networkProjects.length ? (
+            <div className="home__network-list">
+              {networkProjects.map((project) => (
+                <button
+                  key={project.id}
+                  type="button"
+                  className="home__network-item"
+                  onClick={() => setPendingJoin(project)}
+                >
+                  <div className="home__network-name">{project.name}</div>
+                  <div className="home__network-address">{project.address}</div>
+                </button>
+              ))}
+            </div>
+          ) : (
+            <div className="home__network-empty">{t('home.network.empty')}</div>
+          )}
+        </div>
       </div>
       <div className="home__links">
+        <div className="home__links-glass" aria-hidden="true" />
         <button
           type="button"
           className="home__settings"
@@ -255,6 +357,75 @@ const HomePage = ({
               </button>
               <button type="button" onClick={() => setPendingDelete(null)}>
                 {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {pendingJoin && (
+        <div className="home__join-overlay" role="dialog" aria-modal="true">
+          <div className="home__join-modal" role="document">
+            <h3>{t('home.network.join.title', { name: pendingJoin.name })}</h3>
+            <div className="home__join-field">
+              <label htmlFor="home-join-nickname">{t('home.network.join.nickname')}</label>
+              <input
+                id="home-join-nickname"
+                value={joinNickname}
+                onChange={(event) => setJoinNickname(sanitizeNickname(event.target.value))}
+                placeholder={defaultNickname}
+                maxLength={12}
+                autoComplete="off"
+              />
+            </div>
+            {pendingJoin.requiresPassword && (
+              <div className="home__join-field">
+                <label htmlFor="home-join-password">{t('home.network.join.password')}</label>
+                <div className="home__join-password">
+                  <input
+                    id="home-join-password"
+                    type="password"
+                    value={joinPassword}
+                    onChange={(event) => setJoinPassword(event.target.value)}
+                    placeholder={t('home.network.join.password.placeholder')}
+                    autoComplete="off"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (!joinNickname.trim() || requestCooldown > 0) return;
+                      onSendJoinRequest(pendingJoin, joinNickname);
+                      setRequestCooldown(30);
+                    }}
+                    disabled={requestCooldown > 0}
+                  >
+                    {requestCooldown > 0
+                      ? t('home.network.join.requestCooldown', { seconds: requestCooldown })
+                      : t('home.network.join.request')}
+                  </button>
+                </div>
+              </div>
+            )}
+            <div className="home__join-actions">
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingJoin(null);
+                }}
+              >
+                {t('common.cancel')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  if (!pendingJoin) return;
+                  if (!joinNickname.trim()) return;
+                  if (pendingJoin.requiresPassword && !joinPassword.trim()) return;
+                  onJoinNetworkProject(pendingJoin, joinNickname, joinPassword);
+                  setPendingJoin(null);
+                }}
+                disabled={!joinNickname.trim() || (pendingJoin.requiresPassword && !joinPassword.trim())}
+              >
+                {t('home.network.join.action')}
               </button>
             </div>
           </div>

@@ -22,6 +22,7 @@ import {
   t as translateText,
   type UiLanguage,
 } from './i18n';
+import { sanitizeNickname } from './collaborationProfile';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
@@ -140,6 +141,8 @@ export interface EditorSettings {
   giaUidMode: GiaUidMode;
   giaFixedUid: string;
   pointerStyle: PointerStyle;
+  collabDefaultNickname: string;
+  collabAvatar: string;
 }
 
 export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
@@ -156,6 +159,8 @@ export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   giaUidMode: 'perExport',
   giaFixedUid: '',
   pointerStyle: 'sandbox',
+  collabDefaultNickname: '',
+  collabAvatar: '',
 };
 
 const DEFAULT_LAYOUT: LayoutState = {
@@ -521,6 +526,14 @@ export const loadEditorSettings = (): EditorSettings => {
   }
   if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
     merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;
+  }
+  if (typeof merged.collabDefaultNickname !== 'string') {
+    merged.collabDefaultNickname = DEFAULT_EDITOR_SETTINGS.collabDefaultNickname;
+  } else {
+    merged.collabDefaultNickname = sanitizeNickname(merged.collabDefaultNickname);
+  }
+  if (typeof merged.collabAvatar !== 'string') {
+    merged.collabAvatar = DEFAULT_EDITOR_SETTINGS.collabAvatar;
   }
   return merged;
 };

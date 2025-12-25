@@ -439,6 +439,7 @@ option {
   font-size: 13px;
   cursor: var(--cursor-pointer);
   transition: background 0.2s ease;
+  text-align: left;
 }
 
 .app__editor-menu-dropdown button:hover {
@@ -495,12 +496,91 @@ option {
 }
 
 .app__tabs {
-  display: flex;
-  gap: 6px;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
   padding: 8px 16px;
   background: #1F1F25;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+}
+
+.app__tabs-presence {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.app__tabs-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.app__tabs-avatar--overflow {
+  font-size: 14px;
+  letter-spacing: -1px;
+}
+
+.app__tabs-scroll {
+  display: flex;
+  gap: 6px;
   overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.app__tabs-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app__tabs-action {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.app__tabs-action:hover {
+  background: rgba(92, 186, 255, 0.18);
+  border-color: rgba(92, 186, 255, 0.4);
+}
+
+.app__tabs-action img {
+  width: 18px;
+  height: 18px;
+}
+
+.app__tabs-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  background: #ff4d4d;
+  color: #fff;
+  border-radius: 999px;
+  font-size: 10px;
+  padding: 2px 5px;
+  border: 1px solid rgba(0, 0, 0, 0.35);
+  min-width: 18px;
+  text-align: center;
 }
 .app__tab-tooltip {
   position: fixed;
@@ -797,6 +877,353 @@ option {
 
 .json-token--null {
   color: #dcdcaa;
+}
+
+.collab-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(8, 11, 20, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  z-index: 2300;
+}
+
+.collab-modal {
+  width: min(760px, 100%);
+  max-height: min(88vh, 760px);
+  background: #101726;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 20px;
+  padding: 24px;
+  color: #f4f5ff;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
+  overflow: auto;
+}
+
+.collab-modal__header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.collab-modal__note {
+  margin: 6px 0 0;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.collab-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 14px;
+  padding: 16px;
+  background: rgba(18, 22, 32, 0.7);
+}
+
+.collab-section h3 {
+  margin: 0;
+  font-size: 16px;
+}
+
+.collab-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.collab-field label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+
+.collab-field input {
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 8px 10px;
+  font-size: 14px;
+}
+
+.collab-field input:focus {
+  outline: 1px solid rgba(92, 186, 255, 0.55);
+}
+
+.collab-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collab-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+}
+
+.collab-option input {
+  accent-color: #6aa7ff;
+}
+
+.collab-option__hint {
+  margin-left: 8px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+}
+
+.collab-hint {
+  margin: 0;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.collab-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.collab-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.collab-row__name {
+  font-size: 14px;
+}
+
+.collab-row__actions {
+  display: flex;
+  gap: 6px;
+}
+
+.collab-row__actions button {
+  width: 28px;
+  height: 28px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.collab-row__actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.collab-member {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.collab-member__info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.collab-member__name {
+  font-size: 14px;
+}
+
+.collab-member__role {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.collab-member button {
+  padding: 6px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.collab-member button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.collab-empty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.collab-error {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 120, 120, 0.15);
+  border: 1px solid rgba(255, 120, 120, 0.4);
+  color: #ffd5d5;
+  font-size: 13px;
+}
+
+.collab-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.collab-actions button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s ease, border 0.2s ease;
+}
+
+.collab-actions button:hover {
+  border-color: rgba(92, 186, 255, 0.45);
+  background: rgba(92, 186, 255, 0.18);
+}
+
+.collab-actions button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.app__chat-panel {
+  position: fixed;
+  top: 110px;
+  right: 24px;
+  width: min(360px, calc(100% - 32px));
+  max-height: min(60vh, 520px);
+  background: rgba(18, 20, 30, 0.92);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 16px;
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  opacity: 0;
+  transform: translateY(-12px);
+  pointer-events: none;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  z-index: 2500;
+}
+
+.app__chat-panel.is-open {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.app__chat-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.app__chat-header button {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font-size: 18px;
+  cursor: var(--cursor-pointer);
+}
+
+.app__chat-messages {
+  flex: 1;
+  overflow: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.app__chat-message {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.app__chat-message.is-self {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+.app__chat-bubble {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 8px 10px;
+  max-width: 220px;
+}
+
+.app__chat-message.is-self .app__chat-bubble {
+  background: rgba(92, 186, 255, 0.2);
+  border-color: rgba(92, 186, 255, 0.3);
+}
+
+.app__chat-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.app__chat-text {
+  font-size: 13px;
+  margin-top: 4px;
+  color: rgba(255, 255, 255, 0.92);
+  word-break: break-word;
+}
+
+.app__chat-input {
+  display: flex;
+  gap: 8px;
+  padding: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.app__chat-input input {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 8px 10px;
+}
+
+.app__chat-input button {
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.app__chat-empty {
+  text-align: center;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.6);
+  padding: 20px 0;
 }
 
 

@@ -1,9 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { EditorSettings } from '../utils/storage';
 // import type { EditorSettings, EditorSelectionActivation } from '../utils/storage';
 import { UI_LANGUAGE_OPTIONS, getDefaultSecondaryLanguage, type UiLanguage } from '../utils/i18n';
 import { useI18n } from '../utils/i18nContext';
+import { getAvatarDataUrl, sanitizeNickname } from '../utils/collaborationProfile';
+import Avatar from './Avatar';
 import './SettingsPage.css';
 const ICON_INFO = new URL('../assets/icons/info.png', import.meta.url).href;
 
@@ -19,6 +21,7 @@ interface SettingsPageProps {
 const SETTINGS_GROUP_KEYS = {
   global: 'global',
   editorControls: 'editorControls',
+  collaboration: 'collaboration',
   gilExport: 'gilExport',
   giaExport: 'giaExport',
 } as const;
@@ -32,9 +35,12 @@ const SettingsPage = ({
   isTouchEnvironment = false,
 }: SettingsPageProps) => {
   const { t } = useI18n();
-  const [activeTab, setActiveTab] = useState<'general' | 'export'>('general');
+  const [activeTab, setActiveTab] = useState<'general' | 'collaboration' | 'export'>('general');
   const [collapsedGroups, setCollapsedGroups] = useState<Record<string, boolean>>({});
   const [isAboutOpen, setIsAboutOpen] = useState(false);
+  const [avatarError, setAvatarError] = useState<string | null>(null);
+  const [isAvatarBusy, setIsAvatarBusy] = useState(false);
+  const avatarInputRef = useRef<HTMLInputElement | null>(null);
 
   const isFixedUidValid = useMemo(() => /^\d{9,10}$/.test(settings.giaFixedUid), [settings.giaFixedUid]);
 
@@ -54,6 +60,37 @@ const SettingsPage = ({
   const handleFixedUidChange = (value: string) => {
     const cleaned = value.replace(/\D/g, '').slice(0, 10);
     onUpdateSettings((prev) => (prev.giaFixedUid === cleaned ? prev : { ...prev, giaFixedUid: cleaned }));
+  };
+
+  const handleCollabNicknameChange = (value: string) => {
+    const cleaned = sanitizeNickname(value);
+    onUpdateSettings((prev) => {
+      if (prev.collabDefaultNickname === cleaned) {
+        return prev;
+      }
+      return { ...prev, collabDefaultNickname: cleaned };
+    });
+  };
+
+  const handleCollabAvatarClear = () => {
+    onUpdateSettings((prev) => {
+      if (!prev.collabAvatar) return prev;
+      return { ...prev, collabAvatar: '' };
+    });
+  };
+
+  const handleCollabAvatarChange = async (file: File) => {
+    setAvatarError(null);
+    setIsAvatarBusy(true);
+    try {
+      const dataUrl = await getAvatarDataUrl(file);
+      onUpdateSettings((prev) => ({ ...prev, collabAvatar: dataUrl }));
+    } catch (error) {
+      console.error(error);
+      setAvatarError(t('settings.collab.avatar.error'));
+    } finally {
+      setIsAvatarBusy(false);
+    }
   };
 
   const handlePrimaryLanguageChange = (value: UiLanguage) => {
@@ -372,6 +409,84 @@ const SettingsPage = ({
     </div>
   );
 
+  const renderCollaborationTab = () => {
+    const displayNickname = settings.collabDefaultNickname || t('settings.collab.nickname.fallback');
+    return (
+      <div className="settings-panel">
+        <div className="settings-group">
+          <button
+            type="button"
+            className="settings-group__header"
+            onClick={() => toggleGroup(SETTINGS_GROUP_KEYS.collaboration)}
+          >
+            <span>{t('settings.group.collaboration')}</span>
+            <span
+              className={classNames('settings-group__caret', {
+                'is-collapsed': collapsedGroups[SETTINGS_GROUP_KEYS.collaboration],
+              })}
+            />
+          </button>
+          {!collapsedGroups[SETTINGS_GROUP_KEYS.collaboration] && (
+            <div className="settings-group__body">
+              <div className="settings-option">
+                <div className="settings-option__label">{t('settings.collab.nickname.label')}</div>
+                <input
+                  className="settings-text-input"
+                  value={settings.collabDefaultNickname}
+                  onChange={(event) => handleCollabNicknameChange(event.target.value)}
+                  placeholder={t('settings.collab.nickname.placeholder')}
+                  maxLength={12}
+                  autoComplete="off"
+                />
+                <p className="settings-option__hint">{t('settings.collab.nickname.hint')}</p>
+              </div>
+              <div className="settings-option">
+                <div className="settings-option__label">{t('settings.collab.avatar.label')}</div>
+                <div className="settings-collab-avatar">
+                  <Avatar
+                    src={settings.collabAvatar || undefined}
+                    label={displayNickname}
+                    size={64}
+                  />
+                  <div className="settings-collab-avatar__actions">
+                    <button
+                      type="button"
+                      onClick={() => avatarInputRef.current?.click()}
+                      disabled={isAvatarBusy}
+                    >
+                      {isAvatarBusy
+                        ? t('settings.collab.avatar.processing')
+                        : t('settings.collab.avatar.upload')}
+                    </button>
+                    {settings.collabAvatar && (
+                      <button type="button" onClick={handleCollabAvatarClear}>
+                        {t('settings.collab.avatar.clear')}
+                      </button>
+                    )}
+                  </div>
+                  <input
+                    ref={avatarInputRef}
+                    type="file"
+                    accept="image/*"
+                    hidden
+                    onChange={(event) => {
+                      const file = event.currentTarget.files?.[0];
+                      event.currentTarget.value = '';
+                      if (!file) return;
+                      void handleCollabAvatarChange(file);
+                    }}
+                  />
+                </div>
+                <p className="settings-option__hint">{t('settings.collab.avatar.hint')}</p>
+                {avatarError && <div className="settings-option__error">{avatarError}</div>}
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  };
+
   const returnLabel = t('common.back');
   const returnAriaLabel =
     returnTarget === 'editor' ? t('settings.backToEditor') : t('settings.backToHome');
@@ -400,6 +515,13 @@ const SettingsPage = ({
             </button>
             <button
               type="button"
+              className={classNames('settings-tab', { 'is-active': activeTab === 'collaboration' })}
+              onClick={() => setActiveTab('collaboration')}
+            >
+              {t('settings.tabs.collaboration')}
+            </button>
+            <button
+              type="button"
               className={classNames('settings-tab', { 'is-active': activeTab === 'export' })}
               onClick={() => setActiveTab('export')}
             >
@@ -416,7 +538,11 @@ const SettingsPage = ({
           </button>
         </aside>
         <section className="settings-page__content">
-          {activeTab === 'general' ? renderGeneralTab() : renderExportTab()}
+          {activeTab === 'general'
+            ? renderGeneralTab()
+            : activeTab === 'collaboration'
+              ? renderCollaborationTab()
+              : renderExportTab()}
         </section>
       </div>
       {isAboutOpen && (

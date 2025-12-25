@@ -254,6 +254,52 @@
   border-color: rgba(255, 123, 123, 0.85);
 }
 
+.settings-text-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(0, 0, 0, 0.3);
+  color: inherit;
+  font-size: 14px;
+}
+
+.settings-text-input:focus {
+  outline: 1px solid rgba(92, 186, 255, 0.6);
+}
+
+.settings-option__error {
+  font-size: 13px;
+  color: #ffb0b0;
+}
+
+.settings-collab-avatar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.settings-collab-avatar__actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.settings-collab-avatar__actions button {
+  padding: 8px 16px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: inherit;
+  cursor: var(--cursor-pointer);
+}
+
+.settings-collab-avatar__actions button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
 .settings-about-overlay {
   position: fixed;
   inset: 0;

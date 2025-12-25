@@ -162,6 +162,44 @@
   --edge-stroke-color: #8BC1FE;
 }
 
+.react-flow__edge.graph-edge--locked {
+  opacity: 0.3;
+}
+
+.react-flow__node.graph-node--locked {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.graph-collab-cursors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 6;
+}
+
+.graph-collab-cursor {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+}
+
+.graph-collab-cursor img {
+  width: 24px;
+  height: 24px;
+}
+
+.graph-collab-cursor__label {
+  margin-left: -4px;
+  margin-top: 16px;
+  border-radius: 8px;
+  padding: 2px 6px;
+  font-size: 11px;
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+}
+
 .react-flow__selection rect {
   fill: rgba(92, 186, 255, 0.16);
   stroke: rgba(92, 186, 255, 0.72);
