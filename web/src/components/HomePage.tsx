@@ -2,20 +2,19 @@ import type { DragEvent as ReactDragEvent, KeyboardEvent } from 'react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
 import type { StoredProject } from '../utils/storage';
-import type { ProjectDocument } from '../types/project';
 import { useI18n } from '../utils/i18nContext';
 import { sanitizeNickname } from '../utils/collaborationProfile';
 import './HomePage.css';
 
 export type NetworkProject = {
   id: string;
+  roomId?: string;
+  hostId?: string;
   projectId?: string;
   name: string;
   address: string;
   requiresPassword: boolean;
   ownerNickname?: string;
-  password?: string;
-  document?: ProjectDocument;
 };
 
 interface HomePageProps {
@@ -34,6 +33,7 @@ interface HomePageProps {
   isDecodingGia: boolean;
   onDecodeGia: (file: File) => Promise<void> | void;
   networkProjects: NetworkProject[];
+  signalConnected: boolean;
   defaultNickname: string;
   onRefreshNetwork: () => void;
   onJoinNetworkProject: (project: NetworkProject, nickname: string, password?: string) => void;
@@ -75,6 +75,7 @@ const HomePage = ({
   isDecodingGia,
   onDecodeGia,
   networkProjects,
+  signalConnected,
   defaultNickname,
   onRefreshNetwork,
   onJoinNetworkProject,
@@ -276,7 +277,11 @@ const HomePage = ({
           </button>
         </div>
         <div className="home__network">
-          {networkProjects.length ? (
+          {!signalConnected ? (
+            <div className="home__network-empty home__network-empty--offline">
+              {t('collab.signal.offline')}
+            </div>
+          ) : networkProjects.length ? (
             <div className="home__network-list">
               {networkProjects.map((project) => (
                 <button

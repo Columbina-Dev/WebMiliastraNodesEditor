@@ -11,9 +11,10 @@ import './NodeInspector.css';
 interface NodeInspectorProps {
   collapsed: boolean;
   onToggle: () => void;
+  isReadOnly?: boolean;
 }
 
-const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
+const NodeInspector = ({ collapsed, onToggle, isReadOnly = false }: NodeInspectorProps) => {
   const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const {
     nodes,
@@ -69,12 +70,13 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
 
   const handleLabelChange = (event: ChangeEvent<HTMLInputElement>) => {
     const value = event.target.value;
-    if (!node) return;
+    if (isReadOnly || !node) return;
     updateNode(node.id, (prev) => ({ ...prev, label: value ? value : undefined }));
   };
 
   const handleOverrideChange = (nodeId: string) => (port: DataPortDefinition) =>
     (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) return;
       const value = event.target.value;
       if (!value) {
         clearPortOverride(nodeId, port.id);
@@ -93,6 +95,7 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
 
   const handleCommentTextChange =
     (commentId: string) => (event: ChangeEvent<HTMLTextAreaElement>) => {
+      if (isReadOnly) return;
       const value = event.target.value;
       updateCommentText(commentId, value);
       const textarea = event.currentTarget;
@@ -109,7 +112,11 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
     <>
       <header className="inspector__header">
         <h2 className="inspector__title">{t('inspector.title')}</h2>
-        <button className="inspector__delete" onClick={() => removeNode(node.id)}>
+        <button
+          className="inspector__delete"
+          onClick={isReadOnly ? undefined : () => removeNode(node.id)}
+          disabled={isReadOnly}
+        >
           {t('inspector.deleteNode')}
         </button>
       </header>
@@ -130,6 +137,7 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
           placeholder={resolveNodeDefinitionDisplayName(definition, primaryLanguage, secondaryLanguage)}
           value={node.label ?? ''}
           onChange={handleLabelChange}
+          readOnly={isReadOnly}
         />
         <div className="inspector__hint">{t('inspector.instanceName.hint')}</div>
       </section>
@@ -149,6 +157,7 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
                     dataPort.defaultValue === undefined ? t('common.unset') : String(dataPort.defaultValue)
                   }
                   onChange={handleOverrideChange(node.id)(dataPort)}
+                  readOnly={isReadOnly}
                 />
               </label>
             );
@@ -182,6 +191,7 @@ const NodeInspector = ({ collapsed, onToggle }: NodeInspectorProps) => {
                       setSelectedComment(comment.id);
                     }}
                     onChange={handleCommentTextChange(comment.id)}
+                    readOnly={isReadOnly}
                   />
                   {comment.pinned && <span className="inspector__comment-pin">📌</span>}
                 </li>

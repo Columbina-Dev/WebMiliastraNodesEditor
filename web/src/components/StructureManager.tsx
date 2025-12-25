@@ -20,6 +20,7 @@ import {
   type StructDocument,
   type StructEntry,
   type StructKind,
+  type StructManifestEntry,
   type StructParamType,
   type StructValue,
   type StructDictValuePayload,
@@ -47,6 +48,7 @@ interface StructureManagerProps {
   projectDocument: ProjectDocument | null;
   dirtyStructIds: Record<string, true>;
   onRequestSave: () => boolean;
+  isReadOnly?: boolean;
 }
 
 type ContextMenuState =
@@ -513,19 +515,59 @@ const createDraftFingerprint = (
     draft: doc,
   });
 
-const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: StructureManagerProps) => {
+const StructureManager = ({
+  projectDocument,
+  dirtyStructIds,
+  onRequestSave,
+  isReadOnly = false,
+}: StructureManagerProps) => {
   const { t } = useI18n();
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
   const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
     defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
     ? defaultGroupNameLabelRaw
     : DEFAULT_STRUCT_GROUP_NAME;
-  const updateDocument = useProjectStore((state) => state.updateDocument);
-  const setStructDocument = useProjectStore((state) => state.setStructDocument);
-  const setStructManifestEntry = useProjectStore((state) => state.setStructManifestEntry);
-  const removeStructManifestEntry = useProjectStore((state) => state.removeStructManifestEntry);
-  const markStructDirty = useProjectStore((state) => state.markStructDirty);
+  const updateDocumentBase = useProjectStore((state) => state.updateDocument);
+  const setStructDocumentBase = useProjectStore((state) => state.setStructDocument);
+  const setStructManifestEntryBase = useProjectStore((state) => state.setStructManifestEntry);
+  const removeStructManifestEntryBase = useProjectStore((state) => state.removeStructManifestEntry);
+  const markStructDirtyBase = useProjectStore((state) => state.markStructDirty);
   const setStructSaveValidator = useProjectStore((state) => state.setStructSaveValidator);
+  const updateDocument = useCallback(
+    (updater: (draftDoc: ProjectDocument) => void) => {
+      if (isReadOnly) return;
+      updateDocumentBase(updater);
+    },
+    [isReadOnly, updateDocumentBase],
+  );
+  const setStructDocument = useCallback(
+    (structId: string, doc: StructDocument) => {
+      if (isReadOnly) return;
+      setStructDocumentBase(structId, doc);
+    },
+    [isReadOnly, setStructDocumentBase],
+  );
+  const setStructManifestEntry = useCallback(
+    (entry: StructManifestEntry) => {
+      if (isReadOnly) return;
+      setStructManifestEntryBase(entry);
+    },
+    [isReadOnly, setStructManifestEntryBase],
+  );
+  const removeStructManifestEntry = useCallback(
+    (structId: string) => {
+      if (isReadOnly) return;
+      removeStructManifestEntryBase(structId);
+    },
+    [isReadOnly, removeStructManifestEntryBase],
+  );
+  const markStructDirty = useCallback(
+    (structId: string, dirty: boolean) => {
+      if (isReadOnly) return;
+      markStructDirtyBase(structId, dirty);
+    },
+    [isReadOnly, markStructDirtyBase],
+  );
 
   const [activeKind, setActiveKind] = useState<StructKind>('basic');
   const [selectedGroupByKind, setSelectedGroupByKind] = useState<Record<StructKind, string>>({
@@ -808,6 +850,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   const applyDraftUpdate = useCallback(
     (updater: (doc: StructDocument) => StructDocument) => {
+      if (isReadOnly) return;
       setDraft((current) => {
         if (!current) return current;
         const next = updater(cloneStruct(current));
@@ -815,28 +858,31 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         return next;
       });
     },
-    [pushHistory],
+    [isReadOnly, pushHistory],
   );
 
   const handleUndo = useCallback(() => {
+    if (isReadOnly) return;
     const prev = historyRef.current;
     if (!prev.length || !draft) return;
     const previous = prev[prev.length - 1];
     historyRef.current = prev.slice(0, -1);
     futureRef.current = [draft, ...futureRef.current].slice(0, HISTORY_LIMIT);
     setDraft(previous);
-  }, [draft]);
+  }, [draft, isReadOnly]);
 
   const handleRedo = useCallback(() => {
+    if (isReadOnly) return;
     const future = futureRef.current;
     if (!future.length || !draft) return;
     const [next, ...rest] = future;
     futureRef.current = rest;
     historyRef.current = [...historyRef.current, draft].slice(-HISTORY_LIMIT);
     setDraft(next);
-  }, [draft]);
+  }, [draft, isReadOnly]);
 
   useEffect(() => {
+    if (isReadOnly) return;
     const handleKey = (event: KeyboardEvent) => {
       if (event.ctrlKey || event.metaKey) {
         if (event.key === 'z' || event.key === 'Z') {
@@ -851,7 +897,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     };
     window.addEventListener('keydown', handleKey);
     return () => window.removeEventListener('keydown', handleKey);
-  }, [handleRedo, handleUndo]);
+  }, [handleRedo, handleUndo, isReadOnly]);
 
   useEffect(
     () => () => {
@@ -876,6 +922,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   );
 
   const handleSaveAll = useCallback(() => {
+    if (isReadOnly) return false;
     const errors = collectValidationErrors();
     if (errors.length) {
       setValidationDialog(errors);
@@ -883,9 +930,10 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     }
     const saved = onRequestSave();
     return saved !== false;
-  }, [collectValidationErrors, onRequestSave]);
+  }, [collectValidationErrors, isReadOnly, onRequestSave]);
 
   useEffect(() => {
+    if (isReadOnly) return;
     const handleSaveShortcut = (event: KeyboardEvent) => {
       if (!event.ctrlKey && !event.metaKey) return;
       if (event.key !== 's' && event.key !== 'S') return;
@@ -896,7 +944,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     };
     window.addEventListener('keydown', handleSaveShortcut, { capture: true });
     return () => window.removeEventListener('keydown', handleSaveShortcut, { capture: true });
-  }, [handleSaveAll]);
+  }, [handleSaveAll, isReadOnly]);
 
   useEffect(() => {
     const validator = () => handleSaveAll();
@@ -941,6 +989,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   ]);
 
   const handleCreateStruct = useCallback(() => {
+    if (isReadOnly) return;
     const structId = createStructId();
     const targetGroup = selectedGroup || DEFAULT_STRUCT_GROUP_SLUG;
     const structDoc: StructDocument = {
@@ -972,6 +1021,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   }, [
     activeKind,
     groupMap,
+    isReadOnly,
     markStructDirty,
     selectedGroup,
     setStructDocument,
@@ -990,6 +1040,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   const handleDeleteStruct = useCallback(
     (structId: string) => {
+      if (isReadOnly) return;
       if (!projectDocument) return;
       removeStructManifestEntry(structId);
       if (projectDocument.structs?.[structId]) {
@@ -1003,11 +1054,12 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         setDraft(null);
       }
     },
-    [projectDocument, removeStructManifestEntry, selectedStructId, updateDocument],
+    [isReadOnly, projectDocument, removeStructManifestEntry, selectedStructId, updateDocument],
   );
 
   const handleRenameStruct = useCallback(
     (name: string) => {
+      if (isReadOnly) return;
       const trimmed = name.trim();
       if (!draft) return;
       if (!trimmed) {
@@ -1017,24 +1069,27 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       applyDraftUpdate((doc) => ({ ...doc, name: trimmed }));
       setStructNameInput(trimmed);
     },
-    [applyDraftUpdate, draft],
+    [applyDraftUpdate, draft, isReadOnly],
   );
 
   const handleCreateGroup = useCallback(() => {
+    if (isReadOnly) return;
     setGroupDialog({ mode: 'create' });
     setGroupNameInput('');
-  }, []);
+  }, [isReadOnly]);
 
   const handleRenameGroup = useCallback(
     (groupSlug: string) => {
+      if (isReadOnly) return;
       setGroupDialog({ mode: 'rename', target: groupSlug });
       setGroupNameInput(groupMap.get(groupSlug)?.groupName ?? '');
     },
-    [groupMap],
+    [groupMap, isReadOnly],
   );
 
   const handleDeleteGroup = useCallback(
     (groupSlug: string) => {
+      if (isReadOnly) return;
       if (groupSlug === DEFAULT_STRUCT_GROUP_SLUG) return;
       updateDocument((draftDoc) => {
         ensureStructManifestGroups(draftDoc.manifest);
@@ -1065,7 +1120,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         updateSelectedGroup(DEFAULT_STRUCT_GROUP_SLUG);
       }
     },
-    [activeKind, selectedGroup, updateDocument, updateSelectedGroup],
+    [activeKind, isReadOnly, selectedGroup, updateDocument, updateSelectedGroup],
   );
 
   const handleExportGroup = useCallback(
@@ -1135,6 +1190,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   }, [draft]);
 
   const handlePasteStruct = useCallback(() => {
+    if (isReadOnly) return;
     if (!clipboard || !selectedStructId) return;
     const currentName = draft?.name;
     applyDraftUpdate(() => {
@@ -1145,7 +1201,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
       };
       return currentName ? { ...sanitized, name: currentName } : sanitized;
     });
-  }, [activeKind, applyDraftUpdate, clipboard, draft?.name, selectedStructId]);
+  }, [activeKind, applyDraftUpdate, clipboard, draft?.name, isReadOnly, selectedStructId]);
 
   const handleExportVariables = useCallback(() => {
     if (!draft) return;
@@ -1175,11 +1231,16 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   }, [activeKind, draft, selectedStructEntry]);
 
   const handleImportVariables = useCallback(() => {
+    if (isReadOnly) return;
     importStructInputRef.current?.click();
-  }, []);
+  }, [isReadOnly]);
 
   const handleImportVariablesFile = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) {
+        event.target.value = '';
+        return;
+      }
       const file = event.target.files?.[0];
       if (!file || !draft) return;
       try {
@@ -1203,11 +1264,15 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         event.target.value = '';
       }
     },
-    [activeKind, applyDraftUpdate, draft, selectedStructEntry, setInfoDialog, t],
+    [activeKind, applyDraftUpdate, draft, isReadOnly, selectedStructEntry, setInfoDialog, t],
   );
 
   const handleImportStructs = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) {
+        event.target.value = '';
+        return;
+      }
       const files = Array.from(event.target.files ?? []);
       event.target.value = '';
       if (!files.length) return;
@@ -1250,6 +1315,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     [
       activeKind,
       groupMap,
+      isReadOnly,
       markStructDirty,
       selectedGroup,
       setInfoDialog,
@@ -1261,6 +1327,10 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
   const handleImportGroupZip = useCallback(
     async (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) {
+        event.target.value = '';
+        return;
+      }
       const file = event.target.files?.[0];
       event.target.value = '';
       if (!file) return;
@@ -1388,6 +1458,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     },
     [
       activeKind,
+      isReadOnly,
       markStructDirty,
       projectDocument,
       setInfoDialog,
@@ -1625,6 +1696,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
   }, []);
 
   const handleGroupDrop = (event: DragEvent<HTMLButtonElement>, targetSlug: string) => {
+    if (isReadOnly) return;
     event.preventDefault();
     const source = dropInfoRef.current;
     dropInfoRef.current = null;
@@ -1660,6 +1732,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
     targetId: string | null,
     targetGroupSlug: string,
   ) => {
+    if (isReadOnly) return;
     event.preventDefault();
     const source = dropInfoRef.current;
     dropInfoRef.current = null;
@@ -2008,6 +2081,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         multiple
         hidden
         onChange={handleImportStructs}
+        disabled={isReadOnly}
       />
       <input
         ref={importStructInputRef}
@@ -2015,6 +2089,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         accept=".json,application/json"
         hidden
         onChange={handleImportVariablesFile}
+        disabled={isReadOnly}
       />
       <input
         ref={importGroupZipInputRef}
@@ -2022,6 +2097,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         accept=".zip,application/zip"
         hidden
         onChange={handleImportGroupZip}
+        disabled={isReadOnly}
       />
       <div className="structure-manager__sidebar">
         <div className="structure-manager__tabs">
@@ -2048,6 +2124,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
         <div
           className="structure-manager__tree"
           onContextMenu={(event) => {
+            if (isReadOnly) return;
             event.preventDefault();
             const item = (event.target as HTMLElement).closest('[data-tree-type]');
             if (item) {
@@ -2080,12 +2157,22 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                     updateSelectedGroup(group.groupSlug);
                     setExpandedGroups((prev) => ({ ...prev, [group.groupSlug]: !isExpanded }));
                   }}
-                  onDragStart={() => {
-                    dropInfoRef.current = { type: 'group', id: group.groupSlug };
+                  onDragStart={
+                    isReadOnly
+                      ? undefined
+                      : () => {
+                          dropInfoRef.current = { type: 'group', id: group.groupSlug };
+                        }
+                  }
+                  draggable={!isReadOnly}
+                  onDragOver={(event) => {
+                    if (isReadOnly) return;
+                    event.preventDefault();
                   }}
-                  draggable
-                  onDragOver={(event) => event.preventDefault()}
-                  onDrop={(event) => handleGroupDrop(event, group.groupSlug)}
+                  onDrop={(event) => {
+                    if (isReadOnly) return;
+                    handleGroupDrop(event, group.groupSlug);
+                  }}
                 >
                   <span className="structure-manager__group-arrow">{isExpanded ? '▾' : '▸'}</span>
                   <span className="structure-manager__group-label">
@@ -2116,15 +2203,21 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                           key={entry.structId}
                           data-tree-type="struct"
                           data-tree-id={entry.structId}
-                          draggable
-                          onDragStart={() => {
-                            dropInfoRef.current = { type: 'struct', id: entry.structId };
-                          }}
+                          draggable={!isReadOnly}
+                          onDragStart={
+                            isReadOnly
+                              ? undefined
+                              : () => {
+                                  dropInfoRef.current = { type: 'struct', id: entry.structId };
+                                }
+                          }
                           onDragOver={(event) => {
+                            if (isReadOnly) return;
                             event.preventDefault();
                             event.stopPropagation();
                           }}
                           onDrop={(event) => {
+                            if (isReadOnly) return;
                             event.preventDefault();
                             event.stopPropagation();
                             handleStructDrop(event, entry.structId, group.groupSlug);
@@ -2147,10 +2240,20 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
           })}
         </div>
         <div className="structure-manager__footer">
-          <button type="button" className="structure-manager__action" onClick={handleCreateStruct}>
+          <button
+            type="button"
+            className="structure-manager__action"
+            onClick={handleCreateStruct}
+            disabled={isReadOnly}
+          >
             {t('structManager.actions.createStruct')}
           </button>
-          <button type="button" className="structure-manager__action" onClick={handleSaveAll}>
+          <button
+            type="button"
+            className="structure-manager__action"
+            onClick={handleSaveAll}
+            disabled={isReadOnly}
+          >
             <img src={ICON_SAVE} alt="" aria-hidden="true" />
             {t('structManager.actions.applyAll')}
           </button>
@@ -2159,7 +2262,7 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
 
       <div className="structure-manager__editor">
         {draft && selectedStructEntry ? (
-          <>
+          <fieldset className="struct-editor__fieldset" disabled={isReadOnly}>
             <header className="struct-editor__header">
               <div className="struct-editor__title">
                 <input
@@ -2268,17 +2371,23 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                   key={`field-${index}`}
                   className="struct-editor__row"
                   onMouseDown={(event) => event.stopPropagation()}
-                  draggable
+                  draggable={!isReadOnly}
                   onDragStart={(event) => {
+                    if (isReadOnly) return;
                     rowDragIndexRef.current = index;
                     event.dataTransfer?.setData('text/plain', String(index));
                   }}
-                  onDragOver={(event) => event.preventDefault()}
+                  onDragOver={(event) => {
+                    if (isReadOnly) return;
+                    event.preventDefault();
+                  }}
                   onDrop={(event) => {
+                    if (isReadOnly) return;
                     event.preventDefault();
                     handleFieldDrop(index);
                   }}
                   onDragEnd={() => {
+                    if (isReadOnly) return;
                     rowDragIndexRef.current = null;
                   }}
                 >
@@ -2348,13 +2457,13 @@ const StructureManager = ({ projectDocument, dirtyStructIds, onRequestSave }: St
                 </button>
               </div>
             </div>
-          </>
+          </fieldset>
         ) : (
           <div className="struct-editor__empty">{t('structManager.empty')}</div>
         )}
       </div>
 
-      {contextMenu && renderContextMenu()}
+      {!isReadOnly && contextMenu && renderContextMenu()}
 
       {moveTargetStruct && (
         <div

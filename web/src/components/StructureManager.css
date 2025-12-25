@@ -169,6 +169,16 @@
   gap: 12px;
 }
 
+.struct-editor__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .struct-editor__header {
   display: flex;
   justify-content: space-between;

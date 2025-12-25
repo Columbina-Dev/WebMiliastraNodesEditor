@@ -46,7 +46,6 @@ import type { AutoSaveEntry, EditorSettings, LayoutState, StoredProject } from "
 import {
   AUTOSAVE_LIMIT,
   clearAutoSavesForProject,
-  findProjectRecord,
   loadAutoSaveMap,
   loadLayoutState,
   loadProjects,
@@ -107,10 +106,10 @@ const COLLAB_CURSOR_COLORS = [
   '#FF6B6B',
   '#63E6BE',
 ] as const;
-const LOCAL_SHARE_STORAGE_KEY = 'miliastra-editor:collab:localShares';
-const LOCAL_SHARE_CHANNEL = 'miliastra-collab';
-const LOCAL_SHARE_TTL_MS = 12_000;
-const LOCAL_SHARE_PING_MS = 4_000;
+const COLLAB_SIGNAL_PORT = 5174;
+const COLLAB_CLIENT_ID_KEY = 'miliastra-editor:collab:clientId';
+const COLLAB_SIGNAL_RECONNECT_MS = 3000;
+const COLLAB_NETWORK_REFRESH_MS = 8000;
 
 type LightweightDialog = {
   title: string;
@@ -132,11 +131,14 @@ type CollaborationMember = {
   avatar?: string;
   permission: CollaborationPermission;
   isOwner?: boolean;
+  activeTabId?: TabId | null;
 };
 
 type CollaborationRequest = {
   id: string;
+  clientId: string;
   nickname: string;
+  avatar?: string;
   requestedAt: number;
 };
 
@@ -150,7 +152,8 @@ type CollaborationCursor = {
   cursorImage?: string;
 };
 
-type LocalShareEntry = {
+type SignalShareEntry = {
+  roomId: string;
   hostId: string;
   projectId: string;
   name: string;
@@ -158,13 +161,17 @@ type LocalShareEntry = {
   requiresPassword: boolean;
   ownerNickname: string;
   updatedAt: number;
-  password?: string;
 };
 
-type LocalShareBroadcast =
-  | { type: 'share-update'; hostId: string }
-  | { type: 'share-remove'; hostId: string }
-  | { type: 'join-request'; hostId: string; requestId: string; nickname: string };
+type SignalMessage =
+  | { type: 'share:list'; shares: SignalShareEntry[] }
+  | { type: 'join:request'; roomId: string; clientId: string; nickname: string; avatar?: string; password?: string; requestId?: string }
+  | { type: 'join:approved'; roomId: string; hostId: string; permission?: string }
+  | { type: 'join:denied'; roomId: string; reason?: string }
+  | { type: 'client:message'; roomId: string; clientId: string; payload: unknown }
+  | { type: 'room:message'; roomId: string; payload: unknown }
+  | { type: 'room:member-left'; roomId: string; clientId: string }
+  | { type: 'room:closed'; roomId: string };
 
 type ChatMessage = {
   id: string;
@@ -190,32 +197,35 @@ const createCollabId = () => {
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 };
 
-const resolveLocalShareAddress = () => {
+const normalizeCollabPermission = (value?: string): CollaborationPermission =>
+  value === 'viewer' ? 'viewer' : 'editor';
+
+const dedupeCollabMembers = (members: CollaborationMember[]) => {
+  const map = new Map<string, CollaborationMember>();
+  members.forEach((member) => {
+    if (!member?.id) return;
+    const existing = map.get(member.id);
+    map.set(member.id, { ...existing, ...member });
+  });
+  return Array.from(map.values());
+};
+
+const getCollabClientId = () => {
   if (typeof window === 'undefined') {
-    return '127.0.0.1';
+    return createCollabId();
   }
-  const hostname = window.location.hostname;
-  return hostname || '127.0.0.1';
+  const existing = window.localStorage.getItem(COLLAB_CLIENT_ID_KEY);
+  if (existing) return existing;
+  const created = createCollabId();
+  window.localStorage.setItem(COLLAB_CLIENT_ID_KEY, created);
+  return created;
 };
 
-const isLocalShareEntry = (value: unknown): value is LocalShareEntry => {
-  if (!value || typeof value !== 'object') return false;
-  const candidate = value as LocalShareEntry;
-  return (
-    typeof candidate.hostId === 'string' &&
-    typeof candidate.projectId === 'string' &&
-    typeof candidate.name === 'string' &&
-    typeof candidate.address === 'string' &&
-    typeof candidate.requiresPassword === 'boolean' &&
-    typeof candidate.ownerNickname === 'string' &&
-    typeof candidate.updatedAt === 'number' &&
-    (candidate.password === undefined || typeof candidate.password === 'string')
-  );
-};
-
-const sanitizeLocalShareEntries = (value: unknown): LocalShareEntry[] => {
-  if (!Array.isArray(value)) return [];
-  return value.filter(isLocalShareEntry);
+const buildSignalUrl = () => {
+  if (typeof window === 'undefined') return '';
+  const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+  const hostname = window.location.hostname || '127.0.0.1';
+  return `${protocol}://${hostname}:${COLLAB_SIGNAL_PORT}`;
 };
 
 const formatExecutionInterval = (value: number) => {
@@ -323,6 +333,9 @@ const stripAppBase = (pathname: string) => {
   }
   return normalized.startsWith("/") ? normalized : `/${normalized}`;
 };
+
+const isTabId = (value: string): value is TabId =>
+  value === 'structs' || value.startsWith('graph:') || value.startsWith('explorer:');
 
 const isTutorialPath = (path: string) =>
   path === TUTORIAL_BASE_PATH ||
@@ -586,14 +599,23 @@ const App = () => {
   const [collabCursors, setCollabCursors] = useState<CollaborationCursor[]>([]);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [collabDisconnectReason, setCollabDisconnectReason] = useState<string | null>(null);
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatDraft, setChatDraft] = useState('');
   const [lastChatReadAt, setLastChatReadAt] = useState(() => Date.now());
   const chatPanelRef = useRef<HTMLDivElement | null>(null);
-  const hostIdRef = useRef<string>(createCollabId());
-  const shareChannelRef = useRef<BroadcastChannel | null>(null);
-  const [networkProjects, setNetworkProjects] = useState<NetworkProject[]>([]);
+  const clientIdRef = useRef<string>(getCollabClientId());
+  const [signalStatus, setSignalStatus] = useState<'disconnected' | 'connecting' | 'connected'>('connecting');
+  const signalSocketRef = useRef<WebSocket | null>(null);
+  const reconnectTimeoutRef = useRef<number | null>(null);
+  const handleSignalMessageRef = useRef<(message: SignalMessage) => void>(() => undefined);
+  const [signalShares, setSignalShares] = useState<SignalShareEntry[]>([]);
+  const [collabRoomId, setCollabRoomId] = useState<string | null>(null);
+  const [pendingJoinRoomId, setPendingJoinRoomId] = useState<string | null>(null);
+  const collabModeRef = useRef<CollaborationMode>(collabMode);
+  const collabRoomIdRef = useRef<string | null>(collabRoomId);
+  const pendingJoinRoomIdRef = useRef<string | null>(pendingJoinRoomId);
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
   const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
     defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
@@ -603,131 +625,115 @@ const App = () => {
   const isCollaborating = collabMode !== 'idle';
   const shareReadOnly = collabMode === 'client';
   const ownerNicknameValue = collabOwnerNickname || localNickname;
+  const localMemberPermission: CollaborationPermission =
+    collabMode === 'client' ? collabPermission : 'editor';
   const localMember: CollaborationMember = {
-    id: 'local',
+    id: clientIdRef.current,
     nickname: localNickname,
     avatar: localAvatar,
-    permission: collabPermission,
-    isOwner: collabMode !== 'client',
+    permission: localMemberPermission,
+    isOwner: collabMode === 'host',
+    activeTabId: activeTabId ?? null,
   };
-  const ownerMember: CollaborationMember = collabMode === 'client'
-    ? {
-      id: 'remote-owner',
-      nickname: ownerNicknameValue,
-      avatar: undefined,
-      permission: 'editor',
-      isOwner: true,
+  const presenceMembers = useMemo(() => {
+    if (!isCollaborating) return [localMember];
+    const map = new Map<string, CollaborationMember>();
+    map.set(localMember.id, localMember);
+    collabMembers.forEach((member) => {
+      map.set(member.id, member);
+    });
+    return Array.from(map.values());
+  }, [collabMembers, isCollaborating, localMember]);
+  const presenceByTab = useMemo(() => {
+    const map = new Map<TabId, CollaborationMember[]>();
+    presenceMembers.forEach((member) => {
+      if (!member.activeTabId) return;
+      const list = map.get(member.activeTabId) ?? [];
+      list.push(member);
+      map.set(member.activeTabId, list);
+    });
+    return map;
+  }, [presenceMembers]);
+  const isViewer = collabMode === 'client' && collabPermission === 'viewer';
+  const signalConnected = signalStatus === 'connected';
+  const sendSignalMessage = useCallback((payload: Record<string, unknown>) => {
+    const socket = signalSocketRef.current;
+    if (!socket || socket.readyState !== WebSocket.OPEN) {
+      return false;
     }
-    : { ...localMember, isOwner: true };
-  const presenceMembers =
-    collabMode === 'client'
-      ? [ownerMember, localMember, ...collabMembers]
-      : collabMode === 'host'
-        ? [ownerMember, ...collabMembers]
-        : [localMember];
-  const canAnnounceLocalShare =
-    isSharing &&
-    (collabAccessMode === 'local-open' || collabAccessMode === 'local-password') &&
-    collabEditorLimit !== 1;
-  const readLocalShareEntries = useCallback((): LocalShareEntry[] => {
-    if (typeof window === 'undefined') return [];
-    try {
-      const raw = window.localStorage.getItem(LOCAL_SHARE_STORAGE_KEY);
-      if (!raw) return [];
-      return sanitizeLocalShareEntries(JSON.parse(raw));
-    } catch (error) {
-      console.warn('Failed to read local share registry.', error);
-      return [];
-    }
-  }, []);
-  const writeLocalShareEntries = useCallback((entries: LocalShareEntry[]) => {
-    if (typeof window === 'undefined') return;
-    try {
-      window.localStorage.setItem(LOCAL_SHARE_STORAGE_KEY, JSON.stringify(entries));
-    } catch (error) {
-      console.warn('Failed to persist local share registry.', error);
-    }
+    socket.send(JSON.stringify(payload));
+    return true;
   }, []);
   const refreshNetworkProjects = useCallback(() => {
-    const entries = readLocalShareEntries();
-    const now = Date.now();
-    const active = entries.filter((entry) => now - entry.updatedAt <= LOCAL_SHARE_TTL_MS);
-    if (active.length !== entries.length) {
-      writeLocalShareEntries(active);
-    }
-    const sorted = [...active].sort((a, b) => b.updatedAt - a.updatedAt);
-    const mapped = sorted.map((entry) => ({
-      id: entry.hostId,
-      projectId: entry.projectId,
-      name: entry.name,
-      address: entry.address,
-      requiresPassword: entry.requiresPassword,
-      ownerNickname: entry.ownerNickname,
-      password: entry.password,
-      document: entry.projectId === projectId ? projectDocument ?? undefined : undefined,
-    }));
-    setNetworkProjects(mapped);
-  }, [projectDocument, projectId, readLocalShareEntries, writeLocalShareEntries]);
-  const postLocalShareMessage = useCallback((payload: LocalShareBroadcast) => {
-    if (typeof BroadcastChannel === 'undefined') return;
-    const channel = shareChannelRef.current ?? new BroadcastChannel(LOCAL_SHARE_CHANNEL);
-    channel.postMessage(payload);
-    if (channel !== shareChannelRef.current) {
-      channel.close();
-    }
-  }, []);
-  const upsertLocalShareEntry = useCallback(
-    (entry: LocalShareEntry) => {
-      const now = Date.now();
-      const existing = readLocalShareEntries();
-      const next = [
-        entry,
-        ...existing.filter(
-          (item) =>
-            item.hostId !== entry.hostId && now - item.updatedAt <= LOCAL_SHARE_TTL_MS,
-        ),
-      ];
-      writeLocalShareEntries(next);
-      postLocalShareMessage({ type: 'share-update', hostId: entry.hostId });
-      refreshNetworkProjects();
-    },
-    [postLocalShareMessage, readLocalShareEntries, refreshNetworkProjects, writeLocalShareEntries],
-  );
-  const removeLocalShareEntry = useCallback(
-    (hostId: string) => {
-      const existing = readLocalShareEntries();
-      const next = existing.filter((entry) => entry.hostId !== hostId);
-      if (next.length !== existing.length) {
-        writeLocalShareEntries(next);
-        postLocalShareMessage({ type: 'share-remove', hostId });
+    sendSignalMessage({
+      type: 'hello',
+      clientId: clientIdRef.current,
+      nickname: localNickname,
+      avatar: localAvatar,
+    });
+  }, [localAvatar, localNickname, sendSignalMessage]);
+  const leaveCollaboratorSession = useCallback(
+    (reasonKey?: string) => {
+      if (collabModeRef.current !== 'client') return;
+      const roomId = collabRoomIdRef.current;
+      if (roomId) {
+        sendSignalMessage({
+          type: 'room:leave',
+          roomId,
+          clientId: clientIdRef.current,
+        });
       }
-      refreshNetworkProjects();
+      if (reasonKey) {
+        setCollabDisconnectReason(reasonKey);
+      }
+      collabModeRef.current = 'idle';
+      collabRoomIdRef.current = null;
+      pendingJoinRoomIdRef.current = null;
+      setCollabMode('idle');
+      setCollabRoomId(null);
+      setPendingJoinRoomId(null);
+      resetProjectStore();
+      resetGraphStore({ graphId: createProjectId() });
+      autoSaveFingerprintRef.current = null;
+      graphFingerprintRef.current.clear();
+      if (typeof window !== 'undefined') {
+        window.history.replaceState({ view: 'home' }, '', buildAppPath('/'));
+      }
+      setTutorialRoute({ kind: 'landing' });
+      setNotFoundPath(null);
+      setView('home');
+      updateSessionState((prev) => ({ ...prev, lastVisitedView: 'home' }));
     },
-    [postLocalShareMessage, readLocalShareEntries, refreshNetworkProjects, writeLocalShareEntries],
+    [
+      resetProjectStore,
+      resetGraphStore,
+      sendSignalMessage,
+      setNotFoundPath,
+      setTutorialRoute,
+      setView,
+      updateSessionState,
+    ],
   );
-  const announceLocalShare = useCallback(() => {
-    if (!canAnnounceLocalShare) return;
-    const entry: LocalShareEntry = {
-      hostId: hostIdRef.current,
-      projectId: projectId || 'local-share',
-      name: shareTargetName || defaultProjectName,
-      address: resolveLocalShareAddress(),
-      requiresPassword: collabAccessMode === 'local-password',
-      ownerNickname: ownerNicknameValue,
-      updatedAt: Date.now(),
-      password: collabAccessMode === 'local-password' ? collabPassword : undefined,
-    };
-    upsertLocalShareEntry(entry);
-  }, [
-    canAnnounceLocalShare,
-    collabAccessMode,
-    collabPassword,
-    defaultProjectName,
-    ownerNicknameValue,
-    projectId,
-    shareTargetName,
-    upsertLocalShareEntry,
-  ]);
+  const networkProjects = useMemo<NetworkProject[]>(
+    () =>
+      signalShares.map((entry) => ({
+        id: entry.roomId,
+        roomId: entry.roomId,
+        hostId: entry.hostId,
+        projectId: entry.projectId,
+        name: entry.name || defaultProjectName,
+        address: entry.address || '127.0.0.1',
+        requiresPassword: entry.requiresPassword,
+        ownerNickname: entry.ownerNickname,
+      })),
+    [defaultProjectName, signalShares],
+  );
+  useEffect(() => {
+    if (view !== 'home' || !signalConnected) return;
+    refreshNetworkProjects();
+    const intervalId = window.setInterval(refreshNetworkProjects, COLLAB_NETWORK_REFRESH_MS);
+    return () => window.clearInterval(intervalId);
+  }, [refreshNetworkProjects, signalConnected, view]);
   const effectiveEditorLimit =
     collabEditorLimit === 0 ? MAX_COLLAB_MEMBERS : Math.min(MAX_COLLAB_MEMBERS, collabEditorLimit);
   const currentMemberCount = (isSharing ? 1 : 0) + collabMembers.length;
@@ -780,6 +786,11 @@ const App = () => {
       setCollabRequests([]);
       setCollabCursors([]);
       setShareError(null);
+      setChatMessages([]);
+      setPendingJoinRoomId(null);
+      setCollabRoomId(null);
+      pendingJoinRoomIdRef.current = null;
+      collabRoomIdRef.current = null;
     }
   }, [collabMode]);
   useEffect(() => {
@@ -788,63 +799,97 @@ const App = () => {
     }
   }, [chatMessages, isChatOpen]);
   useEffect(() => {
-    if (typeof BroadcastChannel === 'undefined') return;
-    const channel = new BroadcastChannel(LOCAL_SHARE_CHANNEL);
-    shareChannelRef.current = channel;
-    const handleMessage = (event: MessageEvent) => {
-      const payload = event.data as LocalShareBroadcast | null;
-      if (!payload || typeof payload !== 'object' || !('type' in payload)) return;
-      if (payload.type === 'join-request') {
-        if (isSharing && payload.hostId === hostIdRef.current) {
-          setCollabRequests((prev) => {
-            if (prev.some((item) => item.id === payload.requestId)) {
-              return prev;
-            }
-            return [
-              ...prev,
-              { id: payload.requestId, nickname: payload.nickname, requestedAt: Date.now() },
-            ];
-          });
-        }
-        return;
-      }
-      if (payload.type === 'share-update' || payload.type === 'share-remove') {
-        refreshNetworkProjects();
-      }
-    };
-    channel.addEventListener('message', handleMessage);
-    return () => {
-      channel.removeEventListener('message', handleMessage);
-      channel.close();
-      if (shareChannelRef.current === channel) {
-        shareChannelRef.current = null;
-      }
-    };
-  }, [isSharing, refreshNetworkProjects]);
+    collabModeRef.current = collabMode;
+  }, [collabMode]);
   useEffect(() => {
-    refreshNetworkProjects();
+    collabRoomIdRef.current = collabRoomId;
+  }, [collabRoomId]);
+  useEffect(() => {
+    pendingJoinRoomIdRef.current = pendingJoinRoomId;
+  }, [pendingJoinRoomId]);
+  useEffect(() => {
+    if (!signalConnected) return;
+    sendSignalMessage({
+      type: 'profile:update',
+      clientId: clientIdRef.current,
+      nickname: localNickname,
+      avatar: localAvatar,
+    });
+  }, [localAvatar, localNickname, sendSignalMessage, signalConnected]);
+  useEffect(() => {
     if (typeof window === 'undefined') return;
-    const handleStorage = (event: StorageEvent) => {
-      if (event.key === LOCAL_SHARE_STORAGE_KEY) {
-        refreshNetworkProjects();
+    const url = buildSignalUrl();
+    if (!url) return;
+    let cancelled = false;
+
+    const connect = () => {
+      if (cancelled) return;
+      setSignalStatus('connecting');
+      const socket = new WebSocket(url);
+      signalSocketRef.current = socket;
+
+      socket.addEventListener('open', () => {
+        setSignalStatus('connected');
+        socket.send(
+          JSON.stringify({
+            type: 'hello',
+            clientId: clientIdRef.current,
+            nickname: localNickname,
+            avatar: localAvatar,
+          }),
+        );
+      });
+
+      socket.addEventListener('message', (event) => {
+        let message;
+        try {
+          message = JSON.parse(String(event.data));
+        } catch {
+          return;
+        }
+        if (!message || typeof message.type !== 'string') return;
+        handleSignalMessageRef.current(message as SignalMessage);
+      });
+
+      socket.addEventListener('close', () => {
+        if (signalSocketRef.current === socket) {
+          signalSocketRef.current = null;
+        }
+        setSignalStatus('disconnected');
+        setSignalShares([]);
+        if (collabModeRef.current === 'client') {
+          leaveCollaboratorSession('collab.disconnect.owner');
+        } else if (collabModeRef.current === 'host') {
+          setCollabMode('idle');
+          setCollabRoomId(null);
+        }
+        if (!cancelled) {
+          if (reconnectTimeoutRef.current) {
+            window.clearTimeout(reconnectTimeoutRef.current);
+          }
+          reconnectTimeoutRef.current = window.setTimeout(connect, COLLAB_SIGNAL_RECONNECT_MS);
+        }
+      });
+
+      socket.addEventListener('error', () => {
+        socket.close();
+      });
+    };
+
+    connect();
+
+    return () => {
+      cancelled = true;
+      if (reconnectTimeoutRef.current) {
+        window.clearTimeout(reconnectTimeoutRef.current);
+        reconnectTimeoutRef.current = null;
+      }
+      if (signalSocketRef.current) {
+        signalSocketRef.current.close();
+        signalSocketRef.current = null;
       }
     };
-    window.addEventListener('storage', handleStorage);
-    const interval = window.setInterval(refreshNetworkProjects, LOCAL_SHARE_PING_MS);
-    return () => {
-      window.removeEventListener('storage', handleStorage);
-      window.clearInterval(interval);
-    };
-  }, [refreshNetworkProjects]);
-  useEffect(() => {
-    if (!canAnnounceLocalShare) {
-      removeLocalShareEntry(hostIdRef.current);
-      return;
-    }
-    announceLocalShare();
-    const interval = window.setInterval(announceLocalShare, LOCAL_SHARE_PING_MS);
-    return () => window.clearInterval(interval);
-  }, [announceLocalShare, canAnnounceLocalShare, removeLocalShareEntry]);
+  }, []);
 
   const [history, setHistory] = useState<StoredProject[]>(() => loadProjects());
   const [panelState, setPanelState] = useState<LayoutState>(() => loadLayoutState());
@@ -903,6 +948,11 @@ const App = () => {
     },
     [setGilDialog, t],
   );
+  useEffect(() => {
+    if (!collabDisconnectReason) return;
+    openInfoDialog(t('common.info'), t(collabDisconnectReason));
+    setCollabDisconnectReason(null);
+  }, [collabDisconnectReason, openInfoDialog, t]);
   const ensureImportVersionSafe = useCallback(
     async (incomingVersion?: string) => {
       const currentVersion = VERSION_INFO.editor;
@@ -1022,8 +1072,9 @@ const App = () => {
   }, []);
 
   const handleExecutionIntervalInputChange = useCallback((value: string) => {
+    if (isViewer) return;
     setExecutionIntervalInput(value);
-  }, []);
+  }, [isViewer]);
 
   const restoreExecutionIntervalInput = useCallback(() => {
     if (shouldShowExecutionInterval && typeof executionIntervalSeconds === 'number') {
@@ -1034,6 +1085,7 @@ const App = () => {
   }, [executionIntervalSeconds, shouldShowExecutionInterval]);
 
   const commitExecutionInterval = useCallback(() => {
+    if (isViewer) return;
     if (!shouldShowExecutionInterval) return;
     const trimmed = executionIntervalInput.trim();
     if (!trimmed.length) {
@@ -1048,6 +1100,7 @@ const App = () => {
     setExecutionIntervalSeconds(parsed);
   }, [
     executionIntervalInput,
+    isViewer,
     restoreExecutionIntervalInput,
     setExecutionIntervalSeconds,
     shouldShowExecutionInterval,
@@ -1145,13 +1198,14 @@ const App = () => {
   );
 
   const handleCommentToggle = useCallback(() => {
+    if (isViewer) return;
     if (commentMode === "selecting") {
       setCommentMode("inactive");
       setSelectedComment(undefined);
     } else {
       setCommentMode("selecting");
     }
-  }, [commentMode, setCommentMode, setSelectedComment]);
+  }, [commentMode, isViewer, setCommentMode, setSelectedComment]);
 
   const refreshHistory = useCallback(() => {
     setHistory(loadProjects());
@@ -1256,6 +1310,9 @@ const App = () => {
 
   const handleOpenProjectInfo = useCallback(() => {
     setOpenMenu(null);
+    if (isViewer) {
+      return;
+    }
     if (!projectDocument || !projectId) {
       openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       return;
@@ -1264,11 +1321,15 @@ const App = () => {
       name: projectDocument.manifest.project.name || projectName || defaultProjectName,
       error: null,
     });
-  }, [defaultProjectName, openInfoDialog, projectDocument, projectId, projectName, t]);
+  }, [defaultProjectName, isViewer, openInfoDialog, projectDocument, projectId, projectName, t]);
 
-  const handleProjectInfoNameChange = useCallback((value: string) => {
-    setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
-  }, []);
+  const handleProjectInfoNameChange = useCallback(
+    (value: string) => {
+      if (isViewer) return;
+      setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
+    },
+    [isViewer],
+  );
 
   const handleProjectInfoCancel = useCallback(() => {
     setProjectInfoDialog(null);
@@ -1276,6 +1337,10 @@ const App = () => {
 
   const handleProjectInfoConfirm = useCallback(() => {
     if (!projectInfoDialog) return;
+    if (isViewer) {
+      setProjectInfoDialog(null);
+      return;
+    }
     if (!projectDocument || !projectId) {
       openInfoDialog(t('common.info'), t('common.noProjectOpen'));
       setProjectInfoDialog(null);
@@ -1315,6 +1380,7 @@ const App = () => {
   }, [
     defaultProjectName,
     history,
+    isViewer,
     openInfoDialog,
     projectDocument,
     projectId,
@@ -1490,35 +1556,30 @@ const App = () => {
   const handleJoinNetworkProject = useCallback(
     (project: NetworkProject, nickname: string, password?: string) => {
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
-      const targetProjectId = project.projectId ?? project.id;
-      if (project.requiresPassword) {
-        const expectedPassword = project.password ?? collabPassword;
-        if (!expectedPassword || password !== expectedPassword) {
-          openInfoDialog(t('common.error'), t('collab.join.password.invalid'));
-          return;
-        }
-      }
-      const resolvedDocument = project.document ?? findProjectRecord(targetProjectId)?.document;
-      if (!resolvedDocument) {
-        openInfoDialog(t('common.error'), t('collab.join.projectMissing'));
+      if (!signalConnected) {
+        openInfoDialog(t('common.error'), t('collab.signal.offline'));
         return;
       }
-      const { document: prepared, primaryGraphId, warnings } = prepareProjectDocument(
-        resolvedDocument,
-      );
-      applyProjectDocument(prepared, primaryGraphId);
-      if (warnings.length) {
-        console.warn('Collaboration project normalization warnings:', warnings);
-      }
+      const roomId = project.roomId ?? project.id;
+      setPendingJoinRoomId(roomId);
+      pendingJoinRoomIdRef.current = roomId;
       setCollabOwnerNickname(project.ownerNickname ?? cleanedNickname);
-      setCollabMode('client');
+      sendSignalMessage({
+        type: 'join:request',
+        roomId,
+        clientId: clientIdRef.current,
+        nickname: cleanedNickname,
+        avatar: localAvatar,
+        password: password?.trim() || undefined,
+        requestId: createCollabId(),
+      });
     },
     [
-      applyProjectDocument,
-      collabPassword,
+      localAvatar,
       localNickname,
       openInfoDialog,
-      prepareProjectDocument,
+      sendSignalMessage,
+      signalConnected,
       t,
     ],
   );
@@ -1526,22 +1587,24 @@ const App = () => {
   const handleSendJoinRequest = useCallback(
     (project: NetworkProject, nickname: string) => {
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
-      const requestId = createCollabId();
-      postLocalShareMessage({
-        type: 'join-request',
-        hostId: project.id,
-        requestId,
-        nickname: cleanedNickname,
-      });
-      const targetProjectId = project.projectId ?? project.id;
-      if (isSharing && targetProjectId === projectId && hostIdRef.current === project.id) {
-        setCollabRequests((prev) => [
-          ...prev,
-          { id: requestId, nickname: cleanedNickname, requestedAt: Date.now() },
-        ]);
+      if (!signalConnected) {
+        openInfoDialog(t('common.error'), t('collab.signal.offline'));
+        return;
       }
+      const roomId = project.roomId ?? project.id;
+      setPendingJoinRoomId(roomId);
+      pendingJoinRoomIdRef.current = roomId;
+      setCollabOwnerNickname(project.ownerNickname ?? cleanedNickname);
+      sendSignalMessage({
+        type: 'join:request',
+        roomId,
+        clientId: clientIdRef.current,
+        nickname: cleanedNickname,
+        avatar: localAvatar,
+        requestId: createCollabId(),
+      });
     },
-    [isSharing, localNickname, postLocalShareMessage, projectId],
+    [localAvatar, localNickname, openInfoDialog, sendSignalMessage, signalConnected, t],
   );
 
   const handleProjectFileChange = useCallback(
@@ -1684,6 +1747,18 @@ const App = () => {
     const sharingEnabled = collabAccessMode !== 'restricted' && collabEditorLimit !== 1;
     if (!sharingEnabled) {
       if (isSharing) {
+        if (collabRoomId) {
+          sendSignalMessage({
+            type: 'room:message',
+            roomId: collabRoomId,
+            payload: { type: 'session:end' },
+          });
+          sendSignalMessage({
+            type: 'share:remove',
+            roomId: collabRoomId,
+            hostId: clientIdRef.current,
+          });
+        }
         setCollabMode('idle');
         setIsShareOpen(false);
       } else {
@@ -1692,6 +1767,10 @@ const App = () => {
       return;
     }
     if (!isSharing) {
+      if (!signalConnected) {
+        setShareError(t('collab.signal.offline'));
+        return;
+      }
       const downloaded = await exportProjectZip();
       if (!downloaded) {
         return;
@@ -1701,14 +1780,22 @@ const App = () => {
         setShareError(t('collab.share.saveRequired'));
         return;
       }
+      const nextRoomId = `${projectId ?? 'project'}:${clientIdRef.current}`;
+      collabRoomIdRef.current = nextRoomId;
+      collabModeRef.current = 'host';
+      setCollabRoomId(nextRoomId);
       setCollabMode('host');
     }
   }, [
     collabAccessMode,
     collabEditorLimit,
+    collabRoomId,
     exportProjectZip,
     isSharing,
     performProjectSave,
+    projectId,
+    sendSignalMessage,
+    signalConnected,
     shareReadOnly,
     t,
   ]);
@@ -1728,37 +1815,159 @@ const App = () => {
     setCollabEditorLimit(clamped);
   };
 
+  const upsertCollabMember = useCallback((member: Partial<CollaborationMember> & { id: string }) => {
+    setCollabMembers((prev) => {
+      const map = new Map(prev.map((item) => [item.id, item]));
+      const existing = map.get(member.id);
+      const nickname = member.nickname ?? existing?.nickname;
+      const permission = member.permission ?? existing?.permission;
+      if (!nickname || !permission) {
+        return prev;
+      }
+      const merged: CollaborationMember = {
+        id: member.id,
+        nickname,
+        permission,
+        avatar: member.avatar ?? existing?.avatar,
+        isOwner: member.isOwner ?? existing?.isOwner,
+        activeTabId: member.activeTabId ?? existing?.activeTabId,
+      };
+      map.set(member.id, merged);
+      return Array.from(map.values());
+    });
+  }, []);
+
+  const removeCollabMember = useCallback((memberId: string) => {
+    setCollabMembers((prev) => prev.filter((member) => member.id !== memberId));
+  }, []);
+
+  const buildMembersSnapshot = useCallback(() => {
+    const owner: CollaborationMember = {
+      id: clientIdRef.current,
+      nickname: ownerNicknameValue,
+      avatar: localAvatar,
+      permission: 'editor',
+      isOwner: true,
+      activeTabId: activeTabId ?? null,
+    };
+    return [owner, ...collabMembers];
+  }, [activeTabId, collabMembers, localAvatar, ownerNicknameValue]);
+
+  const sendRoomMessage = useCallback(
+    (payload: Record<string, unknown>, targetId?: string) => {
+      if (collabMode !== 'host' || !collabRoomId) return;
+      sendSignalMessage({
+        type: 'room:message',
+        roomId: collabRoomId,
+        targetId,
+        payload,
+      });
+    },
+    [collabMode, collabRoomId, sendSignalMessage],
+  );
+
+  const sendClientMessage = useCallback(
+    (payload: Record<string, unknown>) => {
+      if (collabMode !== 'client' || !collabRoomId) return;
+      sendSignalMessage({
+        type: 'client:message',
+        roomId: collabRoomId,
+        payload,
+      });
+    },
+    [collabMode, collabRoomId, sendSignalMessage],
+  );
+
+  const approveJoin = useCallback(
+    (clientId: string, nickname: string, avatar?: string) => {
+      if (collabMode !== 'host' || !collabRoomId) return;
+      setCollabRequests((prev) => prev.filter((item) => item.clientId !== clientId));
+      const member: CollaborationMember = {
+        id: clientId,
+        nickname,
+        avatar,
+        permission: collabPermission,
+      };
+      const nextMembers = dedupeCollabMembers([
+        ...collabMembers.filter((item) => item.id !== clientId),
+        member,
+      ]);
+      upsertCollabMember(member);
+      sendSignalMessage({
+        type: 'join:approve',
+        roomId: collabRoomId,
+        clientId,
+        permission: collabPermission,
+      });
+      if (projectDocument) {
+        sendRoomMessage(
+          {
+            type: 'session:init',
+            ownerId: clientIdRef.current,
+            ownerNickname: ownerNicknameValue,
+            permission: collabPermission,
+            members: [buildMembersSnapshot()[0], ...nextMembers],
+            project: projectDocument,
+          },
+          clientId,
+        );
+      }
+      sendRoomMessage({
+        type: 'members:update',
+        members: [buildMembersSnapshot()[0], ...nextMembers],
+      });
+    },
+    [
+      buildMembersSnapshot,
+      collabMembers,
+      collabMode,
+      collabPermission,
+      collabRoomId,
+      ownerNicknameValue,
+      projectDocument,
+      sendRoomMessage,
+      sendSignalMessage,
+      setCollabRequests,
+      upsertCollabMember,
+    ],
+  );
+
   const handleApproveRequest = (requestId: string) => {
-    if (shareReadOnly || !isSharing) return;
+    if (shareReadOnly || !isSharing || !collabRoomId) return;
     setShareError(null);
     if (isAtCapacity) {
       setShareError(t('collab.share.limitReached'));
       return;
     }
-    setCollabRequests((prev) => {
-      const request = prev.find((item) => item.id === requestId);
-      if (!request) return prev;
-      setCollabMembers((members) => [
-        ...members,
-        {
-          id: request.id,
-          nickname: request.nickname,
-          avatar: undefined,
-          permission: collabPermission,
-        },
-      ]);
-      return prev.filter((item) => item.id !== requestId);
-    });
+    const request = collabRequests.find((item) => item.id === requestId);
+    if (!request) return;
+    approveJoin(request.clientId, request.nickname, request.avatar);
+    setCollabRequests((prev) => prev.filter((item) => item.clientId !== request.clientId));
   };
 
   const handleIgnoreRequest = (requestId: string) => {
-    if (shareReadOnly) return;
-    setCollabRequests((prev) => prev.filter((item) => item.id !== requestId));
+    if (shareReadOnly || !collabRoomId) return;
+    const request = collabRequests.find((item) => item.id === requestId);
+    if (request) {
+      sendSignalMessage({
+        type: 'join:deny',
+        roomId: collabRoomId,
+        clientId: request.clientId,
+        reason: 'ignored',
+      });
+    }
+    setCollabRequests((prev) => prev.filter((item) => item.clientId !== request?.clientId));
   };
 
   const handleRemoveMember = (memberId: string) => {
-    if (shareReadOnly) return;
-    setCollabMembers((prev) => prev.filter((member) => member.id !== memberId));
+    if (shareReadOnly || collabMode !== 'host' || !collabRoomId) return;
+    const nextMembers = collabMembers.filter((member) => member.id !== memberId);
+    removeCollabMember(memberId);
+    sendRoomMessage({ type: 'session:end', reason: 'removed' }, memberId);
+    sendRoomMessage({
+      type: 'members:update',
+      members: [buildMembersSnapshot()[0], ...nextMembers],
+    });
   };
 
   const handleChatSubmit = (event: FormEvent) => {
@@ -1774,9 +1983,301 @@ const App = () => {
       content: trimmed,
       createdAt: Date.now(),
     };
-    setChatMessages((prev) => [...prev, message]);
+    setChatMessages((prev) => {
+      if (prev.some((item) => item.id === message.id)) return prev;
+      return [...prev, message];
+    });
+    if (collabMode === 'host') {
+      sendRoomMessage({ type: 'chat:message', message });
+    } else {
+      sendClientMessage({ type: 'chat:send', message });
+    }
     setChatDraft('');
   };
+
+  useEffect(() => {
+    if (!signalConnected || !collabRoomId) return;
+    if (isSharing && (collabAccessMode === 'local-open' || collabAccessMode === 'local-password') && collabEditorLimit !== 1) {
+      sendSignalMessage({
+        type: 'share:announce',
+        roomId: collabRoomId,
+        hostId: clientIdRef.current,
+        projectId: projectId ?? '',
+        name: shareTargetName || defaultProjectName,
+        requiresPassword: collabAccessMode === 'local-password',
+        ownerNickname: ownerNicknameValue,
+      });
+    } else if (isSharing) {
+      sendSignalMessage({
+        type: 'share:remove',
+        roomId: collabRoomId,
+        hostId: clientIdRef.current,
+      });
+    }
+  }, [
+    collabAccessMode,
+    collabEditorLimit,
+    collabRoomId,
+    defaultProjectName,
+    isSharing,
+    ownerNicknameValue,
+    projectId,
+    sendSignalMessage,
+    shareTargetName,
+    signalConnected,
+  ]);
+
+  useEffect(() => {
+    if (!isSharing || !collabRoomId) return;
+    sendRoomMessage({
+      type: 'members:update',
+      members: buildMembersSnapshot(),
+    });
+  }, [activeTabId, buildMembersSnapshot, collabMembers, collabRoomId, isSharing, sendRoomMessage]);
+
+  useEffect(() => {
+    if (collabMode !== 'client' || !collabRoomId) return;
+    sendClientMessage({
+      type: 'presence:update',
+      activeTabId: activeTabId ?? null,
+    });
+  }, [activeTabId, collabMode, collabRoomId, sendClientMessage]);
+
+  useEffect(() => {
+    handleSignalMessageRef.current = (message: SignalMessage) => {
+      switch (message.type) {
+        case 'share:list': {
+          setSignalShares(Array.isArray(message.shares) ? message.shares : []);
+          return;
+        }
+        case 'join:request': {
+          if (collabModeRef.current !== 'host') return;
+          if (!collabRoomIdRef.current || message.roomId !== collabRoomIdRef.current) return;
+          if (collabAccessMode === 'restricted' || collabEditorLimit === 1) {
+            sendSignalMessage({
+              type: 'join:deny',
+              roomId: message.roomId,
+              clientId: message.clientId,
+              reason: 'restricted',
+            });
+            return;
+          }
+          if (isAtCapacity) {
+            sendSignalMessage({
+              type: 'join:deny',
+              roomId: message.roomId,
+              clientId: message.clientId,
+              reason: 'limit',
+            });
+            return;
+          }
+          const cleanedNickname = sanitizeNickname(message.nickname || '') || localNickname;
+          const requestId = message.requestId || createCollabId();
+          const request: CollaborationRequest = {
+            id: requestId,
+            clientId: message.clientId,
+            nickname: cleanedNickname,
+            avatar: message.avatar,
+            requestedAt: Date.now(),
+          };
+          if (collabAccessMode === 'local-password') {
+            const provided = (message.password ?? '').trim();
+            if (provided) {
+              if (provided === collabPassword) {
+                approveJoin(message.clientId, cleanedNickname, message.avatar);
+              } else {
+                sendSignalMessage({
+                  type: 'join:deny',
+                  roomId: message.roomId,
+                  clientId: message.clientId,
+                  reason: 'password',
+                });
+              }
+            } else {
+              setCollabRequests((prev) => {
+                if (prev.some((item) => item.clientId === message.clientId)) {
+                  return prev;
+                }
+                return [...prev, request];
+              });
+            }
+          } else {
+            approveJoin(message.clientId, cleanedNickname, message.avatar);
+          }
+          return;
+        }
+        case 'join:approved': {
+          if (pendingJoinRoomId && message.roomId !== pendingJoinRoomId) return;
+          setPendingJoinRoomId(null);
+          pendingJoinRoomIdRef.current = null;
+          setCollabRoomId(message.roomId);
+          collabRoomIdRef.current = message.roomId;
+          setCollabPermission(normalizeCollabPermission(message.permission));
+          setCollabMode('client');
+          collabModeRef.current = 'client';
+          return;
+        }
+        case 'join:denied': {
+          if (pendingJoinRoomId && message.roomId === pendingJoinRoomId) {
+            setPendingJoinRoomId(null);
+            pendingJoinRoomIdRef.current = null;
+          }
+          const reasonKey =
+            message.reason === 'password'
+              ? 'collab.join.password.invalid'
+              : 'collab.join.denied';
+          openInfoDialog(t('common.error'), t(reasonKey));
+          return;
+        }
+        case 'client:message': {
+          if (collabModeRef.current !== 'host') return;
+          if (!collabRoomIdRef.current || message.roomId !== collabRoomIdRef.current) return;
+          const payload = message.payload as { type?: string; [key: string]: unknown } | null;
+          if (!payload || typeof payload.type !== 'string') return;
+          if (payload.type === 'chat:send') {
+            const incoming = payload.message as ChatMessage | undefined;
+            if (!incoming) return;
+            const sender = collabMembers.find((item) => item.id === message.clientId);
+            const chatMessage: ChatMessage = {
+              ...incoming,
+              senderId: message.clientId,
+              nickname: sender?.nickname ?? incoming.nickname,
+              avatar: sender?.avatar ?? incoming.avatar,
+              createdAt: incoming.createdAt ?? Date.now(),
+            };
+            setChatMessages((prev) => {
+              if (prev.some((item) => item.id === chatMessage.id)) return prev;
+              return [...prev, chatMessage];
+            });
+            sendRoomMessage({ type: 'chat:message', message: chatMessage });
+            return;
+          }
+          if (payload.type === 'presence:update') {
+            const activeTabId =
+              typeof payload.activeTabId === 'string' && isTabId(payload.activeTabId)
+                ? payload.activeTabId
+                : null;
+            upsertCollabMember({
+              id: message.clientId,
+              activeTabId,
+            });
+          }
+          return;
+        }
+        case 'room:member-left': {
+          if (collabModeRef.current !== 'host') return;
+          if (!collabRoomIdRef.current || message.roomId !== collabRoomIdRef.current) return;
+          if (!collabMembers.some((member) => member.id === message.clientId)) return;
+          const nextMembers = collabMembers.filter((member) => member.id !== message.clientId);
+          removeCollabMember(message.clientId);
+          sendRoomMessage({
+            type: 'members:update',
+            members: [buildMembersSnapshot()[0], ...nextMembers],
+          });
+          return;
+        }
+        case 'room:message': {
+          const payload = message.payload as { type?: string; [key: string]: unknown } | null;
+          if (!payload || typeof payload.type !== 'string') return;
+          if (payload.type === 'session:init') {
+            if (pendingJoinRoomIdRef.current && message.roomId !== pendingJoinRoomIdRef.current) {
+              return;
+            }
+            const project = payload.project as ProjectDocument | undefined;
+            const ownerNickname =
+              typeof payload.ownerNickname === 'string' ? payload.ownerNickname : '';
+            const permission = normalizeCollabPermission(payload.permission as string | undefined);
+            setCollabOwnerNickname(ownerNickname);
+            setCollabPermission(permission);
+            setCollabRoomId(message.roomId);
+            setCollabMode('client');
+            setPendingJoinRoomId(null);
+            collabModeRef.current = 'client';
+            collabRoomIdRef.current = message.roomId;
+            pendingJoinRoomIdRef.current = null;
+            if (project) {
+              const { document: prepared, primaryGraphId, warnings } = prepareProjectDocument(
+                project,
+              );
+              applyProjectDocument(prepared, primaryGraphId);
+              if (warnings.length) {
+                console.warn('Collaboration project normalization warnings:', warnings);
+              }
+            }
+            const members = Array.isArray(payload.members) ? payload.members : [];
+            const filteredMembers = dedupeCollabMembers(
+              members
+                .filter((member) => member && typeof member.id === 'string')
+                .filter((member) => member.id !== clientIdRef.current),
+            );
+            setCollabMembers(filteredMembers);
+            return;
+          }
+          if (collabModeRef.current !== 'client') return;
+          if (collabRoomIdRef.current && message.roomId !== collabRoomIdRef.current) return;
+          if (payload.type === 'members:update') {
+            const members = Array.isArray(payload.members) ? payload.members : [];
+            const filteredMembers = dedupeCollabMembers(
+              members
+                .filter((member) => member && typeof member.id === 'string')
+                .filter((member) => member.id !== clientIdRef.current),
+            );
+            setCollabMembers(filteredMembers);
+            const owner = members.find((member) => member?.isOwner);
+            if (owner && typeof owner.nickname === 'string') {
+              setCollabOwnerNickname(owner.nickname);
+            }
+            return;
+          }
+          if (payload.type === 'chat:message') {
+            const incoming = payload.message as ChatMessage | undefined;
+            if (!incoming) return;
+            setChatMessages((prev) => {
+              if (prev.some((item) => item.id === incoming.id)) return prev;
+              return [...prev, incoming];
+            });
+            return;
+          }
+          if (payload.type === 'session:end') {
+            leaveCollaboratorSession('collab.disconnect.owner');
+          }
+          return;
+        }
+        case 'room:closed': {
+          leaveCollaboratorSession('collab.disconnect.owner');
+          return;
+        }
+        default:
+          return;
+      }
+    };
+  }, [
+    applyProjectDocument,
+    approveJoin,
+    buildMembersSnapshot,
+    collabAccessMode,
+    collabEditorLimit,
+    collabMembers,
+    collabPassword,
+    collabPermission,
+    leaveCollaboratorSession,
+    isAtCapacity,
+    localNickname,
+    openInfoDialog,
+    prepareProjectDocument,
+    removeCollabMember,
+    sendRoomMessage,
+    sendSignalMessage,
+    setCollabMembers,
+    setCollabOwnerNickname,
+    setCollabPermission,
+    setCollabRoomId,
+    setCollabMode,
+    setPendingJoinRoomId,
+    t,
+    upsertCollabMember,
+    pendingJoinRoomId,
+  ]);
 
   
   const performGilExport = useCallback(
@@ -1865,6 +2366,7 @@ const App = () => {
   }, [handleManualSave, performGilExport, projectDocument, t]);
 
 const handleSaveGraphAs = useCallback(() => {
+    if (isViewer) return;
     if (!projectDocument || !activeGraphId) {
       openInfoDialog(t('common.info'), t('common.noGraphOpen'));
       return;
@@ -1903,7 +2405,7 @@ const handleSaveGraphAs = useCallback(() => {
     });
     setSaveAsNewFolderName('');
     setSaveAsError(null);
-  }, [activeGraphId, openInfoDialog, projectDocument, t]);
+  }, [activeGraphId, isViewer, openInfoDialog, projectDocument, t]);
 
   const handleExportCurrentGraph = useCallback(() => {
     if (!activeGraphId) {
@@ -2047,6 +2549,7 @@ const handleSaveGraphAs = useCallback(() => {
   }, []);
 
   const handleSaveAsConfirm = useCallback(() => {
+    if (isViewer) return;
     if (!projectDocument || !saveAsDialog) return;
     const trimmedName = saveAsDialog.name.trim();
     if (!trimmedName) {
@@ -2141,6 +2644,7 @@ const handleSaveGraphAs = useCallback(() => {
   }, [
     createGroup,
     handleSaveAsCancel,
+    isViewer,
     markGraphDirty,
     openGraphTab,
     projectDocument,
@@ -2256,9 +2760,10 @@ const handleSaveGraphAs = useCallback(() => {
 
   const handleGraphNameChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
+      if (isViewer) return;
       setGraphName(event.target.value);
     },
-    [setGraphName],
+    [isViewer, setGraphName],
   );
 
   const handleToggleMenu = useCallback(
@@ -2550,6 +3055,7 @@ const handleSaveGraphAs = useCallback(() => {
 
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
+      if (isViewer) return;
       if (!event.ctrlKey && !event.metaKey) return;
       if (event.key !== 's' && event.key !== 'S') return;
       event.preventDefault();
@@ -2560,7 +3066,7 @@ const handleSaveGraphAs = useCallback(() => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [activeTabType, handleManualSave, isGraphTab, view]);
+  }, [activeTabType, handleManualSave, isGraphTab, isViewer, view]);
 
   const togglePalette = useCallback(() => {
     setPanelState((prev) => {
@@ -2578,31 +3084,35 @@ const handleSaveGraphAs = useCallback(() => {
     });
   }, []);
   const renderTabs = () => {
-    const hasOverflowPresence = presenceMembers.length > 3;
-    const visiblePresence = hasOverflowPresence
-      ? [presenceMembers[0], presenceMembers[1]]
-      : presenceMembers.slice(0, 3);
-    return (
-      <div className="app__tabs">
-        <div className="app__tabs-presence">
+    const renderTabPresence = (tabId: TabId) => {
+      const members = presenceByTab.get(tabId) ?? [];
+      if (!members.length) return null;
+      const hasOverflowPresence = members.length > 3;
+      const visiblePresence = hasOverflowPresence ? members.slice(0, 2) : members.slice(0, 3);
+      return (
+        <div className="app__tab-presence">
           {visiblePresence.map((member) => (
             <Avatar
               key={member.id}
               src={member.avatar}
               label={member.nickname}
-              size={26}
-              className="app__tabs-avatar"
+              size={20}
+              className="app__tab-avatar"
             />
           ))}
           {hasOverflowPresence && (
             <div
-              className="app__tabs-avatar app__tabs-avatar--overflow"
-              title={t('collab.presence.more', { count: presenceMembers.length - 2 })}
+              className="app__tab-avatar app__tab-avatar--overflow"
+              title={t('collab.presence.more', { count: members.length - 2 })}
             >
               ...
             </div>
           )}
         </div>
+      );
+    };
+    return (
+      <div className="app__tabs">
         <div className="app__tabs-scroll">
           {openTabs.map((tab: ProjectTab) => {
             const isActive = tab.id === activeTabId;
@@ -2634,6 +3144,7 @@ const handleSaveGraphAs = useCallback(() => {
                 onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
                 onBlur={handleTabHoverEnd}
               >
+                {renderTabPresence(tab.id)}
                 <span className="app__tab-label">
                   <img src={iconSrc} alt="" aria-hidden="true" />
                   {tabLabel}
@@ -3030,11 +3541,11 @@ const handleSaveGraphAs = useCallback(() => {
               </button>
               {openMenu === 'file' && (
                 <div className="app__editor-menu-dropdown">
-                  <button type="button" onClick={handleManualSave}>
+                  <button type="button" onClick={handleManualSave} disabled={isViewer}>
                     <img src={ICON_SAVE} alt="" aria-hidden="true" />
                     {t('app.menu.file.saveProject')}
                   </button>
-                  <button type="button" onClick={handleOpenProjectInfo}>
+                  <button type="button" onClick={handleOpenProjectInfo} disabled={isViewer}>
                     <img src={ICON_PROJECT} alt="" aria-hidden="true" />
                     {t('app.menu.file.editProjectInfo')}
                   </button>
@@ -3103,20 +3614,23 @@ const handleSaveGraphAs = useCallback(() => {
               onToggle={togglePalette}
               isTouchEnvironment={isMobileMode}
               allowSearchAllLanguageNodeNames={editorSettings.allowSearchAllLanguageNodeNames}
+              isReadOnly={isViewer}
             />
             <GraphCanvas
               isMobileMode={isMobileMode}
               settings={editorSettings}
               lockedNodeIds={lockedNodeIds}
               collabCursors={displayedCursors}
+              isReadOnly={isViewer}
             />
-            <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} />
+            <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} isReadOnly={isViewer} />
           </>
         ) : isStructTab ? (
           <StructureManager
             projectDocument={projectDocument}
             dirtyStructIds={dirtyStructIds}
             onRequestSave={performProjectSave}
+            isReadOnly={isViewer}
           />
         ) : (
           <ResourceExplorer
@@ -3124,6 +3638,7 @@ const handleSaveGraphAs = useCallback(() => {
             document={projectDocument}
             dirtyGraphIds={dirtyGraphIds}
             onOpenGraph={handleOpenGraphFromExplorer}
+            isReadOnly={isViewer}
           />
         )}
       </div>
@@ -3165,6 +3680,7 @@ const handleSaveGraphAs = useCallback(() => {
                 className={`action_dock__button${commentMode === 'selecting' ? ' is-active' : ''}`}
                 onClick={handleCommentToggle}
                 title={t('app.dock.commentMode')}
+                disabled={isViewer}
               >
                 <img
                   src={ICON_DOCK_COMMENT}
@@ -3202,6 +3718,7 @@ const handleSaveGraphAs = useCallback(() => {
                       aria-label={t('app.dock.executionInterval')}
                       inputMode="decimal"
                       autoComplete="off"
+                      readOnly={isViewer}
                     />
                     <span className="action_dock__interval-unit">{t('common.seconds')}</span>
                   </div>
@@ -3213,6 +3730,7 @@ const handleSaveGraphAs = useCallback(() => {
                 value={graphName}
                 onChange={handleGraphNameChange}
                 placeholder={t('graph.namePlaceholder')}
+                readOnly={isViewer}
               />
               <div className="action_dock__separator" aria-hidden="true" />
               <div className="action_dock__zoom">
@@ -3244,7 +3762,7 @@ const handleSaveGraphAs = useCallback(() => {
                 type="button"
                 className="action_dock__button"
                 onClick={undo}
-                disabled={!canUndo}
+                disabled={isViewer || !canUndo}
                 title={t('common.undo')}
               >
                 <img src={ICON_UNDO} alt="" aria-hidden="true" className="action_dock__icon-img" />
@@ -3254,7 +3772,7 @@ const handleSaveGraphAs = useCallback(() => {
                 type="button"
                 className="action_dock__button"
                 onClick={redo}
-                disabled={!canRedo}
+                disabled={isViewer || !canRedo}
                 title={t('common.redo')}
               >
                 <img src={ICON_REDO} alt="" aria-hidden="true" className="action_dock__icon-img" />
@@ -3266,6 +3784,7 @@ const handleSaveGraphAs = useCallback(() => {
                 className="action_dock__button"
                 onClick={handleManualSave}
                 title={t('common.save')}
+                disabled={isViewer}
               >
                 <img src={ICON_SAVE} alt="" aria-hidden="true" className="action_dock__icon-img" />
                 <span className="sr-only">{t('common.save')}</span>
@@ -3275,6 +3794,7 @@ const handleSaveGraphAs = useCallback(() => {
                 className="action_dock__button"
                 onClick={handleSaveGraphAs}
                 title={t('common.saveAs')}
+                disabled={isViewer}
               >
                 <img src={ICON_SAVEAS} alt="" aria-hidden="true" className="action_dock__icon-img" />
                 <span className="sr-only">{t('common.saveAs')}</span>
@@ -3337,6 +3857,7 @@ const handleSaveGraphAs = useCallback(() => {
                 value={projectInfoDialog.name}
                 onChange={(event) => handleProjectInfoNameChange(event.target.value)}
                 placeholder={t('app.projectInfo.namePlaceholder')}
+                readOnly={isViewer}
               />
             </div>
             {projectInfoDialog.error && (
@@ -3345,7 +3866,9 @@ const handleSaveGraphAs = useCallback(() => {
               </div>
             )}
             <div className="app__modal-actions">
-              <button type="submit">{t('common.save')}</button>
+              <button type="submit" disabled={isViewer}>
+                {t('common.save')}
+              </button>
               <button type="button" onClick={handleProjectInfoCancel}>
                 {t('common.cancel')}
               </button>
@@ -3469,6 +3992,7 @@ const handleSaveGraphAs = useCallback(() => {
         isDecodingGia={isDecodingGia}
         onDecodeGia={handleDecodeGiaFile}
         networkProjects={networkProjects}
+        signalConnected={signalConnected}
         defaultNickname={localNickname}
         onRefreshNetwork={refreshNetworkProjects}
         onJoinNetworkProject={handleJoinNetworkProject}

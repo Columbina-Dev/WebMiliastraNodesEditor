@@ -300,6 +300,10 @@
   cursor: not-allowed;
 }
 
+.settings-collab-avatar__actions button:hover {
+  background-color: rgba(255, 255, 255, 0.12);
+}
+
 .settings-about-overlay {
   position: fixed;
   inset: 0;

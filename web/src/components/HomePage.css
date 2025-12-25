@@ -307,6 +307,11 @@
   padding: 24px 0;
 }
 
+.home__network-empty--offline {
+  opacity: 0.85;
+  color: rgba(255, 160, 160, 0.9);
+}
+
 .home__confirm-backdrop {
   position: fixed;
   inset: 0;

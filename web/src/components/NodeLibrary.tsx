@@ -50,6 +50,7 @@ interface NodeLibraryProps {
   isTouchEnvironment?: boolean;
   autoFocusSearch?: boolean;
   allowSearchAllLanguageNodeNames?: boolean;
+  isReadOnly?: boolean;
 }
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
@@ -138,6 +139,7 @@ const NodeLibrary = ({
   isTouchEnvironment = false,
   autoFocusSearch = false,
   allowSearchAllLanguageNodeNames = false,
+  isReadOnly = false,
 }: NodeLibraryProps) => {
   const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const [search, setSearch] = useState('');
@@ -234,7 +236,7 @@ const NodeLibrary = ({
     event: ReactTouchEvent<HTMLButtonElement>,
     definition: NodeDefinition
   ) => {
-    if (!isTouchEnvironment) return;
+    if (isReadOnly || !isTouchEnvironment) return;
     const touch = event.changedTouches[0];
     if (!touch) return;
     touchDragStateRef.current = {
@@ -249,7 +251,7 @@ const NodeLibrary = ({
   };
 
   useEffect(() => {
-    if (!isTouchEnvironment) {
+    if (isReadOnly || !isTouchEnvironment) {
       touchDragStateRef.current = null;
       return;
     }
@@ -334,7 +336,7 @@ const NodeLibrary = ({
       window.removeEventListener('touchcancel', handleTouchCancel);
       touchDragStateRef.current = null;
     };
-  }, [dispatchTouchDragEvent, isTouchEnvironment]);
+  }, [dispatchTouchDragEvent, isReadOnly, isTouchEnvironment]);
 
 
   useEffect(() => {
@@ -354,6 +356,7 @@ const NodeLibrary = ({
   }, [autoFocusSearch, variant]);
 
   const handleSelect = (definition: NodeDefinition) => {
+    if (isReadOnly) return;
     onSelect(definition);
   };
 
@@ -373,6 +376,7 @@ const NodeLibrary = ({
     event: DragEvent<HTMLButtonElement>,
     definition: NodeDefinition
   ) => {
+    if (isReadOnly) return;
     event.dataTransfer.setData('application/x-node-type', definition.id);
     event.dataTransfer.effectAllowed = 'copy';
     onItemDragStart?.(event, definition);
@@ -385,10 +389,13 @@ const NodeLibrary = ({
           type="button"
           key={definition.id}
           className="node-library__definition"
-          onClick={() => handleSelect(definition)}
-          draggable
-          onTouchStart={(event) => handleDefinitionTouchStart(event, definition)}
-          onDragStart={(event) => handleDragStartInternal(event, definition)}
+          onClick={isReadOnly ? undefined : () => handleSelect(definition)}
+          draggable={!isReadOnly}
+          disabled={isReadOnly}
+          onTouchStart={
+            isReadOnly ? undefined : (event) => handleDefinitionTouchStart(event, definition)
+          }
+          onDragStart={isReadOnly ? undefined : (event) => handleDragStartInternal(event, definition)}
         >
           <span className="node-library__definition-dot" />
           <span className="node-library__definition-name">

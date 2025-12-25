@@ -62,6 +62,7 @@ interface GraphCanvasProps {
   settings: EditorSettings;
   lockedNodeIds?: string[];
   collabCursors?: CollaborationCursor[];
+  isReadOnly?: boolean;
 }
 
 type CollaborationCursor = {
@@ -347,6 +348,7 @@ const GraphCanvasInner = ({
   settings,
   lockedNodeIds = [],
   collabCursors = [],
+  isReadOnly = false,
 }: GraphCanvasProps) => {
   const { t } = useI18n();
   const reactFlow = useReactFlow();
@@ -546,6 +548,10 @@ const GraphCanvasInner = ({
       libraryTouchDragRef.current = null;
       return;
     }
+    if (isReadOnly) {
+      libraryTouchDragRef.current = null;
+      return;
+    }
 
     const handleTouchDragEvent = (event: Event) => {
       const custom = event as CustomEvent<NodeLibraryTouchDragDetail>;
@@ -606,7 +612,7 @@ const GraphCanvasInner = ({
       );
       libraryTouchDragRef.current = null;
     };
-  }, [isMobileMode, reactFlow, setFloatingPanel]);
+  }, [isMobileMode, isReadOnly, reactFlow, setFloatingPanel]);
 
   useEffect(() => {
     setZoomLevel(reactFlow.getZoom());
@@ -891,6 +897,7 @@ const GraphCanvasInner = ({
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
+      if (isReadOnly) return;
       const removals: string[] = [];
       changes.forEach((change) => {
         if (change.type === 'position' && change.position) {
@@ -929,11 +936,12 @@ const GraphCanvasInner = ({
         skipEdgeHistoryRef.current = false;
       }
     },
-    [removeNodesBatch, updateNode]
+    [isReadOnly, removeNodesBatch, updateNode]
   );
 
   const handleEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
+      if (isReadOnly) return;
       const removals: string[] = [];
       changes.forEach((change) => {
         if (change.type === 'remove') {
@@ -944,7 +952,7 @@ const GraphCanvasInner = ({
         removeEdgesBatch(removals, { recordHistory: !skipEdgeHistoryRef.current });
       }
     },
-    [removeEdgesBatch]
+    [isReadOnly, removeEdgesBatch]
   );
 
   const validateConnection = useCallback(
@@ -977,6 +985,7 @@ const GraphCanvasInner = ({
 
   const handleConnect: (connection: Connection) => void = useCallback(
     (connection) => {
+      if (isReadOnly) return;
       setFloatingPanel(null);
       setActiveConnection(null);
       if (!validateConnection(connection)) return;
@@ -1024,11 +1033,12 @@ const GraphCanvasInner = ({
       }
       setConnectionCursor(null);
     },
-    [clearOverride, upsertEdge, validateConnection]
+    [clearOverride, isReadOnly, upsertEdge, validateConnection]
   );
 
   const handleConnectStart: OnConnectStart = useCallback(
     (_event, params) => {
+      if (isReadOnly) return;
       connectionSuccessRef.current = false;
       setFloatingPanel(null);
       setConnectionCursor('invalid');
@@ -1052,11 +1062,12 @@ const GraphCanvasInner = ({
         port,
       });
     },
-    [nodes]
+    [isReadOnly, nodes]
   );
 
   const handleConnectEnd: OnConnectEnd = useCallback(
     (event) => {
+      if (isReadOnly) return;
       if (!activeConnection) return;
       const targetPosition = extractEventPosition(event);
       if (!connectionSuccessRef.current) {
@@ -1073,7 +1084,7 @@ const GraphCanvasInner = ({
       connectionSuccessRef.current = false;
       setConnectionCursor(null);
     },
-    [activeConnection, reactFlow]
+    [activeConnection, isReadOnly, reactFlow]
   );
 
   const clearNodeLongPress = useCallback(() => {
@@ -1100,6 +1111,7 @@ const GraphCanvasInner = ({
 
   const openNodeMenuAtScreen = useCallback(
     (nodeId: string, screen: ScreenPoint) => {
+      if (isReadOnly) return;
       const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
       if (selectedNodes.length > 1 && selectedNodes.some((item) => item.id === nodeId)) {
         setFloatingPanel({
@@ -1116,23 +1128,25 @@ const GraphCanvasInner = ({
         screen,
       });
     },
-    [reactFlow, setSelectedNode]
+    [isReadOnly, reactFlow, setSelectedNode]
   );
 
 
   const handleNodeDragStart = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
       }
       scheduleNodeLongPress(node.id, { x: event.clientX, y: event.clientY });
     },
-    [clearNodeLongPress, isMobileMode, scheduleNodeLongPress],
+    [clearNodeLongPress, isMobileMode, isReadOnly, scheduleNodeLongPress],
   );
 
   const finalizeNodeLongPress = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
@@ -1150,34 +1164,41 @@ const GraphCanvasInner = ({
         openNodeMenuAtScreen(node.id, screen);
       }
     },
-    [clearNodeLongPress, isMobileMode, openNodeMenuAtScreen, skipGlobalClickCloseRef],
+    [clearNodeLongPress, isMobileMode, isReadOnly, openNodeMenuAtScreen, skipGlobalClickCloseRef],
   );
 
   const handleNodeDragMove = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) return;
       const state = nodeLongPressRef.current;
       if (state && state.nodeId === node.id) {
         state.screen = { x: event.clientX, y: event.clientY };
       }
     },
-    [isMobileMode],
+    [isMobileMode, isReadOnly],
   );
 
   const handleNodeDragStop = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
       }
       finalizeNodeLongPress(event, node);
     },
-    [clearNodeLongPress, finalizeNodeLongPress, isMobileMode],
+    [clearNodeLongPress, finalizeNodeLongPress, isMobileMode, isReadOnly],
   );
 
   const handleNodeClick = useCallback(
     (event: ReactMouseEvent, node: Node) => {
       if (commentMode === 'selecting') {
+        if (isReadOnly) {
+          setSelectedNode(node.id);
+          setHasPartialSelection(false);
+          return;
+        }
         setSelectedNode(node.id);
         setHasPartialSelection(false);
         const commentId = addComment(node.id);
@@ -1230,6 +1251,7 @@ const GraphCanvasInner = ({
       addComment,
       collapseUnpinnedComments,
       commentMode,
+      isReadOnly,
       previousSelectedIdsRef,
       reactFlow,
       setHasPartialSelection,
@@ -1477,6 +1499,7 @@ const GraphCanvasInner = ({
 
   const handleDrop = useCallback(
     (event: ReactDragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       event.preventDefault();
       const type = event.dataTransfer.getData('application/x-node-type');
       if (!type) return;
@@ -1493,13 +1516,14 @@ const GraphCanvasInner = ({
         data: {},
       });
     },
-    [environment, reactFlow]
+    [environment, isReadOnly, reactFlow]
   );
 
   const handleDragOver = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
-  }, []);
+  }, [isReadOnly]);
 
   const handleSelectionStart = useCallback((event: ReactMouseEvent<Element>) => {
     const start = { x: event.clientX, y: event.clientY };
@@ -1650,14 +1674,16 @@ const GraphCanvasInner = ({
 
   const openNodeMenu = useCallback(
     (event: ReactMouseEvent, nodeId: string) => {
+      if (isReadOnly) return;
       event.preventDefault();
       event.stopPropagation();
       openNodeMenuAtScreen(nodeId, { x: event.clientX, y: event.clientY });
     },
-    [openNodeMenuAtScreen]
+    [isReadOnly, openNodeMenuAtScreen]
   );
 
   const openEdgeMenu = useCallback((event: ReactMouseEvent, edgeId: string) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.stopPropagation();
     setFloatingPanel({
@@ -1665,10 +1691,11 @@ const GraphCanvasInner = ({
       edgeId,
       screen: { x: event.clientX, y: event.clientY },
     });
-  }, []);
+  }, [isReadOnly]);
 
   const openCanvasMenuAtScreen = useCallback(
     (screen: ScreenPoint) => {
+      if (isReadOnly) return;
       const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
       const selectedEdges = reactFlow.getEdges().filter((edge) => edge.selected);
       const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
@@ -1712,7 +1739,7 @@ const GraphCanvasInner = ({
         flowPosition: reactFlow.screenToFlowPosition(screen),
       });
     },
-    [clearSelectionState, isPointInsideSelection, reactFlow, setSelectedNode]
+    [clearSelectionState, isPointInsideSelection, isReadOnly, reactFlow, setSelectedNode]
   );
 
   const openCanvasMenu = useCallback(
@@ -1732,6 +1759,7 @@ const GraphCanvasInner = ({
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
+      if (isReadOnly) return;
       if (protectedNodeIds.has(nodeId)) {
         setFloatingPanel(null);
         setHasPartialSelection(false);
@@ -1741,11 +1769,12 @@ const GraphCanvasInner = ({
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [protectedNodeIds, removeNode, setFloatingPanel, setHasPartialSelection]
+    [isReadOnly, protectedNodeIds, removeNode, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDuplicateNode = useCallback(
     (nodeId: string) => {
+      if (isReadOnly) return;
       if (protectedNodeIds.has(nodeId)) {
         setFloatingPanel(null);
         setHasPartialSelection(false);
@@ -1755,20 +1784,22 @@ const GraphCanvasInner = ({
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [duplicateNode, protectedNodeIds, setFloatingPanel, setHasPartialSelection]
+    [duplicateNode, isReadOnly, protectedNodeIds, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDeleteEdge = useCallback(
     (edgeId: string) => {
+      if (isReadOnly) return;
       removeEdge(edgeId);
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [removeEdge]
+    [isReadOnly, removeEdge]
   );
 
   const handleCreateNode = useCallback(
     (definitionId: string, position: ScreenPoint) => {
+      if (isReadOnly) return;
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
       if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
@@ -1781,11 +1812,12 @@ const GraphCanvasInner = ({
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [environment, setFloatingPanel, setHasPartialSelection, setSelectedNode]
+    [environment, isReadOnly, setFloatingPanel, setHasPartialSelection, setSelectedNode]
   );
 
   const handleInsertNodeForConnection = useCallback(
     (definitionId: string, panel: Extract<FloatingPanelState, { type: 'connection' }>) => {
+      if (isReadOnly) return;
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
       if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
@@ -1839,7 +1871,7 @@ const GraphCanvasInner = ({
       setSelectedNode(newNodeId);
       setFloatingPanel(null);
     },
-    [connectionValueTypeFilter, environment, setFloatingPanel, setSelectedNode]
+    [connectionValueTypeFilter, environment, isReadOnly, setFloatingPanel, setSelectedNode]
   );
 
   const canvasAnchor =
@@ -1875,6 +1907,7 @@ const GraphCanvasInner = ({
 
   const handlePortInsert = useCallback(
     (mode: 'above' | 'below') => {
+      if (isReadOnly) return;
       if (!portMenuInfo) return;
       const { nodeId, info } = portMenuInfo;
       if (info.kind === 'sequence') {
@@ -1884,10 +1917,11 @@ const GraphCanvasInner = ({
       }
       setFloatingPanel(null);
     },
-    [insertBranchFlowOut, insertSequenceFlowOut, portMenuInfo, setFloatingPanel],
+    [insertBranchFlowOut, insertSequenceFlowOut, isReadOnly, portMenuInfo, setFloatingPanel],
   );
 
   const handlePortDelete = useCallback(() => {
+    if (isReadOnly) return;
     if (!portMenuInfo) return;
     const { nodeId, info } = portMenuInfo;
     if (info.kind === 'sequence') {
@@ -1896,7 +1930,7 @@ const GraphCanvasInner = ({
       removeBranchFlowOut(nodeId, info.index);
     }
     setFloatingPanel(null);
-  }, [portMenuInfo, removeBranchFlowOut, removeSequenceFlowOut, setFloatingPanel]);
+  }, [isReadOnly, portMenuInfo, removeBranchFlowOut, removeSequenceFlowOut, setFloatingPanel]);
 
   const connectionFilter = useMemo(() => {
     if (floatingPanel?.type !== 'connection') return undefined;
@@ -2148,6 +2182,7 @@ const GraphCanvasInner = ({
 
   const duplicateSelection = useCallback(
     (explicitIds?: string[]) => {
+      if (isReadOnly) return;
       const ids = explicitIds && explicitIds.length
         ? explicitIds
         : reactFlow
@@ -2169,19 +2204,21 @@ const GraphCanvasInner = ({
         );
       });
     },
-    [duplicateNodesBatch, protectedNodeIds, reactFlow]
+    [duplicateNodesBatch, isReadOnly, protectedNodeIds, reactFlow]
   );
 
   const handleDuplicateSelection = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       duplicateSelection(nodeIds);
       setFloatingPanel(null);
     },
-    [duplicateSelection]
+    [duplicateSelection, isReadOnly]
   );
 
   const handleDeleteSelection = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const allowedIds = nodeIds.filter((id) => !protectedNodeIds.has(id));
       if (!allowedIds.length) {
@@ -2204,11 +2241,12 @@ const GraphCanvasInner = ({
         );
       });
     },
-    [protectedNodeIds, reactFlow, removeNodesBatch, setFloatingPanel, setHasPartialSelection]
+    [isReadOnly, protectedNodeIds, reactFlow, removeNodesBatch, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDisconnectNodes = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const nodeSet = new Set(nodeIds);
       const edgeIds = edges
@@ -2222,11 +2260,12 @@ const GraphCanvasInner = ({
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [edges, removeEdgesBatch, setFloatingPanel, setHasPartialSelection]
+    [edges, isReadOnly, removeEdgesBatch, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleAddCommentForNodes = useCallback(
     (nodeIds: string[], screen: ScreenPoint) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const eligibleNodeIds = nodeIds.filter((nodeId) => !commentByNodeId.has(nodeId));
       if (!eligibleNodeIds.length) {
@@ -2256,10 +2295,11 @@ const GraphCanvasInner = ({
       collapseUnpinnedComments(targetId);
       setFloatingPanel(null);
     },
-    [addComment, collapseUnpinnedComments, commentByNodeId, reactFlow, setFloatingPanel, setSelectedComment]
+    [addComment, collapseUnpinnedComments, commentByNodeId, isReadOnly, reactFlow, setFloatingPanel, setSelectedComment]
   );
 
   useEffect(() => {
+    if (isReadOnly) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       const meta = event.metaKey || event.ctrlKey;
       if (meta && event.key.toLowerCase() === 'c') {
@@ -2272,7 +2312,7 @@ const GraphCanvasInner = ({
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [duplicateSelection, reactFlow]);
+  }, [duplicateSelection, isReadOnly, reactFlow]);
 
   return (
     <div
@@ -2309,11 +2349,13 @@ const GraphCanvasInner = ({
         maxZoom={1.5}
         selectionOnDrag={dragSelectionEnabled}
         selectionMode={currentSelectionMode}
+        nodesDraggable={!isReadOnly}
+        nodesConnectable={!isReadOnly}
         panOnDrag={isMobileMode ? [1, 2] : [panMouseButton]}
         zoomOnScroll={zoomWithWheel}
         zoomOnPinch={zoomWithWheel}
         zoomOnDoubleClick={isMobileMode}
-        deleteKeyCode={['Delete']}
+        deleteKeyCode={isReadOnly ? [] : ['Delete']}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
@@ -2370,7 +2412,7 @@ const GraphCanvasInner = ({
           }}
         />
       )}
-      <GraphCommentsOverlay selectionLocked={isSelectionActive} />
+      <GraphCommentsOverlay selectionLocked={isSelectionActive} isReadOnly={isReadOnly} />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
         <FloatingPanel
@@ -2378,18 +2420,19 @@ const GraphCanvasInner = ({
           className="graph-node-browser"
           deps={[floatingPanel, connectionValueTypeFilter]}
         >
-          <NodeLibrary
-            title={t('nodeLibrary.title')}
-            subtitle={connectionSubtitle}
-            definitions={availableDefinitions}
-            filter={connectionFilter}
-            variant="floating"
-            isTouchEnvironment={isMobileMode}
-            autoFocusSearch={settings.enterInputOnNodeInsert}
-            allowSearchAllLanguageNodeNames={settings.allowSearchAllLanguageNodeNames}
-            onSelect={(definition) => {
-              if (floatingPanel.type === 'canvas') {
-                handleCreateNode(definition.id, floatingPanel.flowPosition);
+            <NodeLibrary
+              title={t('nodeLibrary.title')}
+              subtitle={connectionSubtitle}
+              definitions={availableDefinitions}
+              filter={connectionFilter}
+              variant="floating"
+              isTouchEnvironment={isMobileMode}
+              autoFocusSearch={settings.enterInputOnNodeInsert}
+              allowSearchAllLanguageNodeNames={settings.allowSearchAllLanguageNodeNames}
+              isReadOnly={isReadOnly}
+              onSelect={(definition) => {
+                if (floatingPanel.type === 'canvas') {
+                  handleCreateNode(definition.id, floatingPanel.flowPosition);
               } else {
                 handleInsertNodeForConnection(definition.id, floatingPanel);
               }
@@ -2557,6 +2600,7 @@ const GraphCanvas = ({
   settings,
   lockedNodeIds,
   collabCursors,
+  isReadOnly,
 }: GraphCanvasProps) => (
   <ReactFlowProvider>
     <GraphCanvasInner
@@ -2564,6 +2608,7 @@ const GraphCanvas = ({
       settings={settings}
       lockedNodeIds={lockedNodeIds}
       collabCursors={collabCursors}
+      isReadOnly={isReadOnly}
     />
   </ReactFlowProvider>
 );

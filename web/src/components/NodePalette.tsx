@@ -11,6 +11,7 @@ interface NodePaletteProps {
   onToggle: () => void;
   isTouchEnvironment?: boolean;
   allowSearchAllLanguageNodeNames?: boolean;
+  isReadOnly?: boolean;
 }
 
 const NodePalette = ({
@@ -18,6 +19,7 @@ const NodePalette = ({
   onToggle,
   isTouchEnvironment = false,
   allowSearchAllLanguageNodeNames = false,
+  isReadOnly = false,
 }: NodePaletteProps) => {
   const { t } = useI18n();
   const environment = useGraphStore((state) => state.environment);
@@ -47,6 +49,7 @@ const NodePalette = ({
           onSelect={() => {}}
           isTouchEnvironment={isTouchEnvironment}
           allowSearchAllLanguageNodeNames={allowSearchAllLanguageNodeNames}
+          isReadOnly={isReadOnly}
         />
       </div>
     </aside>

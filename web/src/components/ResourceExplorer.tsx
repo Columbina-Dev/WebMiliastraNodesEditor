@@ -54,6 +54,7 @@ interface ResourceExplorerProps {
   document: ProjectDocument | null;
   dirtyGraphIds: Record<string, true>;
   onOpenGraph: (graphId: string) => void;
+  isReadOnly?: boolean;
 }
 
 const describeEnvironmentLabel = (environment: GraphEnvironment) => {
@@ -119,17 +120,79 @@ type ResourceExplorerDialog = {
   onCancel?: () => void;
 };
 
-const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: ResourceExplorerProps) => {
+const ResourceExplorer = ({
+  topFolder,
+  document,
+  dirtyGraphIds,
+  onOpenGraph,
+  isReadOnly = false,
+}: ResourceExplorerProps) => {
   const { t } = useI18n();
-  const createGroup = useProjectStore((state) => state.createGroup);
-  const duplicateGroup = useProjectStore((state) => state.duplicateGroup);
-  const deleteGroup = useProjectStore((state) => state.deleteGroup);
+  const createGroupBase = useProjectStore((state) => state.createGroup);
+  const duplicateGroupBase = useProjectStore((state) => state.duplicateGroup);
+  const deleteGroupBase = useProjectStore((state) => state.deleteGroup);
   const exportGroup = useProjectStore((state) => state.exportGroup);
-  const setGraphDocument = useProjectStore((state) => state.setGraphDocument);
-  const setManifestEntry = useProjectStore((state) => state.setManifestEntry);
-  const markGraphDirty = useProjectStore((state) => state.markGraphDirty);
-  const updateDocument = useProjectStore((state) => state.updateDocument);
-  const removeManifestEntry = useProjectStore((state) => state.removeManifestEntry);
+  const setGraphDocumentBase = useProjectStore((state) => state.setGraphDocument);
+  const setManifestEntryBase = useProjectStore((state) => state.setManifestEntry);
+  const markGraphDirtyBase = useProjectStore((state) => state.markGraphDirty);
+  const updateDocumentBase = useProjectStore((state) => state.updateDocument);
+  const removeManifestEntryBase = useProjectStore((state) => state.removeManifestEntry);
+  const createGroup = useCallback(
+    (folder: ProjectTopFolder, categoryKey: string, groupName: string) => {
+      if (isReadOnly) return null;
+      return createGroupBase(folder, categoryKey, groupName);
+    },
+    [createGroupBase, isReadOnly],
+  );
+  const duplicateGroup = useCallback(
+    (folder: ProjectTopFolder, categoryKey: string, groupSlug: string) => {
+      if (isReadOnly) return null;
+      return duplicateGroupBase(folder, categoryKey, groupSlug);
+    },
+    [duplicateGroupBase, isReadOnly],
+  );
+  const deleteGroup = useCallback(
+    (folder: ProjectTopFolder, categoryKey: string, groupSlug: string) => {
+      if (isReadOnly) return;
+      deleteGroupBase(folder, categoryKey, groupSlug);
+    },
+    [deleteGroupBase, isReadOnly],
+  );
+  const setGraphDocument = useCallback(
+    (graphId: string, graph: GraphDocument) => {
+      if (isReadOnly) return;
+      setGraphDocumentBase(graphId, graph);
+    },
+    [isReadOnly, setGraphDocumentBase],
+  );
+  const setManifestEntry = useCallback(
+    (entry: ProjectDocument['manifest']['graphs'][number]) => {
+      if (isReadOnly) return;
+      setManifestEntryBase(entry);
+    },
+    [isReadOnly, setManifestEntryBase],
+  );
+  const markGraphDirty = useCallback(
+    (graphId: string, dirty: boolean) => {
+      if (isReadOnly) return;
+      markGraphDirtyBase(graphId, dirty);
+    },
+    [isReadOnly, markGraphDirtyBase],
+  );
+  const updateDocument = useCallback(
+    (updater: (draft: ProjectDocument) => void) => {
+      if (isReadOnly) return;
+      updateDocumentBase(updater);
+    },
+    [isReadOnly, updateDocumentBase],
+  );
+  const removeManifestEntry = useCallback(
+    (graphId: string) => {
+      if (isReadOnly) return;
+      removeManifestEntryBase(graphId);
+    },
+    [isReadOnly, removeManifestEntryBase],
+  );
 
   const categories = PROJECT_CATEGORIES_BY_TOP[topFolder];
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
@@ -429,10 +492,19 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     setEditing(null);
     setEditingValue('');
   }, []);
+  useEffect(() => {
+    if (!isReadOnly) return;
+    setContextMenu(null);
+    resetEditing();
+  }, [isReadOnly, resetEditing]);
 
   const commitEditing = useCallback(
     (apply: boolean) => {
       if (!editing) return;
+      if (isReadOnly) {
+        resetEditing();
+        return;
+      }
       const nextValue = editingValue.trim();
       const currentEditing = editing;
       resetEditing();
@@ -507,29 +579,32 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         });
       }
     },
-    [editing, editingValue, resetEditing, topFolder, updateDocument],
+    [editing, editingValue, isReadOnly, resetEditing, topFolder, updateDocument],
   );
 
   const handleStartFolderRename = useCallback(
     (groupSlug: string, categoryKey: string, initialName: string) => {
+      if (isReadOnly) return;
       setEditing({ type: 'folder', groupSlug, categoryKey });
       setEditingValue(initialName);
       setContextMenu(null);
     },
-    [setContextMenu],
+    [isReadOnly, setContextMenu],
   );
 
   const handleStartGraphRename = useCallback(
     (graphId: string, initialName: string) => {
+      if (isReadOnly) return;
       setEditing({ type: 'graph', graphId });
       setEditingValue(initialName);
       setContextMenu(null);
     },
-    [setContextMenu],
+    [isReadOnly, setContextMenu],
   );
 
   const moveGroupToCategory = useCallback(
     (groupSlug: string, fromCategoryKey: string, toCategoryKey: string): string | null => {
+      if (isReadOnly) return null;
       if (fromCategoryKey === toCategoryKey) {
         return groupSlug;
       }
@@ -604,16 +679,17 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       });
       return nextSlug;
     },
-    [getCategoryDefinition, openInfoDialog, topFolder, updateDocument],
+    [getCategoryDefinition, isReadOnly, openInfoDialog, topFolder, updateDocument],
   );
 
   const handleCreateFolder = useCallback(() => {
+    if (isReadOnly) return;
     const created = createGroup(topFolder, activeCategoryKey, t('resourceExplorer.defaultFolderName'));
     setContextMenu(null);
     if (!created) return;
     setEditing({ type: 'folder', groupSlug: created.groupSlug, categoryKey: activeCategoryKey });
     setEditingValue(created.groupName);
-  }, [activeCategoryKey, createGroup, setContextMenu, t, topFolder]);
+  }, [activeCategoryKey, createGroup, isReadOnly, setContextMenu, t, topFolder]);
 
   const handleCopyFolder = useCallback(
     (groupSlug: string, categoryKey: string, groupName: string) => {
@@ -646,6 +722,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   );
 
   const handlePasteFolder = useCallback(() => {
+    if (isReadOnly) {
+      setContextMenu(null);
+      return;
+    }
     if (!clipboard || clipboard.kind !== 'folder') {
       setContextMenu(null);
       return;
@@ -697,6 +777,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     clipboard,
     duplicateGroup,
     findGroupDescriptor,
+    isReadOnly,
     moveGroupToCategory,
     openInfoDialog,
     setContextMenu,
@@ -710,6 +791,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       targetGroupSlug: string,
       targetGroupName: string,
     ) => {
+      if (isReadOnly) return null;
       const project = useProjectStore.getState().document;
       if (!project) {
         openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('common.noProjectOpen'));
@@ -782,10 +864,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       markGraphDirty(newGraphId, false);
       return newGraphId;
     },
-    [getCategoryDefinition, markGraphDirty, openInfoDialog, topFolder, updateDocument],
+    [getCategoryDefinition, isReadOnly, markGraphDirty, openInfoDialog, topFolder, updateDocument],
   );
 
   const handleCreateGraph = useCallback(() => {
+    if (isReadOnly) {
+      setContextMenu(null);
+      return;
+    }
     if (!currentHistoryEntry) {
       setContextMenu(null);
       return;
@@ -869,6 +955,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     currentHistoryEntry,
     findGroupDescriptor,
     getCategoryDefinition,
+    isReadOnly,
     markGraphDirty,
     openInfoDialog,
     setContextMenu,
@@ -878,6 +965,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const handleCopyGraph = useCallback(
     (graphId: string) => {
+      if (isReadOnly) return;
       const project = useProjectStore.getState().document;
       if (!project) {
         openInfoDialog(t('resourceExplorer.error.copyGraph.title'), t('common.noProjectOpen'));
@@ -913,10 +1001,14 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       });
       setContextMenu(null);
     },
-    [duplicateGraphInto, openInfoDialog, setContextMenu, topFolder],
+    [duplicateGraphInto, isReadOnly, openInfoDialog, setContextMenu, topFolder],
   );
 
   const handlePasteGraph = useCallback(() => {
+    if (isReadOnly) {
+      setContextMenu(null);
+      return;
+    }
     if (!clipboard || clipboard.kind !== 'graph') {
       setContextMenu(null);
       return;
@@ -943,6 +1035,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     currentHistoryEntry,
     duplicateGraphInto,
     findGroupDescriptor,
+    isReadOnly,
     openInfoDialog,
     setContextMenu,
     topFolder,
@@ -950,6 +1043,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const handleDeleteGraph = useCallback(
     (graphId: string, graphName: string) => {
+      if (isReadOnly) return;
       setContextMenu(null);
       setDialog({
         title: t('resourceExplorer.deleteGraph.title'),
@@ -964,7 +1058,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         cancelLabel: t('common.cancel'),
       });
     },
-    [removeManifestEntry, setContextMenu, t],
+    [isReadOnly, removeManifestEntry, setContextMenu, t],
   );
 
   const handleExportGraph = useCallback(
@@ -1072,6 +1166,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
   };
 
   const handleContextMenuOnEmpty = (event: React.MouseEvent<HTMLDivElement>) => {
+    if (isReadOnly) return;
     event.preventDefault();
     const root =
       (event.currentTarget.closest('.resource-explorer') as HTMLElement) ?? event.currentTarget;
@@ -1101,6 +1196,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     groupSlug: string,
     categoryKey: string,
   ) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.stopPropagation();
     const root =
@@ -1121,6 +1217,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
     groupSlug: string,
     categoryKey: string,
   ) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.stopPropagation();
     const root =
@@ -1149,6 +1246,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const handleRequestImportGraphs = useCallback(
     (groupSlug: string, categoryKey: string) => {
+      if (isReadOnly) return;
       if (!document) {
         openInfoDialog(t('resourceExplorer.error.import.title'), t('common.noProjectOpen'));
         return;
@@ -1157,7 +1255,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       setContextMenu(null);
       importInputRef.current?.click();
     },
-    [document, openInfoDialog, t],
+    [document, isReadOnly, openInfoDialog, t],
   );
 
   const importGraphsTo = useCallback(
@@ -1165,6 +1263,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       files: FileList | File[],
       target: { groupSlug: string; categoryKey: string },
     ) => {
+      if (isReadOnly) return;
       const selectedFiles = Array.from(files ?? []);
       if (!selectedFiles.length) return;
       if (!document) {
@@ -1292,6 +1391,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       categories,
       document,
       groupMap,
+      isReadOnly,
       markGraphDirty,
       openInfoDialog,
       setGraphDocument,
@@ -1303,6 +1403,10 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const handleImportGraphs = useCallback(
     async (files: FileList | null) => {
+      if (isReadOnly) {
+        setPendingImportTarget(null);
+        return;
+      }
       if (!files || files.length === 0) {
         setPendingImportTarget(null);
         return;
@@ -1314,20 +1418,25 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       await importGraphsTo(files, pendingImportTarget);
       setPendingImportTarget(null);
     },
-    [importGraphsTo, pendingImportTarget],
+    [importGraphsTo, isReadOnly, pendingImportTarget],
   );
 
   const handleImportInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) {
+        event.target.value = '';
+        return;
+      }
       const { files } = event.target;
       void handleImportGraphs(files);
       event.target.value = '';
     },
-    [handleImportGraphs],
+    [handleImportGraphs, isReadOnly],
   );
 
   const handleDeleteFolder = useCallback(
     (groupSlug: string, categoryKey: string) => {
+      if (isReadOnly) return;
       const targetGroup = groupMap.get(groupSlug);
       if (!targetGroup) {
         setContextMenu(null);
@@ -1353,7 +1462,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         cancelLabel: t('common.cancel'),
       });
     },
-    [currentHistoryEntry, deleteGroup, groupMap, setHistory, setHistoryIndex, t, topFolder],
+    [currentHistoryEntry, deleteGroup, groupMap, isReadOnly, setHistory, setHistoryIndex, t, topFolder],
   );
 
   const handleNavigateToRoot = useCallback(() => {
@@ -1406,25 +1515,28 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
 
   const handleDragEnter = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       if (isRootView || !isFileDragEvent(event)) return;
       event.preventDefault();
       dragCounterRef.current += 1;
       setDropActive(true);
     },
-    [isRootView],
+    [isReadOnly, isRootView],
   );
 
   const handleDragOver = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       if (isRootView || !isFileDragEvent(event)) return;
       event.preventDefault();
       event.dataTransfer.dropEffect = 'copy';
     },
-    [isRootView],
+    [isReadOnly, isRootView],
   );
 
   const handleDragLeave = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       if (isRootView || !isFileDragEvent(event)) return;
       event.preventDefault();
       dragCounterRef.current = Math.max(0, dragCounterRef.current - 1);
@@ -1432,11 +1544,12 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         setDropActive(false);
       }
     },
-    [isRootView],
+    [isReadOnly, isRootView],
   );
 
   const handleDrop = useCallback(
     (event: DragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       if (isRootView || !isFileDragEvent(event)) return;
       event.preventDefault();
       const targetSlug = currentHistoryEntry;
@@ -1446,7 +1559,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
       if (!files || files.length === 0) return;
       void importGraphsTo(files, { groupSlug: targetSlug, categoryKey: activeCategoryKey });
     },
-    [activeCategoryKey, currentHistoryEntry, importGraphsTo, isRootView, resetDropState],
+    [activeCategoryKey, currentHistoryEntry, importGraphsTo, isReadOnly, isRootView, resetDropState],
   );
 
   useEffect(() => {
@@ -1646,6 +1759,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
         multiple
         hidden
         onChange={handleImportInputChange}
+        disabled={isReadOnly}
       />
       <aside className="resource-explorer__sidebar">
         <h2 className="resource-explorer__sidebar-title">
@@ -1813,7 +1927,7 @@ const ResourceExplorer = ({ topFolder, document, dirtyGraphIds, onOpenGraph }: R
           {isRootView ? folderRows : graphRows}
         </div>
 
-        {contextMenu && (
+        {!isReadOnly && contextMenu && (
           <div
             className="resource-explorer__context-menu"
             style={{ left: contextMenu.x, top: contextMenu.y }}
