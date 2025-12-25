@@ -237,6 +237,29 @@
   font-size: 20px;
 }
 
+.home__network-reload {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-pointer);
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.home__network-reload img {
+  width: 18px;
+  height: 18px;
+}
+
+.home__network-reload:hover {
+  border-color: rgba(92, 186, 255, 0.45);
+  background: rgba(92, 186, 255, 0.16);
+}
+
 .home__network {
   display: flex;
   flex-direction: column;

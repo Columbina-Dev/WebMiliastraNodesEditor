@@ -9,10 +9,12 @@ import './HomePage.css';
 
 export type NetworkProject = {
   id: string;
+  projectId?: string;
   name: string;
   address: string;
   requiresPassword: boolean;
   ownerNickname?: string;
+  password?: string;
   document?: ProjectDocument;
 };
 
@@ -33,6 +35,7 @@ interface HomePageProps {
   onDecodeGia: (file: File) => Promise<void> | void;
   networkProjects: NetworkProject[];
   defaultNickname: string;
+  onRefreshNetwork: () => void;
   onJoinNetworkProject: (project: NetworkProject, nickname: string, password?: string) => void;
   onSendJoinRequest: (project: NetworkProject, nickname: string) => void;
 }
@@ -54,6 +57,7 @@ const ICON_DELETE = new URL('../assets/icons/del.png', import.meta.url).href;
 const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).href;
 const ICON_EFFECTS = new URL('../assets/icons/effects.png', import.meta.url).href;
 const ICON_SETTING = new URL('../assets/icons/setting.png', import.meta.url).href;
+const ICON_RELOAD = new URL('../assets/icons/reload.png', import.meta.url).href;
 
 const HomePage = ({
   projects,
@@ -72,6 +76,7 @@ const HomePage = ({
   onDecodeGia,
   networkProjects,
   defaultNickname,
+  onRefreshNetwork,
   onJoinNetworkProject,
   onSendJoinRequest,
 }: HomePageProps) => {
@@ -260,6 +265,15 @@ const HomePage = ({
         <hr className="home__divider" />
         <div className="home__network-header">
           <h2>{t('home.network.title')}</h2>
+          <button
+            type="button"
+            className="home__network-reload"
+            onClick={onRefreshNetwork}
+            aria-label={t('home.network.reload')}
+            title={t('home.network.reload')}
+          >
+            <img src={ICON_RELOAD} alt="" aria-hidden="true" />
+          </button>
         </div>
         <div className="home__network">
           {networkProjects.length ? (
@@ -409,14 +423,6 @@ const HomePage = ({
               <button
                 type="button"
                 onClick={() => {
-                  setPendingJoin(null);
-                }}
-              >
-                {t('common.cancel')}
-              </button>
-              <button
-                type="button"
-                onClick={() => {
                   if (!pendingJoin) return;
                   if (!joinNickname.trim()) return;
                   if (pendingJoin.requiresPassword && !joinPassword.trim()) return;
@@ -426,6 +432,14 @@ const HomePage = ({
                 disabled={!joinNickname.trim() || (pendingJoin.requiresPassword && !joinPassword.trim())}
               >
                 {t('home.network.join.action')}
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setPendingJoin(null);
+                }}
+              >
+                {t('common.cancel')}
               </button>
             </div>
           </div>
