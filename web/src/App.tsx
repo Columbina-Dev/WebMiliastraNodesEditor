@@ -1,5 +1,5 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { ChangeEvent, CSSProperties, FormEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import type { ChangeEvent, CSSProperties, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
 import JSZip from "jszip";
 
 import GraphCanvas from "./components/GraphCanvas";
@@ -226,6 +226,13 @@ const buildSignalUrl = () => {
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
   const hostname = window.location.hostname || '127.0.0.1';
   return `${protocol}://${hostname}:${COLLAB_SIGNAL_PORT}`;
+};
+
+const isEditableTarget = (target: EventTarget | null) => {
+  if (typeof HTMLElement === 'undefined') return false;
+  if (!(target instanceof HTMLElement)) return false;
+  if (target.isContentEditable) return true;
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"]'));
 };
 
 const formatExecutionInterval = (value: number) => {
@@ -585,6 +592,7 @@ const App = () => {
   );
   const defaultProjectName = t('project.defaultName');
   const shareTargetName = graphName || projectName || defaultProjectName;
+  const shareProjectName = projectName || defaultProjectName;
   const fallbackNickname = t('collab.nickname.fallback');
   const localNickname = sanitizeNickname(editorSettings.collabDefaultNickname) || fallbackNickname;
   const localAvatar = editorSettings.collabAvatar || undefined;
@@ -594,9 +602,11 @@ const App = () => {
   const [collabEditorLimit, setCollabEditorLimit] = useState(0);
   const [collabPassword, setCollabPassword] = useState('');
   const [collabOwnerNickname, setCollabOwnerNickname] = useState('');
+  const [collabClientNickname, setCollabClientNickname] = useState('');
   const [collabMembers, setCollabMembers] = useState<CollaborationMember[]>([]);
   const [collabRequests, setCollabRequests] = useState<CollaborationRequest[]>([]);
   const [collabCursors, setCollabCursors] = useState<CollaborationCursor[]>([]);
+  const collabMembersRef = useRef<CollaborationMember[]>([]);
   const [isShareOpen, setIsShareOpen] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
   const [collabDisconnectReason, setCollabDisconnectReason] = useState<string | null>(null);
@@ -604,7 +614,9 @@ const App = () => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [chatDraft, setChatDraft] = useState('');
   const [lastChatReadAt, setLastChatReadAt] = useState(() => Date.now());
+  const [showChatScrollButton, setShowChatScrollButton] = useState(false);
   const chatPanelRef = useRef<HTMLDivElement | null>(null);
+  const chatStickToBottomRef = useRef(true);
   const clientIdRef = useRef<string>(getCollabClientId());
   const [signalStatus, setSignalStatus] = useState<'disconnected' | 'connecting' | 'connected'>('connecting');
   const signalSocketRef = useRef<WebSocket | null>(null);
@@ -616,6 +628,15 @@ const App = () => {
   const collabModeRef = useRef<CollaborationMode>(collabMode);
   const collabRoomIdRef = useRef<string | null>(collabRoomId);
   const pendingJoinRoomIdRef = useRef<string | null>(pendingJoinRoomId);
+  const collabPermissionRef = useRef<CollaborationPermission>(collabPermission);
+  const collabSyncSuppressedRef = useRef(0);
+  const collabProjectFingerprintRef = useRef<string | null>(null);
+  const collabSaveInProgressRef = useRef(false);
+  const collabSaveQueuedRef = useRef(false);
+  const [collabSaving, setCollabSaving] = useState(false);
+  const collabLockedNodesRef = useRef<Map<string, Set<string>>>(new Map());
+  const [lockedNodeIds, setLockedNodeIds] = useState<string[]>([]);
+  const chatMessagesRef = useRef<HTMLDivElement | null>(null);
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
   const defaultGroupNameLabel = defaultGroupNameLabelRaw.trim() &&
     defaultGroupNameLabelRaw.trim() !== 'structure-manager__group-label'
@@ -625,18 +646,24 @@ const App = () => {
   const isCollaborating = collabMode !== 'idle';
   const shareReadOnly = collabMode === 'client';
   const ownerNicknameValue = collabOwnerNickname || localNickname;
+  const localMemberNickname =
+    collabMode === 'host'
+      ? ownerNicknameValue
+      : collabMode === 'client'
+        ? collabClientNickname || localNickname
+        : localNickname;
   const localMemberPermission: CollaborationPermission =
     collabMode === 'client' ? collabPermission : 'editor';
   const localMember: CollaborationMember = {
     id: clientIdRef.current,
-    nickname: localNickname,
+    nickname: localMemberNickname,
     avatar: localAvatar,
     permission: localMemberPermission,
     isOwner: collabMode === 'host',
     activeTabId: activeTabId ?? null,
   };
   const presenceMembers = useMemo(() => {
-    if (!isCollaborating) return [localMember];
+    if (!isCollaborating) return [];
     const map = new Map<string, CollaborationMember>();
     map.set(localMember.id, localMember);
     collabMembers.forEach((member) => {
@@ -655,6 +682,7 @@ const App = () => {
     return map;
   }, [presenceMembers]);
   const isViewer = collabMode === 'client' && collabPermission === 'viewer';
+  const isProjectMetadataLocked = collabMode === 'client';
   const signalConnected = signalStatus === 'connected';
   const sendSignalMessage = useCallback((payload: Record<string, unknown>) => {
     const socket = signalSocketRef.current;
@@ -745,7 +773,6 @@ const App = () => {
       ).length,
     [chatMessages, lastChatReadAt, localMember.id],
   );
-  const lockedNodeIds = useMemo(() => [] as string[], []);
   const displayedCursors = useMemo(
     () =>
       collabCursors.map((cursor, index) => ({
@@ -755,6 +782,20 @@ const App = () => {
       })),
     [collabCursors],
   );
+  const scrollChatToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    const container = chatMessagesRef.current;
+    if (!container) return;
+    container.scrollTo({ top: container.scrollHeight, behavior });
+  }, []);
+
+  const updateChatScrollState = useCallback(() => {
+    const container = chatMessagesRef.current;
+    if (!container) return;
+    const { scrollTop, scrollHeight, clientHeight } = container;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 8;
+    chatStickToBottomRef.current = atBottom;
+    setShowChatScrollButton(scrollHeight >= clientHeight * 1.5 && !atBottom);
+  }, []);
   useEffect(() => {
     if (isShareOpen && !collabOwnerNickname) {
       setCollabOwnerNickname(localNickname);
@@ -781,6 +822,23 @@ const App = () => {
     return () => window.removeEventListener('mousedown', handleOutsideClick);
   }, [isChatOpen]);
   useEffect(() => {
+    if (!isChatOpen) return;
+    updateChatScrollState();
+    const container = chatMessagesRef.current;
+    if (!container) return;
+    const handleScroll = () => updateChatScrollState();
+    container.addEventListener('scroll', handleScroll);
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [isChatOpen, updateChatScrollState]);
+  useEffect(() => {
+    if (!isChatOpen) return;
+    if (chatStickToBottomRef.current) {
+      scrollChatToBottom('auto');
+    } else {
+      updateChatScrollState();
+    }
+  }, [chatMessages, isChatOpen, scrollChatToBottom, updateChatScrollState]);
+  useEffect(() => {
     if (collabMode === 'idle') {
       setCollabMembers([]);
       setCollabRequests([]);
@@ -789,8 +847,14 @@ const App = () => {
       setChatMessages([]);
       setPendingJoinRoomId(null);
       setCollabRoomId(null);
+      setCollabClientNickname('');
       pendingJoinRoomIdRef.current = null;
       collabRoomIdRef.current = null;
+      collabLockedNodesRef.current.clear();
+      collabSaveInProgressRef.current = false;
+      collabSaveQueuedRef.current = false;
+      setLockedNodeIds([]);
+      setCollabSaving(false);
     }
   }, [collabMode]);
   useEffect(() => {
@@ -798,6 +862,15 @@ const App = () => {
       setLastChatReadAt(Date.now());
     }
   }, [chatMessages, isChatOpen]);
+  useEffect(() => {
+    if (!collabSaving) return;
+    const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+  }, [collabSaving]);
   useEffect(() => {
     collabModeRef.current = collabMode;
   }, [collabMode]);
@@ -807,6 +880,12 @@ const App = () => {
   useEffect(() => {
     pendingJoinRoomIdRef.current = pendingJoinRoomId;
   }, [pendingJoinRoomId]);
+  useEffect(() => {
+    collabMembersRef.current = collabMembers;
+  }, [collabMembers]);
+  useEffect(() => {
+    collabPermissionRef.current = collabPermission;
+  }, [collabPermission]);
   useEffect(() => {
     if (!signalConnected) return;
     sendSignalMessage({
@@ -1325,10 +1404,10 @@ const App = () => {
 
   const handleProjectInfoNameChange = useCallback(
     (value: string) => {
-      if (isViewer) return;
+      if (isViewer || isProjectMetadataLocked) return;
       setProjectInfoDialog((prev) => (prev ? { ...prev, name: value, error: null } : prev));
     },
-    [isViewer],
+    [isProjectMetadataLocked, isViewer],
   );
 
   const handleProjectInfoCancel = useCallback(() => {
@@ -1337,7 +1416,7 @@ const App = () => {
 
   const handleProjectInfoConfirm = useCallback(() => {
     if (!projectInfoDialog) return;
-    if (isViewer) {
+    if (isViewer || isProjectMetadataLocked) {
       setProjectInfoDialog(null);
       return;
     }
@@ -1380,6 +1459,7 @@ const App = () => {
   }, [
     defaultProjectName,
     history,
+    isProjectMetadataLocked,
     isViewer,
     openInfoDialog,
     projectDocument,
@@ -1556,6 +1636,7 @@ const App = () => {
   const handleJoinNetworkProject = useCallback(
     (project: NetworkProject, nickname: string, password?: string) => {
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
+      setCollabClientNickname(cleanedNickname);
       if (!signalConnected) {
         openInfoDialog(t('common.error'), t('collab.signal.offline'));
         return;
@@ -1587,6 +1668,7 @@ const App = () => {
   const handleSendJoinRequest = useCallback(
     (project: NetworkProject, nickname: string) => {
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
+      setCollabClientNickname(cleanedNickname);
       if (!signalConnected) {
         openInfoDialog(t('common.error'), t('collab.signal.offline'));
         return;
@@ -1833,12 +1915,18 @@ const App = () => {
         activeTabId: member.activeTabId ?? existing?.activeTabId,
       };
       map.set(member.id, merged);
-      return Array.from(map.values());
+      const nextMembers = Array.from(map.values());
+      collabMembersRef.current = nextMembers;
+      return nextMembers;
     });
   }, []);
 
   const removeCollabMember = useCallback((memberId: string) => {
-    setCollabMembers((prev) => prev.filter((member) => member.id !== memberId));
+    setCollabMembers((prev) => {
+      const nextMembers = prev.filter((member) => member.id !== memberId);
+      collabMembersRef.current = nextMembers;
+      return nextMembers;
+    });
   }, []);
 
   const buildMembersSnapshot = useCallback(() => {
@@ -1877,6 +1965,177 @@ const App = () => {
     },
     [collabMode, collabRoomId, sendSignalMessage],
   );
+
+  const sendProjectUpdate = useCallback(
+    (document: ProjectDocument, sourceId: string = clientIdRef.current) => {
+      const roomId = collabRoomIdRef.current;
+      if (!roomId) return;
+      const payload = { type: 'project:update', document, sourceId };
+      if (collabModeRef.current === 'host') {
+        sendSignalMessage({
+          type: 'room:message',
+          roomId,
+          payload,
+        });
+      } else if (collabModeRef.current === 'client') {
+        sendSignalMessage({
+          type: 'client:message',
+          roomId,
+          payload,
+        });
+      }
+    },
+    [sendSignalMessage],
+  );
+
+  const runWithCollabSyncSuppressed = useCallback((action: () => void) => {
+    collabSyncSuppressedRef.current += 1;
+    try {
+      action();
+    } finally {
+      collabSyncSuppressedRef.current = Math.max(0, collabSyncSuppressedRef.current - 1);
+    }
+  }, []);
+
+  const refreshLockedNodeIds = useCallback(() => {
+    const merged = new Set<string>();
+    collabLockedNodesRef.current.forEach((nodeSet, ownerId) => {
+      if (ownerId === clientIdRef.current) return;
+      nodeSet.forEach((nodeId) => merged.add(nodeId));
+    });
+    setLockedNodeIds(Array.from(merged));
+  }, []);
+
+  const updateLockedNodes = useCallback(
+    (sourceId: string, nodeIds: string[], isDragging: boolean) => {
+      if (!sourceId || sourceId === clientIdRef.current) return;
+      const map = collabLockedNodesRef.current;
+      const existing = map.get(sourceId) ?? new Set<string>();
+      let changed = false;
+      nodeIds.forEach((nodeId) => {
+        if (isDragging) {
+          if (!existing.has(nodeId)) {
+            existing.add(nodeId);
+            changed = true;
+          }
+        } else if (existing.delete(nodeId)) {
+          changed = true;
+        }
+      });
+      if (existing.size > 0) {
+        map.set(sourceId, existing);
+      } else {
+        map.delete(sourceId);
+      }
+      if (changed) {
+        refreshLockedNodeIds();
+      }
+    },
+    [refreshLockedNodeIds],
+  );
+
+  const pruneLockedNodes = useCallback(
+    (validIds: string[]) => {
+      const validSet = new Set(validIds);
+      let changed = false;
+      collabLockedNodesRef.current.forEach((_value, ownerId) => {
+        if (!validSet.has(ownerId)) {
+          collabLockedNodesRef.current.delete(ownerId);
+          changed = true;
+        }
+      });
+      if (changed) {
+        refreshLockedNodeIds();
+      }
+    },
+    [refreshLockedNodeIds],
+  );
+
+  const applyRemoteProjectUpdate = useCallback(
+    (document: ProjectDocument) => {
+      const { document: normalized } = normalizeProjectDocument(document);
+      runWithCollabSyncSuppressed(() => {
+        updateDocument(() => normalized);
+      });
+    },
+    [runWithCollabSyncSuppressed, updateDocument],
+  );
+
+  const handleNodeDragStateChange = useCallback(
+    (nodeIds: string[], isDragging: boolean) => {
+      const roomId = collabRoomIdRef.current;
+      if (!roomId || !nodeIds.length) return;
+      const uniqueIds = Array.from(new Set(nodeIds));
+      if (!uniqueIds.length) return;
+      const payload = {
+        type: isDragging ? 'nodes:lock' : 'nodes:unlock',
+        nodeIds: uniqueIds,
+      };
+      if (collabModeRef.current === 'host') {
+        sendSignalMessage({
+          type: 'room:message',
+          roomId,
+          payload: { ...payload, ownerId: clientIdRef.current },
+        });
+      } else if (collabModeRef.current === 'client') {
+        sendSignalMessage({
+          type: 'client:message',
+          roomId,
+          payload,
+        });
+      }
+    },
+    [sendSignalMessage],
+  );
+
+  const performCollabAutoSave = useCallback(() => {
+    const store = useProjectStore.getState();
+    if (!store.document || !store.projectId) {
+      return;
+    }
+    const { document: normalized } = normalizeProjectDocument(store.document);
+    runWithCollabSyncSuppressed(() => {
+      updateDocument(() => normalized);
+    });
+    const savedAt = new Date().toISOString();
+    const record: StoredProject = {
+      id: normalized.manifest.project.id,
+      name: normalized.manifest.project.name,
+      savedAt,
+      document: normalized,
+    };
+    upsertProjectRecord(record);
+    refreshHistory();
+    Object.keys(store.dirtyGraphIds).forEach((id) => {
+      store.markGraphDirty(id, false);
+    });
+    Object.keys(store.dirtyStructIds ?? {}).forEach((id) => {
+      store.markStructDirty(id, false);
+    });
+    autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
+  }, [refreshHistory, runWithCollabSyncSuppressed, updateDocument]);
+
+  const queueCollabAutoSave = useCallback(() => {
+    if (collabSaveInProgressRef.current) {
+      collabSaveQueuedRef.current = true;
+      return;
+    }
+    collabSaveInProgressRef.current = true;
+    collabSaveQueuedRef.current = false;
+    setCollabSaving(true);
+    window.setTimeout(() => {
+      try {
+        performCollabAutoSave();
+      } finally {
+        collabSaveInProgressRef.current = false;
+        setCollabSaving(false);
+        if (collabSaveQueuedRef.current) {
+          collabSaveQueuedRef.current = false;
+          queueCollabAutoSave();
+        }
+      }
+    }, 0);
+  }, [performCollabAutoSave]);
 
   const approveJoin = useCallback(
     (clientId: string, nickname: string, avatar?: string) => {
@@ -1963,6 +2222,7 @@ const App = () => {
     if (shareReadOnly || collabMode !== 'host' || !collabRoomId) return;
     const nextMembers = collabMembers.filter((member) => member.id !== memberId);
     removeCollabMember(memberId);
+    pruneLockedNodes([clientIdRef.current, ...nextMembers.map((member) => member.id)]);
     sendRoomMessage({ type: 'session:end', reason: 'removed' }, memberId);
     sendRoomMessage({
       type: 'members:update',
@@ -1970,8 +2230,7 @@ const App = () => {
     });
   };
 
-  const handleChatSubmit = (event: FormEvent) => {
-    event.preventDefault();
+  const submitChatMessage = useCallback(() => {
     if (!isCollaborating) return;
     const trimmed = chatDraft.trim();
     if (!trimmed) return;
@@ -1993,7 +2252,25 @@ const App = () => {
       sendClientMessage({ type: 'chat:send', message });
     }
     setChatDraft('');
+    window.requestAnimationFrame(() => scrollChatToBottom());
+  }, [chatDraft, isCollaborating, localMember, scrollChatToBottom, sendClientMessage, sendRoomMessage, collabMode]);
+
+  const handleChatSubmit = (event: FormEvent) => {
+    event.preventDefault();
+    submitChatMessage();
   };
+
+  const handleChatDraftKeyDown = useCallback(
+    (event: KeyboardEvent<HTMLTextAreaElement>) => {
+      if (event.key !== 'Enter') return;
+      if (event.shiftKey || event.ctrlKey || event.metaKey) {
+        return;
+      }
+      event.preventDefault();
+      submitChatMessage();
+    },
+    [submitChatMessage],
+  );
 
   useEffect(() => {
     if (!signalConnected || !collabRoomId) return;
@@ -2003,7 +2280,7 @@ const App = () => {
         roomId: collabRoomId,
         hostId: clientIdRef.current,
         projectId: projectId ?? '',
-        name: shareTargetName || defaultProjectName,
+        name: shareProjectName,
         requiresPassword: collabAccessMode === 'local-password',
         ownerNickname: ownerNicknameValue,
       });
@@ -2018,12 +2295,11 @@ const App = () => {
     collabAccessMode,
     collabEditorLimit,
     collabRoomId,
-    defaultProjectName,
     isSharing,
     ownerNicknameValue,
     projectId,
     sendSignalMessage,
-    shareTargetName,
+    shareProjectName,
     signalConnected,
   ]);
 
@@ -2036,12 +2312,35 @@ const App = () => {
   }, [activeTabId, buildMembersSnapshot, collabMembers, collabRoomId, isSharing, sendRoomMessage]);
 
   useEffect(() => {
+    if (!isSharing) return;
+    const validIds = [clientIdRef.current, ...collabMembers.map((member) => member.id)];
+    pruneLockedNodes(validIds);
+  }, [collabMembers, isSharing, pruneLockedNodes]);
+
+  useEffect(() => {
     if (collabMode !== 'client' || !collabRoomId) return;
     sendClientMessage({
       type: 'presence:update',
       activeTabId: activeTabId ?? null,
     });
   }, [activeTabId, collabMode, collabRoomId, sendClientMessage]);
+
+  useEffect(() => {
+    const unsubscribe = useProjectStore.subscribe((state) => {
+      if (!state.document) return;
+      if (collabModeRef.current === 'idle') return;
+      const fingerprint = fingerprintProjectDocument(state.document);
+      if (collabProjectFingerprintRef.current === fingerprint) return;
+      collabProjectFingerprintRef.current = fingerprint;
+      if (collabModeRef.current === 'host') {
+        queueCollabAutoSave();
+      }
+      if (collabSyncSuppressedRef.current > 0) return;
+      if (collabModeRef.current === 'client' && collabPermissionRef.current === 'viewer') return;
+      sendProjectUpdate(state.document);
+    });
+    return unsubscribe;
+  }, [queueCollabAutoSave, sendProjectUpdate]);
 
   useEffect(() => {
     handleSignalMessageRef.current = (message: SignalMessage) => {
@@ -2134,10 +2433,37 @@ const App = () => {
           if (!collabRoomIdRef.current || message.roomId !== collabRoomIdRef.current) return;
           const payload = message.payload as { type?: string; [key: string]: unknown } | null;
           if (!payload || typeof payload.type !== 'string') return;
+          const isKnownMember = collabMembersRef.current.some((member) => member.id === message.clientId);
+          if (!isKnownMember) {
+            sendRoomMessage({ type: 'session:end', reason: 'not-member' }, message.clientId);
+            return;
+          }
+          if (payload.type === 'project:update') {
+            if (collabPermissionRef.current === 'viewer') return;
+            const incoming = payload.document as ProjectDocument | undefined;
+            if (!incoming) return;
+            applyRemoteProjectUpdate(incoming);
+            sendRoomMessage({ type: 'project:update', document: incoming, sourceId: message.clientId });
+            return;
+          }
+          if (payload.type === 'nodes:lock' || payload.type === 'nodes:unlock') {
+            const nodeIds = Array.isArray(payload.nodeIds)
+              ? payload.nodeIds.filter((item) => typeof item === 'string')
+              : [];
+            if (!nodeIds.length) return;
+            const isDragging = payload.type === 'nodes:lock';
+            updateLockedNodes(message.clientId, nodeIds, isDragging);
+            sendRoomMessage({
+              type: payload.type,
+              nodeIds,
+              ownerId: message.clientId,
+            });
+            return;
+          }
           if (payload.type === 'chat:send') {
             const incoming = payload.message as ChatMessage | undefined;
             if (!incoming) return;
-            const sender = collabMembers.find((item) => item.id === message.clientId);
+            const sender = collabMembersRef.current.find((item) => item.id === message.clientId);
             const chatMessage: ChatMessage = {
               ...incoming,
               senderId: message.clientId,
@@ -2167,9 +2493,10 @@ const App = () => {
         case 'room:member-left': {
           if (collabModeRef.current !== 'host') return;
           if (!collabRoomIdRef.current || message.roomId !== collabRoomIdRef.current) return;
-          if (!collabMembers.some((member) => member.id === message.clientId)) return;
-          const nextMembers = collabMembers.filter((member) => member.id !== message.clientId);
+          if (!collabMembersRef.current.some((member) => member.id === message.clientId)) return;
+          const nextMembers = collabMembersRef.current.filter((member) => member.id !== message.clientId);
           removeCollabMember(message.clientId);
+          pruneLockedNodes([clientIdRef.current, ...nextMembers.map((member) => member.id)]);
           sendRoomMessage({
             type: 'members:update',
             members: [buildMembersSnapshot()[0], ...nextMembers],
@@ -2199,7 +2526,9 @@ const App = () => {
               const { document: prepared, primaryGraphId, warnings } = prepareProjectDocument(
                 project,
               );
-              applyProjectDocument(prepared, primaryGraphId);
+              runWithCollabSyncSuppressed(() => {
+                applyProjectDocument(prepared, primaryGraphId);
+              });
               if (warnings.length) {
                 console.warn('Collaboration project normalization warnings:', warnings);
               }
@@ -2211,12 +2540,19 @@ const App = () => {
                 .filter((member) => member.id !== clientIdRef.current),
             );
             setCollabMembers(filteredMembers);
+            collabLockedNodesRef.current.clear();
+            setLockedNodeIds([]);
             return;
           }
           if (collabModeRef.current !== 'client') return;
           if (collabRoomIdRef.current && message.roomId !== collabRoomIdRef.current) return;
           if (payload.type === 'members:update') {
             const members = Array.isArray(payload.members) ? payload.members : [];
+            const hasSelf = members.some((member) => member?.id === clientIdRef.current);
+            if (!hasSelf) {
+              leaveCollaboratorSession('collab.disconnect.owner');
+              return;
+            }
             const filteredMembers = dedupeCollabMembers(
               members
                 .filter((member) => member && typeof member.id === 'string')
@@ -2227,6 +2563,29 @@ const App = () => {
             if (owner && typeof owner.nickname === 'string') {
               setCollabOwnerNickname(owner.nickname);
             }
+            pruneLockedNodes(
+              members
+                .filter((member) => member && typeof member.id === 'string')
+                .map((member) => member.id),
+            );
+            return;
+          }
+          if (payload.type === 'project:update') {
+            const sourceId = typeof payload.sourceId === 'string' ? payload.sourceId : null;
+            if (sourceId && sourceId === clientIdRef.current) return;
+            const incoming = payload.document as ProjectDocument | undefined;
+            if (!incoming) return;
+            applyRemoteProjectUpdate(incoming);
+            return;
+          }
+          if (payload.type === 'nodes:lock' || payload.type === 'nodes:unlock') {
+            const nodeIds = Array.isArray(payload.nodeIds)
+              ? payload.nodeIds.filter((item) => typeof item === 'string')
+              : [];
+            if (!nodeIds.length) return;
+            const ownerId = typeof payload.ownerId === 'string' ? payload.ownerId : '';
+            const isDragging = payload.type === 'nodes:lock';
+            updateLockedNodes(ownerId, nodeIds, isDragging);
             return;
           }
           if (payload.type === 'chat:message') {
@@ -2252,6 +2611,7 @@ const App = () => {
       }
     };
   }, [
+    applyRemoteProjectUpdate,
     applyProjectDocument,
     approveJoin,
     buildMembersSnapshot,
@@ -2265,7 +2625,9 @@ const App = () => {
     localNickname,
     openInfoDialog,
     prepareProjectDocument,
+    pruneLockedNodes,
     removeCollabMember,
+    runWithCollabSyncSuppressed,
     sendRoomMessage,
     sendSignalMessage,
     setCollabMembers,
@@ -2274,7 +2636,9 @@ const App = () => {
     setCollabRoomId,
     setCollabMode,
     setPendingJoinRoomId,
+    setLockedNodeIds,
     t,
+    updateLockedNodes,
     upsertCollabMember,
     pendingJoinRoomId,
   ]);
@@ -2760,10 +3124,10 @@ const handleSaveGraphAs = useCallback(() => {
 
   const handleGraphNameChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
-      if (isViewer) return;
+      if (isViewer || isProjectMetadataLocked) return;
       setGraphName(event.target.value);
     },
-    [isViewer, setGraphName],
+    [isProjectMetadataLocked, isViewer, setGraphName],
   );
 
   const handleToggleMenu = useCallback(
@@ -2842,7 +3206,7 @@ const handleSaveGraphAs = useCallback(() => {
 
   useEffect(() => {
     if (!saveAsDialog) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         handleSaveAsCancel();
       }
@@ -2853,7 +3217,7 @@ const handleSaveGraphAs = useCallback(() => {
 
   useEffect(() => {
     if (!projectInfoDialog) return;
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
         handleProjectInfoCancel();
       }
@@ -3054,7 +3418,7 @@ const handleSaveGraphAs = useCallback(() => {
     activeTab?.type === 'explorer' ? activeTab.topFolder : 'server';
 
   useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (isViewer) return;
       if (!event.ctrlKey && !event.metaKey) return;
       if (event.key !== 's' && event.key !== 'S') return;
@@ -3067,6 +3431,32 @@ const handleSaveGraphAs = useCallback(() => {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [activeTabType, handleManualSave, isGraphTab, isViewer, view]);
+
+  useEffect(() => {
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (isViewer) return;
+      if (view !== 'editor') return;
+      if (!event.ctrlKey && !event.metaKey) return;
+      if (isEditableTarget(event.target)) return;
+      if (event.key === 'z' || event.key === 'Z') {
+        event.preventDefault();
+        if (event.shiftKey) {
+          if (canRedo) {
+            redo();
+          }
+        } else if (canUndo) {
+          undo();
+        }
+      } else if (event.key === 'y' || event.key === 'Y') {
+        event.preventDefault();
+        if (canRedo) {
+          redo();
+        }
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [canRedo, canUndo, isViewer, redo, undo, view]);
 
   const togglePalette = useCallback(() => {
     setPanelState((prev) => {
@@ -3085,6 +3475,7 @@ const handleSaveGraphAs = useCallback(() => {
   }, []);
   const renderTabs = () => {
     const renderTabPresence = (tabId: TabId) => {
+      if (!isCollaborating) return null;
       const members = presenceByTab.get(tabId) ?? [];
       if (!members.length) return null;
       const hasOverflowPresence = members.length > 3;
@@ -3096,7 +3487,7 @@ const handleSaveGraphAs = useCallback(() => {
               key={member.id}
               src={member.avatar}
               label={member.nickname}
-              size={20}
+              size={15}
               className="app__tab-avatar"
             />
           ))}
@@ -3225,6 +3616,7 @@ const handleSaveGraphAs = useCallback(() => {
             <div>
               <h2>{t('collab.share.title', { name: shareTargetName })}</h2>
               {shareReadOnly && <p className="collab-modal__note">{t('collab.share.readOnly')}</p>}
+              {isViewer && <p className="collab-modal__note">{t('collab.share.viewerNotice')}</p>}
             </div>
           </div>
           <div className="collab-section">
@@ -3413,34 +3805,47 @@ const handleSaveGraphAs = useCallback(() => {
             ×
           </button>
         </div>
-        <div className="app__chat-messages">
-          {chatMessages.length ? (
-            chatMessages.map((message) => {
-              const isSelf = message.senderId === localMember.id;
-              return (
-                <div
-                  key={message.id}
-                  className={`app__chat-message${isSelf ? ' is-self' : ''}`}
-                >
-                  {!isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
-                  <div className="app__chat-bubble">
-                    <div className="app__chat-name">{message.nickname}</div>
-                    <div className="app__chat-text">{message.content}</div>
+        <div className="app__chat-body">
+          <div className="app__chat-messages" ref={chatMessagesRef}>
+            {chatMessages.length ? (
+              chatMessages.map((message) => {
+                const isSelf = message.senderId === localMember.id;
+                return (
+                  <div
+                    key={message.id}
+                    className={`app__chat-message${isSelf ? ' is-self' : ''}`}
+                  >
+                    {!isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
+                    <div className="app__chat-bubble">
+                      <div className="app__chat-name">{message.nickname}</div>
+                      <div className="app__chat-text">{message.content}</div>
+                    </div>
+                    {isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
                   </div>
-                  {isSelf && <Avatar src={message.avatar} label={message.nickname} size={28} />}
-                </div>
-              );
-            })
-          ) : (
-            <div className="app__chat-empty">{t('collab.chat.empty')}</div>
+                );
+              })
+            ) : (
+              <div className="app__chat-empty">{t('collab.chat.empty')}</div>
+            )}
+          </div>
+          {showChatScrollButton && (
+            <button
+              type="button"
+              className="app__chat-scroll-button"
+              onClick={() => scrollChatToBottom()}
+            >
+              {t('collab.chat.goBottom')}
+            </button>
           )}
         </div>
         <form className="app__chat-input" onSubmit={handleChatSubmit}>
-          <input
+          <textarea
             value={chatDraft}
             onChange={(event) => setChatDraft(event.target.value)}
+            onKeyDown={handleChatDraftKeyDown}
             placeholder={t('collab.chat.placeholder')}
             disabled={!isCollaborating}
+            rows={2}
           />
           <button type="submit" disabled={!isCollaborating || !chatDraft.trim()}>
             {t('collab.chat.send')}
@@ -3564,6 +3969,9 @@ const handleSaveGraphAs = useCallback(() => {
             </div>
           </nav>
         </div>
+        {collabSaving && (
+          <div className="app__editor-bar-saving-stat">{t('collab.saving')}</div>
+        )}
         <div className="app__editor-bar-center">{VERSION_INFO.node || VERSION_INFO.editor}</div>
         <div className="app__editor-bar-right">
           <button
@@ -3622,6 +4030,7 @@ const handleSaveGraphAs = useCallback(() => {
               lockedNodeIds={lockedNodeIds}
               collabCursors={displayedCursors}
               isReadOnly={isViewer}
+              onNodeDragStateChange={handleNodeDragStateChange}
             />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} isReadOnly={isViewer} />
           </>
@@ -3730,7 +4139,7 @@ const handleSaveGraphAs = useCallback(() => {
                 value={graphName}
                 onChange={handleGraphNameChange}
                 placeholder={t('graph.namePlaceholder')}
-                readOnly={isViewer}
+                readOnly={isViewer || isProjectMetadataLocked}
               />
               <div className="action_dock__separator" aria-hidden="true" />
               <div className="action_dock__zoom">
@@ -3857,7 +4266,7 @@ const handleSaveGraphAs = useCallback(() => {
                 value={projectInfoDialog.name}
                 onChange={(event) => handleProjectInfoNameChange(event.target.value)}
                 placeholder={t('app.projectInfo.namePlaceholder')}
-                readOnly={isViewer}
+                readOnly={isViewer || isProjectMetadataLocked}
               />
             </div>
             {projectInfoDialog.error && (
@@ -3866,7 +4275,7 @@ const handleSaveGraphAs = useCallback(() => {
               </div>
             )}
             <div className="app__modal-actions">
-              <button type="submit" disabled={isViewer}>
+              <button type="submit" disabled={isViewer || isProjectMetadataLocked}>
                 {t('common.save')}
               </button>
               <button type="button" onClick={handleProjectInfoCancel}>

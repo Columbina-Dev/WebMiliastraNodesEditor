@@ -63,6 +63,7 @@ interface GraphCanvasProps {
   lockedNodeIds?: string[];
   collabCursors?: CollaborationCursor[];
   isReadOnly?: boolean;
+  onNodeDragStateChange?: (nodeIds: string[], isDragging: boolean) => void;
 }
 
 type CollaborationCursor = {
@@ -349,6 +350,7 @@ const GraphCanvasInner = ({
   lockedNodeIds = [],
   collabCursors = [],
   isReadOnly = false,
+  onNodeDragStateChange,
 }: GraphCanvasProps) => {
   const { t } = useI18n();
   const reactFlow = useReactFlow();
@@ -899,8 +901,10 @@ const GraphCanvasInner = ({
     (changes: NodeChange[]) => {
       if (isReadOnly) return;
       const removals: string[] = [];
+      const startedDragging: string[] = [];
+      const stoppedDragging: string[] = [];
       changes.forEach((change) => {
-        if (change.type === 'position' && change.position) {
+        if (change.type === 'position') {
           const isDragging = change.dragging === true;
           const draggingNodes = draggingNodesRef.current;
           let recordHistory = true;
@@ -910,25 +914,36 @@ const GraphCanvasInner = ({
             } else {
               draggingNodes.add(change.id);
               recordHistory = true;
+              startedDragging.push(change.id);
             }
           } else {
-            draggingNodes.delete(change.id);
+            if (draggingNodes.delete(change.id)) {
+              stoppedDragging.push(change.id);
+            }
             recordHistory = true;
           }
-
-          updateNode(
-            change.id,
-            (node) => ({
-              ...node,
-              position: change.position ?? node.position,
-            }),
-            { recordHistory }
-          );
+          if (change.position) {
+            updateNode(
+              change.id,
+              (node) => ({
+                ...node,
+                position: change.position ?? node.position,
+              }),
+              { recordHistory }
+            );
+          }
         }
         if (change.type === 'remove') {
           removals.push(change.id);
         }
       });
+
+      if (startedDragging.length) {
+        onNodeDragStateChange?.(startedDragging, true);
+      }
+      if (stoppedDragging.length) {
+        onNodeDragStateChange?.(stoppedDragging, false);
+      }
 
       if (removals.length) {
         skipEdgeHistoryRef.current = true;
@@ -936,7 +951,7 @@ const GraphCanvasInner = ({
         skipEdgeHistoryRef.current = false;
       }
     },
-    [isReadOnly, removeNodesBatch, updateNode]
+    [isReadOnly, onNodeDragStateChange, removeNodesBatch, updateNode]
   );
 
   const handleEdgesChange: OnEdgesChange = useCallback(
@@ -2601,6 +2616,7 @@ const GraphCanvas = ({
   lockedNodeIds,
   collabCursors,
   isReadOnly,
+  onNodeDragStateChange,
 }: GraphCanvasProps) => (
   <ReactFlowProvider>
     <GraphCanvasInner
@@ -2609,6 +2625,7 @@ const GraphCanvas = ({
       lockedNodeIds={lockedNodeIds}
       collabCursors={collabCursors}
       isReadOnly={isReadOnly}
+      onNodeDragStateChange={onNodeDragStateChange}
     />
   </ReactFlowProvider>
 );

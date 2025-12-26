@@ -384,6 +384,13 @@ option {
   justify-self: start;
 }
 
+.app__editor-bar-saving-stat {
+  justify-self: start;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.55);
+  margin-left: 6px;
+}
+
 .app__editor-logo {
   width: 24px;
   height: 24px;
@@ -503,13 +510,14 @@ option {
   padding: 8px 16px;
   background: #1F1F25;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-  overflow: hidden;
+  overflow: visible;
 }
 
 .app__tabs-scroll {
   display: flex;
   gap: 6px;
   overflow-x: auto;
+  overflow-y: visible;
   padding-bottom: 2px;
 }
 
@@ -599,31 +607,31 @@ option {
 
 .app__tab-presence {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: -4px;
+  left: 0;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 2px;
   z-index: 2;
   pointer-events: none;
 }
 
 .app__tab-avatar {
-  width: 20px;
-  height: 20px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.08);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 10px;
+  font-size: 9px;
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
 }
 
 .app__tab-avatar--overflow {
-  font-size: 12px;
+  font-size: 10px;
   letter-spacing: -1px;
 }
 
@@ -1173,6 +1181,33 @@ option {
   gap: 10px;
 }
 
+.app__chat-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.app__chat-scroll-button {
+  position: absolute;
+  right: 14px;
+  bottom: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(18, 20, 30, 0.85);
+  color: rgba(255, 255, 255, 0.85);
+  font-size: 11px;
+  cursor: var(--cursor-pointer);
+  transition: border 0.2s ease, background 0.2s ease;
+}
+
+.app__chat-scroll-button:hover {
+  border-color: rgba(92, 186, 255, 0.5);
+  background: rgba(92, 186, 255, 0.2);
+}
+
 .app__chat-message {
   display: flex;
   align-items: flex-start;
@@ -1217,13 +1252,15 @@ option {
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
-.app__chat-input input {
+.app__chat-input textarea {
   flex: 1;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 8px 10px;
+  resize: none;
+  line-height: 1.4;
 }
 
 .app__chat-input button {
