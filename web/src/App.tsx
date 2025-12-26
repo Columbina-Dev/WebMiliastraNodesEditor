@@ -617,6 +617,7 @@ const App = () => {
   const [showChatScrollButton, setShowChatScrollButton] = useState(false);
   const chatPanelRef = useRef<HTMLDivElement | null>(null);
   const chatStickToBottomRef = useRef(true);
+  const chatInputRef = useRef<HTMLTextAreaElement | null>(null);
   const clientIdRef = useRef<string>(getCollabClientId());
   const [signalStatus, setSignalStatus] = useState<'disconnected' | 'connecting' | 'connected'>('connecting');
   const signalSocketRef = useRef<WebSocket | null>(null);
@@ -796,6 +797,23 @@ const App = () => {
     chatStickToBottomRef.current = atBottom;
     setShowChatScrollButton(scrollHeight >= clientHeight * 1.5 && !atBottom);
   }, []);
+
+  const resizeChatInput = useCallback(() => {
+    const input = chatInputRef.current;
+    if (!input) return;
+    const hasMultipleLines = chatDraft.includes('\n');
+    input.style.height = '';
+    input.style.overflowY = 'hidden';
+    if (!hasMultipleLines) {
+      return;
+    }
+    input.style.height = 'auto';
+    const nextHeight = Math.min(input.scrollHeight, 140);
+    input.style.height = `${nextHeight}px`;
+    if (input.scrollHeight > nextHeight) {
+      input.style.overflowY = 'auto';
+    }
+  }, [chatDraft]);
   useEffect(() => {
     if (isShareOpen && !collabOwnerNickname) {
       setCollabOwnerNickname(localNickname);
@@ -830,6 +848,10 @@ const App = () => {
     container.addEventListener('scroll', handleScroll);
     return () => container.removeEventListener('scroll', handleScroll);
   }, [isChatOpen, updateChatScrollState]);
+  useEffect(() => {
+    if (!isChatOpen) return;
+    resizeChatInput();
+  }, [isChatOpen, resizeChatInput]);
   useEffect(() => {
     if (!isChatOpen) return;
     if (chatStickToBottomRef.current) {
@@ -3525,36 +3547,37 @@ const handleSaveGraphAs = useCallback(() => {
               iconSrc = ICON_STRUCT;
             }
             return (
-              <button
-                key={tab.id}
-                type="button"
-                className={`app__tab ${isActive ? 'is-active' : ''}`}
-                onClick={() => handleTabSelect(tab.id)}
-                onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
-                onMouseLeave={handleTabHoverEnd}
-                onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
-                onBlur={handleTabHoverEnd}
-              >
+              <div key={tab.id} className="app__tab-shell">
                 {renderTabPresence(tab.id)}
-                <span className="app__tab-label">
-                  <img src={iconSrc} alt="" aria-hidden="true" />
-                  {tabLabel}
-                  {isDirty && <span className="app__tab-dirty">*</span>}
-                </span>
-                {(tab.type === "graph" || tab.type === "struct") && (
-                  <span
-                    role="button"
-                    aria-label={t('app.tabs.closeAria', { label: tabLabel })}
-                    className="app__tab-close"
-                    onClick={(event) => {
-                      event.stopPropagation();
-                      handleTabClose(tab.id);
-                    }}
-                  >
-                    ×
+                <button
+                  type="button"
+                  className={`app__tab ${isActive ? 'is-active' : ''}`}
+                  onClick={() => handleTabSelect(tab.id)}
+                  onMouseEnter={(event) => handleTabHoverStart(tab, event.currentTarget)}
+                  onMouseLeave={handleTabHoverEnd}
+                  onFocus={(event) => handleTabHoverStart(tab, event.currentTarget)}
+                  onBlur={handleTabHoverEnd}
+                >
+                  <span className="app__tab-label">
+                    <img src={iconSrc} alt="" aria-hidden="true" />
+                    {tabLabel}
+                    {isDirty && <span className="app__tab-dirty">*</span>}
                   </span>
-                )}
-              </button>
+                  {(tab.type === "graph" || tab.type === "struct") && (
+                    <span
+                      role="button"
+                      aria-label={t('app.tabs.closeAria', { label: tabLabel })}
+                      className="app__tab-close"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        handleTabClose(tab.id);
+                      }}
+                    >
+                      ×
+                    </span>
+                  )}
+                </button>
+              </div>
             );
           })}
         </div>
@@ -3840,12 +3863,13 @@ const handleSaveGraphAs = useCallback(() => {
         </div>
         <form className="app__chat-input" onSubmit={handleChatSubmit}>
           <textarea
+            ref={chatInputRef}
             value={chatDraft}
             onChange={(event) => setChatDraft(event.target.value)}
             onKeyDown={handleChatDraftKeyDown}
             placeholder={t('collab.chat.placeholder')}
             disabled={!isCollaborating}
-            rows={2}
+            rows={1}
           />
           <button type="submit" disabled={!isCollaborating || !chatDraft.trim()}>
             {t('collab.chat.send')}

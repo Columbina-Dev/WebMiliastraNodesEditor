@@ -384,6 +384,13 @@ option {
   justify-self: start;
 }
 
+.app__editor-bar-right {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
 .app__editor-bar-saving-stat {
   justify-self: start;
   font-size: 12px;
@@ -518,6 +525,7 @@ option {
   gap: 6px;
   overflow-x: auto;
   overflow-y: visible;
+  padding-top: 6px;
   padding-bottom: 2px;
 }
 
@@ -591,6 +599,13 @@ option {
   pointer-events: none;
 }
 
+.app__tab-shell {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
 .app__tab {
   display: inline-flex;
   align-items: center;
@@ -612,7 +627,7 @@ option {
   display: flex;
   align-items: center;
   gap: 2px;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
 }
 
@@ -1243,12 +1258,14 @@ option {
   margin-top: 4px;
   color: rgba(255, 255, 255, 0.92);
   word-break: break-word;
+  white-space: pre-wrap;
 }
 
 .app__chat-input {
   display: flex;
+  align-items: center;
   gap: 8px;
-  padding: 10px;
+  padding: 8px 12px;
   border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
@@ -1258,9 +1275,13 @@ option {
   border: 1px solid rgba(255, 255, 255, 0.16);
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
-  padding: 8px 10px;
+  padding: 6px 10px;
   resize: none;
   line-height: 1.4;
+  height: 34px;
+  min-height: 34px;
+  max-height: 140px;
+  overflow-y: hidden;
 }
 
 .app__chat-input button {
