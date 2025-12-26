@@ -32,8 +32,8 @@ This project recreates the node graph editor from "Genshin Impact - Miliastra Wo
 
 ### Pre-built Web Application
 
-Stable - https://miliastra.columbina.dev/ 。  
-Beta - https://beta.miliastra.columbina.dev/ 。
+Stable - https://miliastra.columbina.dev/ .  
+Beta - https://beta.miliastra.columbina.dev/ .
 
 ### Local Deployment
 
