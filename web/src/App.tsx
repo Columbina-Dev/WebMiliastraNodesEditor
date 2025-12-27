@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { ChangeEvent, CSSProperties, FormEvent, KeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react";
+import { nanoid } from "nanoid/non-secure";
 import JSZip from "jszip";
 
 import GraphCanvas from "./components/GraphCanvas";
@@ -14,7 +15,7 @@ import Avatar from "./components/Avatar";
 import SettingsPage from "./components/SettingsPage";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
-import type { GraphDocument, GraphEnvironment } from "./types/node";
+import type { GraphComment, GraphDocument, GraphEnvironment } from "./types/node";
 import { GRAPH_SCHEMA_VERSION } from "./types/node";
 import type { StructDocument } from "./types/struct";
 import { DEFAULT_GROUP_NAME, DEFAULT_GROUP_SLUG, PROJECT_CATEGORIES_BY_TOP, type ProjectDocument, type ProjectTopFolder } from "./types/project";
@@ -22,8 +23,11 @@ import {
   buildGraphPath,
   createEmptyProjectDocument,
   createProjectId,
+  ensureManifestGroups,
   resolveGraphLocation,
   sanitizeName,
+  slugifyGroupName,
+  upsertManifestGroup,
 } from "./utils/project";
 import {
   clientKindFromCategoryKey,
@@ -41,6 +45,7 @@ import {
 import { exportGraphsToGil } from "./lib/gil/export";
 import { exportGiaDocument } from "./lib/gia/exporter";
 import { decodeGiaBinary } from "./lib/gia/decoder";
+import { importGiaRoot } from "./lib/gia/importer";
 import VERSION_INFO from "./config/version";
 import type { AutoSaveEntry, EditorSettings, LayoutState, StoredProject } from "./utils/storage";
 import {
@@ -61,8 +66,9 @@ import {
 } from "./utils/storage";
 import { I18nProvider } from "./utils/i18nContext";
 import { t as translateText } from "./utils/i18n";
-import { isLocalizedError } from "./utils/localizedText";
+import { isLocalizedError, type LocalizedText } from "./utils/localizedText";
 import { sanitizeNickname } from "./utils/collaborationProfile";
+import { graphDocumentSchema } from "./utils/validation";
 import "./App.css";
 
 const AUTO_SAVE_INTERVAL = 30_000;
@@ -81,6 +87,7 @@ const ICON_TUTORIAL = new URL("./assets/icons/tutorial.png", import.meta.url).hr
 const ICON_EFFECTS = new URL("./assets/icons/effects.png", import.meta.url).href;
 const ICON_PROJECT = new URL("./assets/icons/file.png", import.meta.url).href;
 const ICON_SETTING = new URL("./assets/icons/setting.png", import.meta.url).href;
+const ICON_RELOAD = new URL("./assets/icons/reload.png", import.meta.url).href;
 const ZOOM_LEVELS = [25, 50, 75, 100, 125, 150];
 const ICON_TAB_SERVER = new URL("./assets/icons/tab-server.svg", import.meta.url).href;
 const ICON_TAB_CLIENT = new URL("./assets/icons/tab-client.svg", import.meta.url).href;
@@ -115,6 +122,7 @@ type LightweightDialog = {
   title: string;
   message: ReactNode;
   confirmLabel: string;
+  confirmClassName?: string;
   cancelLabel?: string;
   onConfirm?: () => void;
   onCancel?: () => void;
@@ -157,6 +165,7 @@ type SignalShareEntry = {
   hostId: string;
   projectId: string;
   name: string;
+  appVersion: string;
   address: string;
   requiresPassword: boolean;
   ownerNickname: string;
@@ -223,9 +232,12 @@ const getCollabClientId = () => {
 
 const buildSignalUrl = () => {
   if (typeof window === 'undefined') return '';
+  const explicitUrl = import.meta.env.VITE_COLLAB_SIGNAL_URL;
+  if (explicitUrl) return explicitUrl;
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
-  const hostname = window.location.hostname || '127.0.0.1';
-  return `${protocol}://${hostname}:${COLLAB_SIGNAL_PORT}`;
+  const hostname = import.meta.env.VITE_COLLAB_SIGNAL_HOST || window.location.hostname || '127.0.0.1';
+  const port = import.meta.env.VITE_COLLAB_SIGNAL_PORT || String(COLLAB_SIGNAL_PORT);
+  return `${protocol}://${hostname}:${port}`;
 };
 
 const isEditableTarget = (target: EventTarget | null) => {
@@ -317,6 +329,27 @@ type GiaModalState = {
   fileName: string;
   jsonText: string;
   highlightedJson: string;
+  importedGraph?: GraphDocument | null;
+  importWarnings?: LocalizedText[];
+  importErrors?: LocalizedText[];
+};
+
+type GiaConvertModalState = {
+  fileName: string;
+  graph: GraphDocument | null;
+  warnings: LocalizedText[];
+  errors: string[];
+  uid: string;
+};
+
+type GiaSaveDialogState = {
+  graph: GraphDocument;
+  name: string;
+  topFolder: ProjectTopFolder;
+  categoryKey: string;
+  groupSlug: string;
+  targetProjectId: string;
+  newProjectName: string;
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
@@ -487,6 +520,7 @@ const detectMobileMode = () => {
 };
 
 const GIA_UID_DIGITS = "0123456789";
+const GIA_SAVE_NEW_PROJECT_ID = "__new__";
 const generateGiaUidValue = (length = 9) => {
   const safeLength = Math.max(1, length);
   let result = "";
@@ -592,7 +626,8 @@ const App = () => {
   );
   const defaultProjectName = t('project.defaultName');
   const shareTargetName = graphName || projectName || defaultProjectName;
-  const shareProjectName = projectName || defaultProjectName;
+  const shareProjectName =
+    projectDocument?.manifest.project.name || projectName || defaultProjectName;
   const fallbackNickname = t('collab.nickname.fallback');
   const localNickname = sanitizeNickname(editorSettings.collabDefaultNickname) || fallbackNickname;
   const localAvatar = editorSettings.collabAvatar || undefined;
@@ -624,6 +659,7 @@ const App = () => {
   const reconnectTimeoutRef = useRef<number | null>(null);
   const handleSignalMessageRef = useRef<(message: SignalMessage) => void>(() => undefined);
   const [signalShares, setSignalShares] = useState<SignalShareEntry[]>([]);
+  const pendingNetworkRefreshRef = useRef(false);
   const [collabRoomId, setCollabRoomId] = useState<string | null>(null);
   const [pendingJoinRoomId, setPendingJoinRoomId] = useState<string | null>(null);
   const collabModeRef = useRef<CollaborationMode>(collabMode);
@@ -635,7 +671,10 @@ const App = () => {
   const collabSaveInProgressRef = useRef(false);
   const collabSaveQueuedRef = useRef(false);
   const [collabSaving, setCollabSaving] = useState(false);
+  const collabClientSavingTimerRef = useRef<number | null>(null);
   const collabLockedNodesRef = useRef<Map<string, Set<string>>>(new Map());
+  const collabProjectRevisionRef = useRef(0);
+  const collabLastRevisionBySenderRef = useRef<Map<string, number>>(new Map());
   const [lockedNodeIds, setLockedNodeIds] = useState<string[]>([]);
   const chatMessagesRef = useRef<HTMLDivElement | null>(null);
   const defaultGroupNameLabelRaw = t('common.defaultGroupName');
@@ -751,6 +790,7 @@ const App = () => {
         hostId: entry.hostId,
         projectId: entry.projectId,
         name: entry.name || defaultProjectName,
+        appVersion: entry.appVersion,
         address: entry.address || '127.0.0.1',
         requiresPassword: entry.requiresPassword,
         ownerNickname: entry.ownerNickname,
@@ -875,6 +915,12 @@ const App = () => {
       collabLockedNodesRef.current.clear();
       collabSaveInProgressRef.current = false;
       collabSaveQueuedRef.current = false;
+      collabProjectRevisionRef.current = 0;
+      collabLastRevisionBySenderRef.current.clear();
+      if (collabClientSavingTimerRef.current) {
+        window.clearTimeout(collabClientSavingTimerRef.current);
+        collabClientSavingTimerRef.current = null;
+      }
       setLockedNodeIds([]);
       setCollabSaving(false);
     }
@@ -898,6 +944,8 @@ const App = () => {
   }, [collabMode]);
   useEffect(() => {
     collabRoomIdRef.current = collabRoomId;
+    collabProjectRevisionRef.current = 0;
+    collabLastRevisionBySenderRef.current.clear();
   }, [collabRoomId]);
   useEffect(() => {
     pendingJoinRoomIdRef.current = pendingJoinRoomId;
@@ -999,6 +1047,11 @@ const App = () => {
   const [gilDialog, setGilDialog] = useState<LightweightDialog | null>(null);
   const [giaModal, setGiaModal] = useState<GiaModalState | null>(null);
   const [isDecodingGia, setIsDecodingGia] = useState(false);
+  const [giaConvertModal, setGiaConvertModal] = useState<GiaConvertModalState | null>(null);
+  const [isConvertingGia, setIsConvertingGia] = useState(false);
+  const [giaSaveDialog, setGiaSaveDialog] = useState<GiaSaveDialogState | null>(null);
+  const [giaSaveFolderName, setGiaSaveFolderName] = useState('');
+  const [giaSaveError, setGiaSaveError] = useState<string | null>(null);
   const settingsReturnViewRef = useRef<'home' | 'editor' | null>(
     initialRouteState.view === 'settings' ? 'home' : null,
   );
@@ -1049,6 +1102,55 @@ const App = () => {
     },
     [setGilDialog, t],
   );
+  const cloneProjectDocument = useCallback((document: ProjectDocument): ProjectDocument => ({
+    manifest: {
+      ...document.manifest,
+      project: { ...document.manifest.project },
+      graphs: document.manifest.graphs.map((entry) => ({ ...entry })),
+      groups: document.manifest.groups.map((group) => ({ ...group })),
+      structGroups: (document.manifest.structGroups ?? []).map((group) => ({ ...group })),
+      structures: (document.manifest.structures ?? []).map((entry) => ({ ...entry })),
+      manifestVersion: document.manifest.manifestVersion,
+      appVersion: document.manifest.appVersion,
+    },
+    graphs: { ...document.graphs },
+    structs: document.structs ? { ...document.structs } : {},
+  }), []);
+  const generateUniqueGroupInfo = useCallback(
+    (
+      manifest: ProjectDocument['manifest'],
+      topFolder: ProjectTopFolder,
+      categoryKey: string,
+      requestedName?: string,
+    ) => {
+      ensureManifestGroups(manifest);
+      const candidates = manifest.groups.filter(
+        (group) => group.topFolder === topFolder && group.categoryKey === categoryKey,
+      );
+      const existingNames = new Set(candidates.map((group) => group.groupName));
+      const existingSlugs = new Set(candidates.map((group) => group.groupSlug));
+      const fallbackName = t('resourceExplorer.defaultFolderName');
+      const baseName = sanitizeName(requestedName ?? fallbackName, fallbackName);
+      let nameCandidate = baseName;
+      let nameIndex = 2;
+      while (existingNames.has(nameCandidate)) {
+        nameCandidate = `${baseName}-${nameIndex}`;
+        nameIndex += 1;
+      }
+      let slugBase = slugifyGroupName(nameCandidate);
+      if (!slugBase || slugBase === DEFAULT_GROUP_SLUG) {
+        slugBase = slugifyGroupName(`${nameCandidate}-${Date.now().toString(36)}`);
+      }
+      let slugCandidate = slugBase;
+      let slugIndex = 2;
+      while (existingSlugs.has(slugCandidate) || slugCandidate === DEFAULT_GROUP_SLUG) {
+        slugCandidate = `${slugBase}-${slugIndex}`;
+        slugIndex += 1;
+      }
+      return { groupName: nameCandidate, groupSlug: slugCandidate };
+    },
+    [t],
+  );
   useEffect(() => {
     if (!collabDisconnectReason) return;
     openInfoDialog(t('common.info'), t(collabDisconnectReason));
@@ -1077,6 +1179,7 @@ const App = () => {
           </div>
         ),
         confirmLabel: t('common.continue'),
+        confirmClassName: 'is-danger',
         cancelLabel: t('common.cancel'),
       });
     },
@@ -1227,6 +1330,11 @@ const App = () => {
       }
     };
   }, [saveToast]);
+  const handleRefreshNetwork = useCallback(() => {
+    pendingNetworkRefreshRef.current = true;
+    showSaveToast(t('home.network.refreshingToast'));
+    refreshNetworkProjects();
+  }, [refreshNetworkProjects, showSaveToast, t]);
   const clearTabTooltipTimer = useCallback(() => {
     if (tabTooltipTimerRef.current) {
       window.clearTimeout(tabTooltipTimerRef.current);
@@ -1315,8 +1423,9 @@ const App = () => {
   const switchToEditor = useCallback((nextProjectId: string) => {
     setNotFoundPath(null);
     setView('editor');
-    updateSessionState(() => ({
-      lastActiveProjectId: nextProjectId,
+    updateSessionState((prev) => ({
+      lastActiveProjectId:
+        collabModeRef.current === 'client' ? prev.lastActiveProjectId : nextProjectId,
       lastVisitedView: 'editor',
     }));
   }, []);
@@ -1655,8 +1764,29 @@ const App = () => {
     [handleImportProjectDocument],
   );
 
+  const checkCollabVersionMismatch = useCallback(
+    (incomingVersion?: string) => {
+      const currentVersion = VERSION_INFO.editor;
+      if (!incomingVersion || !currentVersion) {
+        return false;
+      }
+      if (compareAppVersions(incomingVersion, currentVersion) === 0) {
+        return false;
+      }
+      openInfoDialog(
+        t('collab.versionMismatch.title'),
+        t('collab.versionMismatch.message', { incomingVersion, currentVersion }),
+      );
+      return true;
+    },
+    [openInfoDialog, t],
+  );
+
   const handleJoinNetworkProject = useCallback(
     (project: NetworkProject, nickname: string, password?: string) => {
+      if (checkCollabVersionMismatch(project.appVersion)) {
+        return;
+      }
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
       setCollabClientNickname(cleanedNickname);
       if (!signalConnected) {
@@ -1682,6 +1812,7 @@ const App = () => {
       localNickname,
       openInfoDialog,
       sendSignalMessage,
+      checkCollabVersionMismatch,
       signalConnected,
       t,
     ],
@@ -1689,11 +1820,14 @@ const App = () => {
 
   const handleSendJoinRequest = useCallback(
     (project: NetworkProject, nickname: string) => {
+      if (checkCollabVersionMismatch(project.appVersion)) {
+        return false;
+      }
       const cleanedNickname = sanitizeNickname(nickname) || localNickname;
       setCollabClientNickname(cleanedNickname);
       if (!signalConnected) {
         openInfoDialog(t('common.error'), t('collab.signal.offline'));
-        return;
+        return false;
       }
       const roomId = project.roomId ?? project.id;
       setPendingJoinRoomId(roomId);
@@ -1707,8 +1841,17 @@ const App = () => {
         avatar: localAvatar,
         requestId: createCollabId(),
       });
+      return true;
     },
-    [localAvatar, localNickname, openInfoDialog, sendSignalMessage, signalConnected, t],
+    [
+      checkCollabVersionMismatch,
+      localAvatar,
+      localNickname,
+      openInfoDialog,
+      sendSignalMessage,
+      signalConnected,
+      t,
+    ],
   );
 
   const handleProjectFileChange = useCallback(
@@ -1727,10 +1870,14 @@ const App = () => {
       const buffer = await file.arrayBuffer();
       const decoded = decodeGiaBinary(buffer);
       const pretty = JSON.stringify(decoded, null, 2);
+      const { graph, warnings, errors } = importGiaRoot(decoded);
       setGiaModal({
         fileName: file.name,
         jsonText: pretty,
         highlightedJson: highlightJsonText(pretty),
+        importedGraph: graph,
+        importWarnings: warnings,
+        importErrors: errors,
       });
     } catch (error) {
       console.error('Failed to decode GIA file', error);
@@ -1749,7 +1896,7 @@ const App = () => {
     }
   }, [t]);
 
-  const handleDownloadGiaJson = useCallback(() => {
+  const handleDownloadGiaPreviewJson = useCallback(() => {
     if (!giaModal) return;
     const safeBase = sanitizeFileName(giaModal.fileName.replace(/\.gia$/i, '') || 'gia');
     const filename = `${safeBase}.decoded.json`;
@@ -1760,6 +1907,410 @@ const App = () => {
     link.click();
     URL.revokeObjectURL(link.href);
   }, [giaModal]);
+
+  const handleDownloadGiaGraphJson = useCallback(() => {
+    if (!giaModal?.importedGraph || giaModal.importErrors?.length) {
+      openInfoDialog(t('common.error'), t('app.giaDecode.importUnavailable'));
+      return;
+    }
+    const graph = giaModal.importedGraph;
+    const safeBase = sanitizeFileName(graph.name || giaModal.fileName.replace(/\.gia$/i, '') || 'graph');
+    const extension =
+      graph.environment && getEnvironmentTopFolder(graph.environment) === 'client'
+        ? 'client.json'
+        : 'server.json';
+    const filename = `${safeBase}.${extension}`;
+    const blob = new Blob([JSON.stringify(graph, null, 2)], {
+      type: 'application/json;charset=utf-8',
+    });
+    const link = window.document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = filename;
+    link.click();
+    URL.revokeObjectURL(link.href);
+  }, [giaModal, openInfoDialog, t]);
+
+  const handleConvertGiaFile = useCallback(
+    async (file: File) => {
+      setIsConvertingGia(true);
+      try {
+        const raw = await file.text();
+        let parsed: unknown;
+        try {
+          parsed = JSON.parse(raw);
+        } catch {
+          setGiaConvertModal({
+            fileName: file.name,
+            graph: null,
+            warnings: [],
+            errors: [t('app.giaConvert.invalidJson')],
+            uid: generateGiaUidValue(9),
+          });
+          return;
+        }
+        const baseName = sanitizeFileName(file.name.replace(/\.json$/i, '') || 'graph');
+        const enriched =
+          parsed && typeof parsed === 'object'
+            ? {
+                ...parsed,
+                schemaVersion: (parsed as { schemaVersion?: unknown }).schemaVersion ?? GRAPH_SCHEMA_VERSION,
+                name: (parsed as { name?: unknown }).name || baseName,
+              }
+            : parsed;
+        const parsedResult = graphDocumentSchema.safeParse(enriched);
+        if (!parsedResult.success) {
+          console.error(parsedResult.error);
+          setGiaConvertModal({
+            fileName: file.name,
+            graph: null,
+            warnings: [],
+            errors: [t('app.giaConvert.invalidGraph')],
+            uid: generateGiaUidValue(9),
+          });
+          return;
+        }
+        const normalizedEnvironment = parsedResult.data.environment
+          ? normalizeGraphEnvironment(parsedResult.data.environment)
+          : 'server';
+        const normalizedComments: GraphComment[] = [];
+        if (Array.isArray(parsedResult.data.comments)) {
+          for (const comment of parsedResult.data.comments) {
+            const nodeId = (comment.nodeId ?? '').trim();
+            const position = comment.position
+              ? { x: Number(comment.position.x) || 0, y: Number(comment.position.y) || 0 }
+              : undefined;
+            if (!nodeId && !position) continue;
+            const commentId = comment.id && comment.id.trim().length > 0 ? comment.id : nanoid();
+            normalizedComments.push({
+              id: commentId,
+              nodeId: nodeId || undefined,
+              position,
+              text: comment.text ?? '',
+              pinned: Boolean(comment.pinned),
+              collapsed: Boolean(comment.collapsed),
+            });
+          }
+        }
+        const normalizedGraph: GraphDocument = {
+          ...parsedResult.data,
+          schemaVersion: GRAPH_SCHEMA_VERSION,
+          name: parsedResult.data.name || baseName,
+          environment: normalizedEnvironment,
+          comments: normalizedComments.length ? normalizedComments : undefined,
+        };
+        let warnings: LocalizedText[] = [];
+        try {
+          warnings = exportGiaDocument(normalizedGraph, { uid: generateGiaUidValue(9) }).warnings;
+        } catch (error) {
+          console.error(error);
+          setGiaConvertModal({
+            fileName: file.name,
+            graph: normalizedGraph,
+            warnings: [],
+            errors: [t('app.giaConvert.precheckFailed')],
+            uid: generateGiaUidValue(9),
+          });
+          return;
+        }
+        setGiaConvertModal({
+          fileName: file.name,
+          graph: normalizedGraph,
+          warnings,
+          errors: [],
+          uid: generateGiaUidValue(9),
+        });
+      } finally {
+        setIsConvertingGia(false);
+      }
+    },
+    [t],
+  );
+
+  const handleGiaConvertUidChange = useCallback((value: string) => {
+    const sanitized = value.replace(/\D/g, '').slice(0, 10);
+    setGiaConvertModal((prev) => (prev ? { ...prev, uid: sanitized } : prev));
+  }, []);
+
+  const handleGiaConvertRandomUid = useCallback(() => {
+    setGiaConvertModal((prev) => (prev ? { ...prev, uid: generateGiaUidValue(9) } : prev));
+  }, []);
+
+  const handleGiaConvertDownload = useCallback(() => {
+    if (!giaConvertModal?.graph) return;
+    const uid = giaConvertModal.uid.trim();
+    if (!/^\d{9,10}$/.test(uid)) {
+      openInfoDialog(t('common.error'), t('app.giaConvert.uidInvalid'));
+      return;
+    }
+    try {
+      const result = exportGiaDocument(giaConvertModal.graph, { uid });
+      const link = window.document.createElement('a');
+      link.href = URL.createObjectURL(result.blob);
+      link.download = result.fileName;
+      link.click();
+      URL.revokeObjectURL(link.href);
+    } catch (error) {
+      console.error(error);
+      openInfoDialog(t('app.giaExportExperimental.failedTitle'), t('app.giaExportExperimental.failedHint'));
+    }
+  }, [giaConvertModal, openInfoDialog, t]);
+
+  const handleGiaConvertClose = useCallback(() => {
+    setGiaConvertModal(null);
+  }, []);
+
+  const handleOpenGiaSaveDialog = useCallback(() => {
+    if (!giaModal?.importedGraph || giaModal.importErrors?.length) {
+      openInfoDialog(t('common.error'), t('app.giaDecode.importUnavailable'));
+      return;
+    }
+    const graph = giaModal.importedGraph;
+    const topFolder = graph.environment ? getEnvironmentTopFolder(graph.environment) : 'server';
+    const categoriesForTop = PROJECT_CATEGORIES_BY_TOP[topFolder];
+    if (!categoriesForTop.length) {
+      openInfoDialog(t('app.saveAs.title'), t('app.saveAs.noCategories'));
+      return;
+    }
+    const defaultCategory = categoriesForTop[0];
+    const targetProjectId =
+      projectId ?? history[0]?.id ?? GIA_SAVE_NEW_PROJECT_ID;
+    setGiaSaveDialog({
+      graph,
+      name: graph.name || defaultProjectName,
+      topFolder,
+      categoryKey: defaultCategory?.key ?? '',
+      groupSlug: DEFAULT_GROUP_SLUG,
+      targetProjectId,
+      newProjectName: graph.name || defaultProjectName,
+    });
+    setGiaSaveFolderName('');
+    setGiaSaveError(null);
+  }, [defaultProjectName, giaModal, history, openInfoDialog, projectId, t]);
+
+  const handleGiaSaveCancel = useCallback(() => {
+    setGiaSaveDialog(null);
+    setGiaSaveFolderName('');
+    setGiaSaveError(null);
+  }, []);
+
+  const handleGiaSaveConfirm = useCallback(() => {
+    if (!giaSaveDialog) return;
+    const trimmedName = giaSaveDialog.name.trim();
+    if (!trimmedName) {
+      setGiaSaveError(t('app.saveAs.error.nameRequired'));
+      return;
+    }
+    const categoriesForTop = PROJECT_CATEGORIES_BY_TOP[giaSaveDialog.topFolder];
+    const category =
+      categoriesForTop.find((item) => item.key === giaSaveDialog.categoryKey) ??
+      categoriesForTop[0];
+    if (!category) {
+      setGiaSaveError(t('app.saveAs.error.categoryMissing'));
+      return;
+    }
+    const isNewProject = giaSaveDialog.targetProjectId === GIA_SAVE_NEW_PROJECT_ID;
+    const historyRecord = !isNewProject
+      ? history.find((item) => item.id === giaSaveDialog.targetProjectId)
+      : null;
+    const baseDocument =
+      !isNewProject && projectId === giaSaveDialog.targetProjectId && projectDocument
+        ? projectDocument
+        : historyRecord?.document ?? null;
+    if (!isNewProject && !baseDocument) {
+      setGiaSaveError(t('app.giaImport.save.projectMissing'));
+      return;
+    }
+    const projectName = isNewProject
+      ? sanitizeName(giaSaveDialog.newProjectName, defaultProjectName)
+      : baseDocument?.manifest.project.name ?? historyRecord?.name ?? defaultProjectName;
+    if (isNewProject && !projectName.trim()) {
+      setGiaSaveError(t('app.projectInfo.nameRequired'));
+      return;
+    }
+    const targetProjectId = isNewProject ? createProjectId() : giaSaveDialog.targetProjectId;
+    const base =
+      isNewProject
+        ? createEmptyProjectDocument({
+            projectId: targetProjectId,
+            appVersion: VERSION_INFO.editor || '',
+            name: projectName,
+          })
+        : cloneProjectDocument(baseDocument!);
+    base.manifest.project = {
+      ...base.manifest.project,
+      id: targetProjectId,
+      name: projectName,
+    };
+    base.manifest.appVersion = VERSION_INFO.editor || base.manifest.appVersion;
+    ensureManifestGroups(base.manifest);
+    const groupsForCategory = base.manifest.groups.filter(
+      (group) =>
+        group.topFolder === giaSaveDialog.topFolder && group.categoryKey === category.key,
+    );
+    let targetGroupSlug = giaSaveDialog.groupSlug;
+    let targetGroupName: string | undefined;
+    const trimmedFolderName = giaSaveFolderName.trim();
+    if (trimmedFolderName) {
+      const created = generateUniqueGroupInfo(
+        base.manifest,
+        giaSaveDialog.topFolder,
+        category.key,
+        trimmedFolderName,
+      );
+      upsertManifestGroup(base.manifest, {
+        topFolder: giaSaveDialog.topFolder,
+        categoryKey: category.key,
+        groupSlug: created.groupSlug,
+        groupName: created.groupName,
+      });
+      targetGroupSlug = created.groupSlug;
+      targetGroupName = created.groupName;
+    } else {
+      const existingGroup =
+        groupsForCategory.find((group) => group.groupSlug === targetGroupSlug) ??
+        groupsForCategory[0];
+      if (!existingGroup) {
+        setGiaSaveError(t('app.saveAs.error.folderRequired'));
+        return;
+      }
+      targetGroupSlug = existingGroup.groupSlug;
+      targetGroupName = existingGroup.groupName;
+    }
+    const location = {
+      topFolder: giaSaveDialog.topFolder,
+      categoryKey: category.key,
+      categoryDirectory: category.directory,
+      groupSlug: targetGroupSlug,
+      groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
+    };
+    const environment = resolveEnvironmentFromLocation(location);
+    const defaultInterval = getDefaultExecutionInterval(environment);
+    const preservedInterval = giaSaveDialog.graph.executionIntervalSeconds;
+    const executionIntervalSeconds =
+      defaultInterval !== undefined ? preservedInterval ?? defaultInterval : preservedInterval;
+    const graphId = createProjectId();
+    const timestamp = new Date().toISOString();
+    const graphDoc: GraphDocument = {
+      ...giaSaveDialog.graph,
+      schemaVersion: GRAPH_SCHEMA_VERSION,
+      name: trimmedName,
+      createdAt: giaSaveDialog.graph.createdAt ?? timestamp,
+      updatedAt: timestamp,
+      environment,
+      executionIntervalSeconds,
+    };
+    const path = buildGraphPath(location, graphId);
+    base.graphs = { ...base.graphs, [graphId]: graphDoc };
+    base.manifest.graphs = [
+      ...base.manifest.graphs,
+      {
+        graphId,
+        name: trimmedName,
+        path,
+        groupName: location.groupName,
+        createdAt: graphDoc.createdAt,
+        updatedAt: graphDoc.updatedAt,
+      },
+    ];
+    const { document: prepared } = prepareProjectDocument(base);
+    const savedAt = new Date().toISOString();
+    const record: StoredProject = {
+      id: prepared.manifest.project.id,
+      name: prepared.manifest.project.name,
+      savedAt,
+      document: prepared,
+    };
+    upsertProjectRecord(record);
+    refreshHistory();
+    handleGiaSaveCancel();
+    setGiaModal(null);
+    applyProjectDocument(prepared, graphId);
+    showSaveToast(t('app.giaImport.save.successToast'));
+  }, [
+    applyProjectDocument,
+    cloneProjectDocument,
+    defaultProjectName,
+    giaSaveDialog,
+    giaSaveFolderName,
+    generateUniqueGroupInfo,
+    handleGiaSaveCancel,
+    history,
+    projectDocument,
+    projectId,
+    prepareProjectDocument,
+    refreshHistory,
+    showSaveToast,
+    t,
+  ]);
+
+  const giaSaveCategories = useMemo(
+    () => (giaSaveDialog ? PROJECT_CATEGORIES_BY_TOP[giaSaveDialog.topFolder] : []),
+    [giaSaveDialog],
+  );
+  const giaSaveSelectedCategory = useMemo(() => {
+    if (!giaSaveDialog) return null;
+    return (
+      giaSaveCategories.find((category) => category.key === giaSaveDialog.categoryKey) ??
+      giaSaveCategories[0] ??
+      null
+    );
+  }, [giaSaveCategories, giaSaveDialog]);
+  const giaSaveSelectedProjectRecord = useMemo(() => {
+    if (!giaSaveDialog || giaSaveDialog.targetProjectId === GIA_SAVE_NEW_PROJECT_ID) {
+      return null;
+    }
+    if (projectId === giaSaveDialog.targetProjectId && projectDocument) {
+      const existing = history.find((item) => item.id === projectId);
+      return (
+        existing ?? {
+          id: projectId,
+          name: projectDocument.manifest.project.name,
+          savedAt: new Date().toISOString(),
+          document: projectDocument,
+        }
+      );
+    }
+    return history.find((item) => item.id === giaSaveDialog.targetProjectId) ?? null;
+  }, [giaSaveDialog, history, projectDocument, projectId]);
+  const giaSaveGroups = useMemo(() => {
+    if (!giaSaveDialog || !giaSaveSelectedCategory) return [];
+    if (!giaSaveSelectedProjectRecord?.document) {
+      return [
+        {
+          topFolder: giaSaveDialog.topFolder,
+          categoryKey: giaSaveSelectedCategory.key,
+          groupSlug: DEFAULT_GROUP_SLUG,
+          groupName: DEFAULT_GROUP_NAME,
+        },
+      ];
+    }
+    return giaSaveSelectedProjectRecord.document.manifest.groups
+      .filter(
+        (group) =>
+          group.topFolder === giaSaveDialog.topFolder &&
+          group.categoryKey === giaSaveSelectedCategory.key,
+      )
+      .sort((a, b) => a.groupName.localeCompare(b.groupName, 'zh-CN'));
+  }, [giaSaveDialog, giaSaveSelectedCategory, giaSaveSelectedProjectRecord]);
+  const giaSaveSelectedGroup = useMemo(() => {
+    if (!giaSaveDialog) return null;
+    return (
+      giaSaveGroups.find((group) => group.groupSlug === giaSaveDialog.groupSlug) ??
+      giaSaveGroups[0] ??
+      null
+    );
+  }, [giaSaveDialog, giaSaveGroups]);
+  const giaSaveTopFolderLabel = giaSaveDialog
+    ? giaSaveDialog.topFolder === 'client'
+      ? t('app.saveAs.topFolder.client')
+      : t('app.saveAs.topFolder.server')
+    : '';
+  const giaSavePathPreview =
+    giaSaveDialog && giaSaveSelectedCategory && giaSaveSelectedGroup
+      ? `/${giaSaveDialog.topFolder}/${giaSaveSelectedCategory.directory}/${giaSaveSelectedGroup.groupSlug}/`
+      : giaSaveDialog
+        ? `/${giaSaveDialog.topFolder}/`
+        : '';
 
   const closeGiaModal = useCallback(() => {
     setGiaModal(null);
@@ -1773,6 +2324,16 @@ const App = () => {
     }
     const { document: normalized } = normalizeProjectDocument(store.document);
     updateDocument(() => normalized);
+    Object.keys(store.dirtyGraphIds).forEach((id) => {
+      store.markGraphDirty(id, false);
+    });
+    Object.keys(store.dirtyStructIds ?? {}).forEach((id) => {
+      store.markStructDirty(id, false);
+    });
+    autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
+    if (collabModeRef.current === 'client') {
+      return true;
+    }
     const savedAt = new Date().toISOString();
     const record: StoredProject = {
       id: normalized.manifest.project.id,
@@ -1782,13 +2343,6 @@ const App = () => {
     };
     upsertProjectRecord(record);
     refreshHistory();
-    Object.keys(store.dirtyGraphIds).forEach((id) => {
-      store.markGraphDirty(id, false);
-    });
-    Object.keys(store.dirtyStructIds ?? {}).forEach((id) => {
-      store.markStructDirty(id, false);
-    });
-    autoSaveFingerprintRef.current = fingerprintProjectDocument(normalized);
     showSaveToast(t('app.save.savedToast'));
     return true;
   }, [openInfoDialog, refreshHistory, showSaveToast, t, updateDocument]);
@@ -1988,11 +2542,40 @@ const App = () => {
     [collabMode, collabRoomId, sendSignalMessage],
   );
 
+  const queueClientSavingIndicator = useCallback(() => {
+    if (collabClientSavingTimerRef.current) {
+      window.clearTimeout(collabClientSavingTimerRef.current);
+      collabClientSavingTimerRef.current = null;
+    }
+    setCollabSaving(true);
+    collabClientSavingTimerRef.current = window.setTimeout(() => {
+      setCollabSaving(false);
+      collabClientSavingTimerRef.current = null;
+    }, 600);
+  }, []);
+
+  const getNextProjectRevision = useCallback(() => {
+    collabProjectRevisionRef.current += 1;
+    return collabProjectRevisionRef.current;
+  }, []);
+
+  const shouldApplyProjectRevision = useCallback((sourceId: string | null, revision: number | null) => {
+    if (!sourceId || revision == null || !Number.isFinite(revision)) {
+      return true;
+    }
+    const lastSeen = collabLastRevisionBySenderRef.current.get(sourceId);
+    if (lastSeen != null && revision <= lastSeen) {
+      return false;
+    }
+    collabLastRevisionBySenderRef.current.set(sourceId, revision);
+    return true;
+  }, []);
+
   const sendProjectUpdate = useCallback(
     (document: ProjectDocument, sourceId: string = clientIdRef.current) => {
       const roomId = collabRoomIdRef.current;
       if (!roomId) return;
-      const payload = { type: 'project:update', document, sourceId };
+      const payload = { type: 'project:update', document, sourceId, revision: getNextProjectRevision() };
       if (collabModeRef.current === 'host') {
         sendSignalMessage({
           type: 'room:message',
@@ -2007,7 +2590,7 @@ const App = () => {
         });
       }
     },
-    [sendSignalMessage],
+    [getNextProjectRevision, sendSignalMessage],
   );
 
   const runWithCollabSyncSuppressed = useCallback((action: () => void) => {
@@ -2159,6 +2742,7 @@ const App = () => {
     }, 0);
   }, [performCollabAutoSave]);
 
+
   const approveJoin = useCallback(
     (clientId: string, nickname: string, avatar?: string) => {
       if (collabMode !== 'host' || !collabRoomId) return;
@@ -2303,6 +2887,7 @@ const App = () => {
         hostId: clientIdRef.current,
         projectId: projectId ?? '',
         name: shareProjectName,
+        appVersion: VERSION_INFO.editor ?? '',
         requiresPassword: collabAccessMode === 'local-password',
         ownerNickname: ownerNicknameValue,
       });
@@ -2358,17 +2943,24 @@ const App = () => {
         queueCollabAutoSave();
       }
       if (collabSyncSuppressedRef.current > 0) return;
-      if (collabModeRef.current === 'client' && collabPermissionRef.current === 'viewer') return;
+      if (collabModeRef.current === 'client') {
+        if (collabPermissionRef.current === 'viewer') return;
+        queueClientSavingIndicator();
+      }
       sendProjectUpdate(state.document);
     });
     return unsubscribe;
-  }, [queueCollabAutoSave, sendProjectUpdate]);
+  }, [queueClientSavingIndicator, queueCollabAutoSave, sendProjectUpdate]);
 
   useEffect(() => {
     handleSignalMessageRef.current = (message: SignalMessage) => {
       switch (message.type) {
         case 'share:list': {
           setSignalShares(Array.isArray(message.shares) ? message.shares : []);
+          if (pendingNetworkRefreshRef.current) {
+            pendingNetworkRefreshRef.current = false;
+            showSaveToast(t('home.network.refreshedToast'));
+          }
           return;
         }
         case 'join:request': {
@@ -2464,8 +3056,15 @@ const App = () => {
             if (collabPermissionRef.current === 'viewer') return;
             const incoming = payload.document as ProjectDocument | undefined;
             if (!incoming) return;
+            const revision = typeof payload.revision === 'number' ? payload.revision : null;
+            if (!shouldApplyProjectRevision(message.clientId, revision)) return;
             applyRemoteProjectUpdate(incoming);
-            sendRoomMessage({ type: 'project:update', document: incoming, sourceId: message.clientId });
+            sendRoomMessage({
+              type: 'project:update',
+              document: incoming,
+              sourceId: message.clientId,
+              ...(revision == null ? {} : { revision }),
+            });
             return;
           }
           if (payload.type === 'nodes:lock' || payload.type === 'nodes:unlock') {
@@ -2597,6 +3196,8 @@ const App = () => {
             if (sourceId && sourceId === clientIdRef.current) return;
             const incoming = payload.document as ProjectDocument | undefined;
             if (!incoming) return;
+            const revision = typeof payload.revision === 'number' ? payload.revision : null;
+            if (!shouldApplyProjectRevision(sourceId, revision)) return;
             applyRemoteProjectUpdate(incoming);
             return;
           }
@@ -2652,6 +3253,8 @@ const App = () => {
     runWithCollabSyncSuppressed,
     sendRoomMessage,
     sendSignalMessage,
+    shouldApplyProjectRevision,
+    showSaveToast,
     setCollabMembers,
     setCollabOwnerNickname,
     setCollabPermission,
@@ -3238,6 +3841,17 @@ const handleSaveGraphAs = useCallback(() => {
   }, [handleSaveAsCancel, saveAsDialog]);
 
   useEffect(() => {
+    if (!giaSaveDialog) return;
+    const handleKeyDown = (event: globalThis.KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        handleGiaSaveCancel();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [giaSaveDialog, handleGiaSaveCancel]);
+
+  useEffect(() => {
     if (!projectInfoDialog) return;
     const handleKeyDown = (event: globalThis.KeyboardEvent) => {
       if (event.key === 'Escape') {
@@ -3263,7 +3877,15 @@ const handleSaveGraphAs = useCallback(() => {
   }, [projectDocument, saveAsDialog]);
 
   useEffect(() => {
-    if (view !== 'editor') return undefined;
+    if (!giaSaveDialog || !giaSaveSelectedGroup) return;
+    if (giaSaveDialog.groupSlug === giaSaveSelectedGroup.groupSlug) return;
+    setGiaSaveDialog((prev) =>
+      prev ? { ...prev, groupSlug: giaSaveSelectedGroup.groupSlug } : prev,
+    );
+  }, [giaSaveDialog, giaSaveSelectedGroup]);
+
+  useEffect(() => {
+    if (view !== 'editor' || collabMode === 'client') return undefined;
     const interval = window.setInterval(() => {
       const state = useProjectStore.getState();
       if (!state.document || !state.projectId) return;
@@ -3283,7 +3905,7 @@ const handleSaveGraphAs = useCallback(() => {
       }));
     }, AUTO_SAVE_INTERVAL);
     return () => window.clearInterval(interval);
-  }, [view]);
+  }, [collabMode, view]);
 
   useEffect(() => {
     if (previousProjectIdRef.current && previousProjectIdRef.current !== projectId) {
@@ -3529,8 +4151,9 @@ const handleSaveGraphAs = useCallback(() => {
         <div className="app__tabs-scroll">
           {openTabs.map((tab: ProjectTab) => {
             const isActive = tab.id === activeTabId;
-            const isDirtyGraph = tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
-            const isDirtyStruct = tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
+            const showDirtyIndicators = collabMode !== 'client';
+            const isDirtyGraph = showDirtyIndicators && tab.type === 'graph' && Boolean(dirtyGraphIds[tab.graphId]);
+            const isDirtyStruct = showDirtyIndicators && tab.type === 'struct' && Object.keys(dirtyStructIds).length > 0;
             const isDirty = isDirtyGraph || isDirtyStruct;
             const tabLabel =
               tab.type === 'explorer'
@@ -4063,6 +4686,7 @@ const handleSaveGraphAs = useCallback(() => {
             projectDocument={projectDocument}
             dirtyStructIds={dirtyStructIds}
             onRequestSave={performProjectSave}
+            showDirtyIndicators={collabMode !== 'client'}
             isReadOnly={isViewer}
           />
         ) : (
@@ -4071,6 +4695,7 @@ const handleSaveGraphAs = useCallback(() => {
             document={projectDocument}
             dirtyGraphIds={dirtyGraphIds}
             onOpenGraph={handleOpenGraphFromExplorer}
+            showDirtyIndicators={collabMode !== 'client'}
             isReadOnly={isViewer}
           />
         )}
@@ -4424,10 +5049,12 @@ const handleSaveGraphAs = useCallback(() => {
         onOpenSettings={handleOpenSettingsFromHome}
         isDecodingGia={isDecodingGia}
         onDecodeGia={handleDecodeGiaFile}
+        isConvertingGia={isConvertingGia}
+        onConvertGia={handleConvertGiaFile}
         networkProjects={networkProjects}
         signalConnected={signalConnected}
         defaultNickname={localNickname}
-        onRefreshNetwork={refreshNetworkProjects}
+        onRefreshNetwork={handleRefreshNetwork}
         onJoinNetworkProject={handleJoinNetworkProject}
         onSendJoinRequest={handleSendJoinRequest}
       />
@@ -4492,20 +5119,268 @@ const handleSaveGraphAs = useCallback(() => {
               </div>
             </div>
             <div className="gia-modal__body">
+              {(giaModal.importErrors?.length || giaModal.importWarnings?.length) && (
+                <div className="gia-modal__section">
+                  {giaModal.importErrors?.length ? (
+                    <>
+                      <h4 className="gia-modal__section-title">{t('app.giaDecode.importErrorsTitle')}</h4>
+                      <ul className="gia-modal__list">
+                        {giaModal.importErrors.map((issue, index) => (
+                          <li key={`gia-error-${index}`}>{t(issue.key, issue.params)}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                  {giaModal.importWarnings?.length ? (
+                    <>
+                      <h4 className="gia-modal__section-title">{t('app.giaDecode.importWarningsTitle')}</h4>
+                      <ul className="gia-modal__list">
+                        {giaModal.importWarnings.map((warning, index) => (
+                          <li key={`gia-warning-${index}`}>{t(warning.key, warning.params)}</li>
+                        ))}
+                      </ul>
+                    </>
+                  ) : null}
+                </div>
+              )}
               <pre
                 className="gia-modal__code"
                 dangerouslySetInnerHTML={{ __html: giaModal.highlightedJson }}
               />
             </div>
             <div className="gia-modal__actions">
-              <button type="button" onClick={handleDownloadGiaJson}>
-                {t('common.downloadJson')}
+              <button
+                type="button"
+                onClick={handleOpenGiaSaveDialog}
+                disabled={!giaModal.importedGraph || Boolean(giaModal.importErrors?.length)}
+              >
+                {t('app.giaDecode.saveGraph')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadGiaGraphJson}
+                disabled={!giaModal.importedGraph || Boolean(giaModal.importErrors?.length)}
+              >
+                {t('app.giaDecode.downloadGraphJson')}
+              </button>
+              <button
+                type="button"
+                onClick={handleDownloadGiaPreviewJson}
+                title={t('app.giaDecode.previewTooltip')}
+              >
+                {t('app.giaDecode.downloadPreviewJson')}
               </button>
               <button type="button" onClick={closeGiaModal}>
                 {t('common.close')}
               </button>
             </div>
           </div>
+        </div>
+      )}
+      {giaConvertModal && (
+        <div className="gia-modal-overlay" role="dialog" aria-modal="true">
+          <div className="gia-modal" role="document">
+            <div className="gia-modal__header">
+              <div className="gia-modal__title">
+                <h3>{t('app.giaConvert.modalTitle')}</h3>
+                <p>{giaConvertModal.fileName}</p>
+              </div>
+            </div>
+            <div className="gia-modal__body">
+              {giaConvertModal.errors.length > 0 && (
+                <div className="gia-modal__section">
+                  <h4 className="gia-modal__section-title">{t('app.giaConvert.errorsTitle')}</h4>
+                  <ul className="gia-modal__list">
+                    {giaConvertModal.errors.map((error, index) => (
+                      <li key={`gia-convert-error-${index}`}>{error}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              {giaConvertModal.warnings.length > 0 && (
+                <div className="gia-modal__section">
+                  <h4 className="gia-modal__section-title">{t('app.giaConvert.warningsTitle')}</h4>
+                  <ul className="gia-modal__list">
+                    {giaConvertModal.warnings.map((warning, index) => (
+                      <li key={`gia-convert-warning-${index}`}>{t(warning.key, warning.params)}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="gia-modal__field">
+                <label htmlFor="gia-convert-uid">{t('app.giaConvert.uidLabel')}</label>
+                <div className="gia-modal__uid">
+                  <input
+                    id="gia-convert-uid"
+                    type="text"
+                    inputMode="numeric"
+                    value={giaConvertModal.uid}
+                    onChange={(event) => handleGiaConvertUidChange(event.target.value)}
+                    placeholder={t('app.giaConvert.uidPlaceholder')}
+                  />
+                  <button
+                    type="button"
+                    className="gia-modal__uid-button"
+                    onClick={handleGiaConvertRandomUid}
+                    title={t('app.giaConvert.uidRandom')}
+                  >
+                    <img src={ICON_RELOAD} alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="gia-modal__actions">
+              <button
+                type="button"
+                onClick={handleGiaConvertDownload}
+                disabled={
+                  !giaConvertModal.graph ||
+                  giaConvertModal.errors.length > 0 ||
+                  !/^\d{9,10}$/.test(giaConvertModal.uid)
+                }
+              >
+                {t('app.giaConvert.download')}
+              </button>
+              <button type="button" onClick={handleGiaConvertClose}>
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {giaSaveDialog && (
+        <div
+          className="app__modal-backdrop"
+          role="dialog"
+          aria-modal="true"
+          onClick={handleGiaSaveCancel}
+        >
+          <form
+            className="app__modal"
+            role="document"
+            onClick={(event) => event.stopPropagation()}
+            onSubmit={(event) => {
+              event.preventDefault();
+              handleGiaSaveConfirm();
+            }}
+          >
+            <h3>{t('app.giaImport.save.title')}</h3>
+            <div className="app__modal-field">
+              <label htmlFor="gia-save-project">{t('app.giaImport.save.projectLabel')}</label>
+              <select
+                id="gia-save-project"
+                value={giaSaveDialog.targetProjectId}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setGiaSaveDialog((prev) => (prev ? { ...prev, targetProjectId: value } : prev));
+                  setGiaSaveFolderName('');
+                  setGiaSaveError(null);
+                }}
+              >
+                <option value={GIA_SAVE_NEW_PROJECT_ID}>{t('app.giaImport.save.newProjectOption')}</option>
+                {history.map((project) => (
+                  <option key={project.id} value={project.id}>
+                    {project.name || defaultProjectName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {giaSaveDialog.targetProjectId === GIA_SAVE_NEW_PROJECT_ID && (
+              <div className="app__modal-field">
+                <label htmlFor="gia-save-project-name">{t('app.projectInfo.nameLabel')}</label>
+                <input
+                  id="gia-save-project-name"
+                  value={giaSaveDialog.newProjectName}
+                  onChange={(event) => {
+                    setGiaSaveDialog((prev) =>
+                      prev ? { ...prev, newProjectName: event.target.value } : prev,
+                    );
+                    setGiaSaveError(null);
+                  }}
+                  placeholder={t('app.projectInfo.namePlaceholder')}
+                />
+              </div>
+            )}
+            <div className="app__modal-field">
+              <label>{t('app.saveAs.topFolderLabel')}</label>
+              <div className="app__modal-static">{giaSaveTopFolderLabel}</div>
+            </div>
+            <div className="app__modal-field">
+              <label htmlFor="gia-save-category">{t('common.category')}</label>
+              <select
+                id="gia-save-category"
+                value={giaSaveSelectedCategory?.key ?? ''}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setGiaSaveDialog((prev) => (prev ? { ...prev, categoryKey: value } : prev));
+                  setGiaSaveFolderName('');
+                  setGiaSaveError(null);
+                }}
+              >
+                {giaSaveCategories.map((category) => (
+                  <option key={category.key} value={category.key}>
+                    {t(category.labelKey)}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="app__modal-field">
+              <label htmlFor="gia-save-folder">{t('common.folder')}</label>
+              <select
+                id="gia-save-folder"
+                value={giaSaveSelectedGroup?.groupSlug ?? giaSaveDialog.groupSlug}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setGiaSaveDialog((prev) => (prev ? { ...prev, groupSlug: value } : prev));
+                  setGiaSaveError(null);
+                }}
+              >
+                {giaSaveGroups.map((group) => (
+                  <option key={group.groupSlug} value={group.groupSlug}>
+                    {group.groupSlug === DEFAULT_GROUP_SLUG && group.groupName === DEFAULT_GROUP_NAME
+                      ? defaultGroupNameLabel
+                      : group.groupName}
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="app__modal-field">
+              <label htmlFor="gia-save-new-folder">{t('app.giaImport.save.newFolderLabel')}</label>
+              <input
+                id="gia-save-new-folder"
+                value={giaSaveFolderName}
+                onChange={(event) => {
+                  setGiaSaveFolderName(event.target.value);
+                  setGiaSaveError(null);
+                }}
+                placeholder={t('app.giaImport.save.newFolderPlaceholder')}
+              />
+            </div>
+            <div className="app__modal-field">
+              <label htmlFor="gia-save-name">{t('graph.nameLabel')}</label>
+              <input
+                id="gia-save-name"
+                value={giaSaveDialog.name}
+                onChange={(event) => {
+                  setGiaSaveDialog((prev) => (prev ? { ...prev, name: event.target.value } : prev));
+                  setGiaSaveError(null);
+                }}
+                placeholder={t('graph.namePlaceholder')}
+              />
+            </div>
+            {giaSavePathPreview && (
+              <div className="app__modal-path" aria-live="polite">
+                {t('app.saveAs.pathPreview', { path: giaSavePathPreview })}
+              </div>
+            )}
+            {giaSaveError && <div className="app__modal-error">{giaSaveError}</div>}
+            <div className="app__modal-actions">
+              <button type="submit">{t('common.save')}</button>
+              <button type="button" onClick={handleGiaSaveCancel}>
+                {t('common.cancel')}
+              </button>
+            </div>
+          </form>
         </div>
       )}
       {gilDialog && (
@@ -4528,7 +5403,7 @@ const handleSaveGraphAs = useCallback(() => {
             <div className="home__confirm-actions">
               <button
                 type="button"
-                className={gilDialog.cancelLabel ? '' : 'is-danger'}
+                className={gilDialog.confirmClassName ?? (gilDialog.cancelLabel ? '' : 'is-danger')}
                 onClick={() => {
                   gilDialog.onConfirm?.();
                   if (!gilDialog.onConfirm) {

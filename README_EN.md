@@ -149,9 +149,26 @@ npm run dev
   16. Save As: Copy this node graph to another path within the current project
   17. Export this node graph as `.server.json` / `.client.json` file
 
-## Other UIs
+#### Collaborative Editing (Experimental)
 
-### General Guide Related
+##### Hosted domains (miliastra.columbina.dev / beta.miliastra.columbina.dev)
+
+1. Run the signaling server (`web/scripts/collabServer.mjs`) on a Node.js host that supports WebSocket connections. Setting env vars in Vercel only tells the frontend where to connect; it does not run the signaling server for you.
+2. Expose the signaling server to the internet and allow WebSocket traffic on that port. For HTTPS sites, use `wss://` via a reverse proxy if needed.
+3. Configure the web app build to point to that signaling server:
+   - `VITE_COLLAB_SIGNAL_URL=wss://your-signal-domain.example.com`
+   - Or `VITE_COLLAB_SIGNAL_HOST=your-signal-domain.example.com` + `VITE_COLLAB_SIGNAL_PORT=5174`
+4. Deploy the web app. The shared/public signaling server is intended only for `miliastra.columbina.dev` and `beta.miliastra.columbina.dev`; for any other domain, host your own signaling server.
+
+##### Local dev / LAN (`npm run dev`)
+
+1. Run `npm install` once, then `npm run dev`. This starts Vite with `--host` and the signaling server together.
+2. On each device, open `http://<your-lan-ip>:5173` (replace with the IP shown by Vite). The app will connect to the signaling server on `:5174` by default.
+3. Ensure the machine running the dev server allows inbound TCP on port `5174` for LAN devices (firewall/router), or set `VITE_COLLAB_SIGNAL_HOST`/`VITE_COLLAB_SIGNAL_PORT` to point at another reachable signaling server.
+
+### Other UIs
+
+#### General Guide Related
 ![Screenshot-04](/media/tut4.png)  
 
 The web app also allows you to view the official General Guide loading from local. Click the <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> icon at the bottom of the homepage, or click the tutorial button at the top right corner of the node graph editing page to open the tutorial page.
@@ -162,7 +179,7 @@ All guides are loaded from local, so you may need to [update](#update-via-offici
 
 When submitting an issue, please include the version information at the top. If you have made modifications, please provide [the official Miliastra General Guide's version number](#find-officials-webapp-version).
 
-### Effects Preview
+#### Effects Preview
 ![Screenshot-05](/media/tut5.png)  
 
 This web app also allows you to preview effects from the Miliastra sandbox. Click the <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> icon at the bottom of the homepage, or click the effects preview button at the top right corner of the node graph editing page to open the effects preview page.

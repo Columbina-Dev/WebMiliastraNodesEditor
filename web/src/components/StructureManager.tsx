@@ -48,6 +48,7 @@ interface StructureManagerProps {
   projectDocument: ProjectDocument | null;
   dirtyStructIds: Record<string, true>;
   onRequestSave: () => boolean;
+  showDirtyIndicators?: boolean;
   isReadOnly?: boolean;
 }
 
@@ -519,6 +520,7 @@ const StructureManager = ({
   projectDocument,
   dirtyStructIds,
   onRequestSave,
+  showDirtyIndicators = true,
   isReadOnly = false,
 }: StructureManagerProps) => {
   const { t } = useI18n();
@@ -2197,7 +2199,7 @@ const StructureManager = ({
                   >
                     {entries.map((entry) => {
                       const isActive = entry.structId === selectedStructId;
-                      const isDirty = Boolean(dirtyStructIds[entry.structId]);
+                      const isDirty = showDirtyIndicators && Boolean(dirtyStructIds[entry.structId]);
                       return (
                         <div
                           key={entry.structId}

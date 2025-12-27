@@ -9,7 +9,7 @@
     "predev": "npm run build:TextMap",
     "prebuild": "npm run build:TextMap",
     "collab:server": "node ./scripts/collabServer.mjs",
-    "dev": "vite",
+    "dev": "node ./scripts/dev.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

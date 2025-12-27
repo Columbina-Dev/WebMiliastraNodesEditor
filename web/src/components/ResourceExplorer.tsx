@@ -29,6 +29,8 @@ import serverNodeList from '../data/nodeDefinitions.server';
 import clientNodeAvailability from '../data/nodeDefinitions.client';
 import { nodeDefinitions } from '../data/nodeDefinitions';
 import { graphDocumentSchema } from '../utils/validation';
+import { decodeGiaBinary } from '../lib/gia/decoder';
+import { importGiaRoot } from '../lib/gia/importer';
 import {
   GRAPH_SCHEMA_VERSION,
   GRAPH_SYSTEM_NODE_IDS,
@@ -47,6 +49,7 @@ import {
   sanitizeExecutionInterval,
 } from '../utils/graphEnvironment';
 import { useI18n } from '../utils/i18nContext';
+import { isLocalizedError, type LocalizedText } from '../utils/localizedText';
 import './ResourceExplorer.css';
 
 interface ResourceExplorerProps {
@@ -54,6 +57,7 @@ interface ResourceExplorerProps {
   document: ProjectDocument | null;
   dirtyGraphIds: Record<string, true>;
   onOpenGraph: (graphId: string) => void;
+  showDirtyIndicators?: boolean;
   isReadOnly?: boolean;
 }
 
@@ -125,6 +129,7 @@ const ResourceExplorer = ({
   document,
   dirtyGraphIds,
   onOpenGraph,
+  showDirtyIndicators = true,
   isReadOnly = false,
 }: ResourceExplorerProps) => {
   const { t } = useI18n();
@@ -303,7 +308,12 @@ const ResourceExplorer = ({
   const [sortAscending, setSortAscending] = useState(true);
   const [contextMenu, setContextMenu] = useState<ContextMenuState | null>(null);
   const importInputRef = useRef<HTMLInputElement>(null);
+  const importGiaInputRef = useRef<HTMLInputElement>(null);
   const [pendingImportTarget, setPendingImportTarget] = useState<{
+    groupSlug: string;
+    categoryKey: string;
+  } | null>(null);
+  const [pendingGiaImportTarget, setPendingGiaImportTarget] = useState<{
     groupSlug: string;
     categoryKey: string;
   } | null>(null);
@@ -1258,6 +1268,20 @@ const ResourceExplorer = ({
     [document, isReadOnly, openInfoDialog, t],
   );
 
+  const handleRequestImportGia = useCallback(
+    (groupSlug: string, categoryKey: string) => {
+      if (isReadOnly) return;
+      if (!document) {
+        openInfoDialog(t('resourceExplorer.error.import.title'), t('common.noProjectOpen'));
+        return;
+      }
+      setPendingGiaImportTarget({ groupSlug, categoryKey });
+      setContextMenu(null);
+      importGiaInputRef.current?.click();
+    },
+    [document, isReadOnly, openInfoDialog, t],
+  );
+
   const importGraphsTo = useCallback(
     async (
       files: FileList | File[],
@@ -1280,8 +1304,58 @@ const ResourceExplorer = ({
         group?.groupName ??
         (target.groupSlug === DEFAULT_GROUP_SLUG ? DEFAULT_GROUP_NAME : target.groupSlug);
       const failures: string[] = [];
+      const giaIssues: Array<{ file: string; issues: LocalizedText[] }> = [];
       for (const file of selectedFiles) {
         try {
+          const lowerName = file.name.toLowerCase();
+          if (lowerName.endsWith('.gia')) {
+            const buffer = await file.arrayBuffer();
+            const decoded = decodeGiaBinary(buffer);
+            const { graph, warnings, errors } = importGiaRoot(decoded);
+            if (!graph || errors.length) {
+              failures.push(file.name);
+              if (errors.length) {
+                giaIssues.push({ file: file.name, issues: errors });
+              }
+              continue;
+            }
+            const graphId = createProjectId();
+            const location = {
+              topFolder,
+              categoryKey: category.key,
+              categoryDirectory: category.directory,
+              groupSlug: target.groupSlug,
+              groupName,
+            };
+            const fallbackName = file.name.replace(/\.gia$/i, '') || t('graph.defaultName');
+            const trimmedName = graph.name?.trim();
+            const graphName = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
+            const environmentFromLocation = resolveEnvironmentFromLocation(location);
+            const normalizedDocument: GraphDocument = {
+              ...graph,
+              name: graphName,
+              schemaVersion: GRAPH_SCHEMA_VERSION,
+              environment: environmentFromLocation,
+            };
+            const timestamp = new Date().toISOString();
+            normalizedDocument.createdAt = normalizedDocument.createdAt ?? timestamp;
+            normalizedDocument.updatedAt = normalizedDocument.updatedAt ?? timestamp;
+            const entry = {
+              graphId,
+              name: graphName,
+              path: buildGraphPath(location, graphId),
+              groupName: location.groupName,
+              createdAt: normalizedDocument.createdAt,
+              updatedAt: normalizedDocument.updatedAt,
+            };
+            setGraphDocument(graphId, normalizedDocument);
+            setManifestEntry(entry);
+            markGraphDirty(graphId, false);
+            if (warnings.length) {
+              giaIssues.push({ file: file.name, issues: warnings });
+            }
+            continue;
+          }
           const raw = await file.text();
           const rawDocument = JSON.parse(raw);
           if (rawDocument && typeof rawDocument === 'object') {
@@ -1371,7 +1445,28 @@ const ResourceExplorer = ({
         } catch (error) {
           console.error('Failed to import graph', error);
           failures.push(file.name);
+          if (isLocalizedError(error)) {
+            giaIssues.push({ file: file.name, issues: [{ key: error.key, params: error.params }] });
+          }
         }
+      }
+      if (giaIssues.length) {
+        openInfoDialog(
+          t('resourceExplorer.import.giaWarnings.title'),
+          <div className="resource-explorer__dialog-message">
+            <p>{t('resourceExplorer.import.giaWarnings.hint')}</p>
+            {giaIssues.map((entry) => (
+              <div key={entry.file}>
+                <strong>{entry.file}</strong>
+                <ul>
+                  {entry.issues.map((issue, index) => (
+                    <li key={`${entry.file}-${index}`}>{t(issue.key, issue.params)}</li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>,
+        );
       }
       if (failures.length) {
         openInfoDialog(
@@ -1421,6 +1516,26 @@ const ResourceExplorer = ({
     [importGraphsTo, isReadOnly, pendingImportTarget],
   );
 
+  const handleImportGiaGraphs = useCallback(
+    async (files: FileList | null) => {
+      if (isReadOnly) {
+        setPendingGiaImportTarget(null);
+        return;
+      }
+      if (!files || files.length === 0) {
+        setPendingGiaImportTarget(null);
+        return;
+      }
+      if (!pendingGiaImportTarget) {
+        setPendingGiaImportTarget(null);
+        return;
+      }
+      await importGraphsTo(files, pendingGiaImportTarget);
+      setPendingGiaImportTarget(null);
+    },
+    [importGraphsTo, isReadOnly, pendingGiaImportTarget],
+  );
+
   const handleImportInputChange = useCallback(
     (event: ChangeEvent<HTMLInputElement>) => {
       if (isReadOnly) {
@@ -1432,6 +1547,19 @@ const ResourceExplorer = ({
       event.target.value = '';
     },
     [handleImportGraphs, isReadOnly],
+  );
+
+  const handleImportGiaInputChange = useCallback(
+    (event: ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly) {
+        event.target.value = '';
+        return;
+      }
+      const { files } = event.target;
+      void handleImportGiaGraphs(files);
+      event.target.value = '';
+    },
+    [handleImportGiaGraphs, isReadOnly],
   );
 
   const handleDeleteFolder = useCallback(
@@ -1665,7 +1793,7 @@ const ResourceExplorer = ({
         visibleGraphs.map((descriptor, index) => {
           const validation = graphValidation.get(descriptor.graphId);
           const hasError = Boolean(validation && validation.errors.length);
-          const isDirty = Boolean(dirtyGraphIds[descriptor.graphId]);
+          const isDirty = showDirtyIndicators && Boolean(dirtyGraphIds[descriptor.graphId]);
           const stripeClass = `resource-explorer__row--${index % 2 === 0 ? 'even' : 'odd'}`;
           const isRenaming =
             editing?.type === 'graph' && editing.graphId === descriptor.graphId;
@@ -1759,6 +1887,15 @@ const ResourceExplorer = ({
         multiple
         hidden
         onChange={handleImportInputChange}
+        disabled={isReadOnly}
+      />
+      <input
+        ref={importGiaInputRef}
+        type="file"
+        accept=".gia"
+        multiple
+        hidden
+        onChange={handleImportGiaInputChange}
         disabled={isReadOnly}
       />
       <aside className="resource-explorer__sidebar">
@@ -1961,6 +2098,16 @@ const ResourceExplorer = ({
                     }}
                   >
                     {t('resourceExplorer.context.importJson')}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (contextMenu.groupSlug) {
+                        handleRequestImportGia(contextMenu.groupSlug, contextMenu.categoryKey);
+                      }
+                    }}
+                  >
+                    {t('resourceExplorer.context.importGia')}
                   </button>
                   <button
                     type="button"

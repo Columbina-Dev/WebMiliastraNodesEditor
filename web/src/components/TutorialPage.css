@@ -24,6 +24,8 @@ p a:hover {
   display: flex;
   flex-direction: column;
   min-height: 0;
+  padding-top: var(--app-version-info-height, 0px);
+  box-sizing: border-box;
   background: radial-gradient(circle at 20% 20%, rgba(70, 92, 160, 0.4), transparent 55%),
     radial-gradient(circle at 80% 0%, rgba(130, 82, 190, 0.3), transparent 60%),
     #0b0d18;

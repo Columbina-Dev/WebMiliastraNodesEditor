@@ -12,6 +12,7 @@ export type NetworkProject = {
   hostId?: string;
   projectId?: string;
   name: string;
+  appVersion?: string;
   address: string;
   requiresPassword: boolean;
   ownerNickname?: string;
@@ -32,12 +33,14 @@ interface HomePageProps {
   onOpenSettings: () => void;
   isDecodingGia: boolean;
   onDecodeGia: (file: File) => Promise<void> | void;
+  isConvertingGia: boolean;
+  onConvertGia: (file: File) => Promise<void> | void;
   networkProjects: NetworkProject[];
   signalConnected: boolean;
   defaultNickname: string;
   onRefreshNetwork: () => void;
   onJoinNetworkProject: (project: NetworkProject, nickname: string, password?: string) => void;
-  onSendJoinRequest: (project: NetworkProject, nickname: string) => void;
+  onSendJoinRequest: (project: NetworkProject, nickname: string) => boolean;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -74,6 +77,8 @@ const HomePage = ({
   onOpenSettings,
   isDecodingGia,
   onDecodeGia,
+  isConvertingGia,
+  onConvertGia,
   networkProjects,
   signalConnected,
   defaultNickname,
@@ -89,6 +94,7 @@ const HomePage = ({
   const [joinPassword, setJoinPassword] = useState('');
   const [requestCooldown, setRequestCooldown] = useState(0);
   const decodeInputRef = useRef<HTMLInputElement | null>(null);
+  const convertInputRef = useRef<HTMLInputElement | null>(null);
   const dragCounterRef = useRef(0);
 
   const sortedProjects = useMemo(
@@ -196,6 +202,14 @@ const HomePage = ({
           >
             {isDecodingGia ? t('home.actions.decodeGia.loading') : t('home.actions.decodeGia')}
           </button>
+          <button
+            type="button"
+            onClick={() => convertInputRef.current?.click()}
+            disabled={isConvertingGia}
+            aria-busy={isConvertingGia || undefined}
+          >
+            {isConvertingGia ? t('home.actions.convertGia.loading') : t('home.actions.convertGia')}
+          </button>
           <input
             ref={decodeInputRef}
             type="file"
@@ -206,6 +220,18 @@ const HomePage = ({
               event.currentTarget.value = '';
               if (!file) return;
               await onDecodeGia(file);
+            }}
+          />
+          <input
+            ref={convertInputRef}
+            type="file"
+            accept=".json,application/json"
+            hidden
+            onChange={async (event) => {
+              const file = event.currentTarget.files?.[0];
+              event.currentTarget.value = '';
+              if (!file) return;
+              await onConvertGia(file);
             }}
           />
         </div>
@@ -412,8 +438,10 @@ const HomePage = ({
                     type="button"
                     onClick={() => {
                       if (!joinNickname.trim() || requestCooldown > 0) return;
-                      onSendJoinRequest(pendingJoin, joinNickname);
-                      setRequestCooldown(30);
+                      const sent = onSendJoinRequest(pendingJoin, joinNickname);
+                      if (sent) {
+                        setRequestCooldown(30);
+                      }
                     }}
                     disabled={requestCooldown > 0}
                   >

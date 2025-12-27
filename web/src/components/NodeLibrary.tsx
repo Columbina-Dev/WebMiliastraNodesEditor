@@ -61,6 +61,77 @@ const GROUP_META: Record<string, { icon: string; color: string }> = {
   '运算节点': { icon: ICON_LOGIC, color: '#1976d2' },
 };
 
+const NODE_CATEGORY_LABEL_KEYS: Record<string, string> = {
+  '执行节点': 'graphCanvas.nodeCategory.execution',
+  '事件节点': 'graphCanvas.nodeCategory.event',
+  '流程控制节点': 'graphCanvas.nodeCategory.flow',
+  '查询节点': 'graphCanvas.nodeCategory.query',
+  '运算节点': 'graphCanvas.nodeCategory.logic',
+  '通用': 'graphCanvas.nodeCategory.common',
+  '列表相关': 'graphCanvas.nodeCategory.listRelated',
+  '自定义变量': 'graphCanvas.nodeCategory.customVariable',
+  '预设状态': 'graphCanvas.nodeCategory.presetState',
+  '实体相关': 'graphCanvas.nodeCategory.entity',
+  '关卡相关': 'graphCanvas.nodeCategory.level',
+  '阵营相关': 'graphCanvas.nodeCategory.camp',
+  '玩家与角色相关': 'graphCanvas.nodeCategory.playerCharacter',
+  '碰撞': 'graphCanvas.nodeCategory.collision',
+  '碰撞触发器': 'graphCanvas.nodeCategory.collisionTrigger',
+  '战斗': 'graphCanvas.nodeCategory.combat',
+  '运动器': 'graphCanvas.nodeCategory.mover',
+  '跟随运动器': 'graphCanvas.nodeCategory.followMover',
+  '投射物': 'graphCanvas.nodeCategory.projectile',
+  '特效': 'graphCanvas.nodeCategory.effects',
+  '定时器': 'graphCanvas.nodeCategory.timer',
+  '全局计时器': 'graphCanvas.nodeCategory.globalTimer',
+  '镜头': 'graphCanvas.nodeCategory.camera',
+  '角色扰动装置': 'graphCanvas.nodeCategory.characterDisturbance',
+  '单位状态': 'graphCanvas.nodeCategory.unitState',
+  '选项卡': 'graphCanvas.nodeCategory.tab',
+  '碰撞触发源': 'graphCanvas.nodeCategory.collisionSource',
+  '职业': 'graphCanvas.nodeCategory.profession',
+  '界面控件组': 'graphCanvas.nodeCategory.uiWidgetGroup',
+  '技能': 'graphCanvas.nodeCategory.skill',
+  '音效': 'graphCanvas.nodeCategory.audio',
+  '单位标签': 'graphCanvas.nodeCategory.unitTag',
+  '自定义仇恨': 'graphCanvas.nodeCategory.customAggro',
+  '信号': 'graphCanvas.nodeCategory.signal',
+  '铭牌': 'graphCanvas.nodeCategory.nameplate',
+  '文本气泡': 'graphCanvas.nodeCategory.textBubble',
+  '卡牌选择器': 'graphCanvas.nodeCategory.cardSelector',
+  '关卡结算': 'graphCanvas.nodeCategory.levelSettlement',
+  '光源组件': 'graphCanvas.nodeCategory.lightComponent',
+  '字典': 'graphCanvas.nodeCategory.dict',
+  '结构体': 'graphCanvas.nodeCategory.struct',
+  '商店': 'graphCanvas.nodeCategory.shop',
+  '装备': 'graphCanvas.nodeCategory.equipment',
+  '道具与背包': 'graphCanvas.nodeCategory.itemBag',
+  '小地图标识组件': 'graphCanvas.nodeCategory.minimapMarker',
+  '造物巡逻': 'graphCanvas.nodeCategory.constructPatrol',
+  '排行榜': 'graphCanvas.nodeCategory.leaderboard',
+  '成就': 'graphCanvas.nodeCategory.achievement',
+  '扫描标签': 'graphCanvas.nodeCategory.scanTag',
+  '段位': 'graphCanvas.nodeCategory.rank',
+  '实体布设组': 'graphCanvas.nodeCategory.entityPlacementGroup',
+  '聊天频道': 'graphCanvas.nodeCategory.chatChannel',
+  '奇域礼盒相关': 'graphCanvas.nodeCategory.wonderlandGift',
+  '寻路阻挡': 'graphCanvas.nodeCategory.pathBlocking',
+  '造物预设状态': 'graphCanvas.nodeCategory.constructPresetState',
+  '命中判定': 'graphCanvas.nodeCategory.hitDetection',
+  '造物': 'graphCanvas.nodeCategory.construct',
+  '道具': 'graphCanvas.nodeCategory.item',
+  '数学': 'graphCanvas.nodeCategory.math',
+  '标签': 'graphCanvas.nodeCategory.tag',
+  '路径': 'graphCanvas.nodeCategory.path',
+  '预设点': 'graphCanvas.nodeCategory.presetPoint',
+  '<隐藏>客户端节点自带': 'graphCanvas.nodeCategory.hiddenClientBuiltin',
+  '触发器': 'graphCanvas.nodeCategory.trigger',
+  '射线': 'graphCanvas.nodeCategory.raycast',
+  '扫描': 'graphCanvas.nodeCategory.scan',
+  '列表': 'graphCanvas.nodeCategory.list',
+  '角色技能': 'graphCanvas.nodeCategory.characterSkill',
+};
+
 // 弃用：选择值类型过滤器
 // const VALUE_TYPE_OPTIONS: Array<{ value: string; label: string }> = [
 //   { value: 'all', label: '全部类型' },
@@ -156,6 +227,14 @@ const NodeLibrary = ({
     lastY: number;
     dragging: boolean;
   } | null>(null);
+
+  const resolveCategoryLabel = useCallback(
+    (name: string) => {
+      const key = NODE_CATEGORY_LABEL_KEYS[name];
+      return key ? t(key) : name;
+    },
+    [t],
+  );
 
   const dispatchTouchDragEvent = useCallback(
     (detail: NodeLibraryTouchDragDetail) => {
@@ -429,7 +508,7 @@ const NodeLibrary = ({
           {groupMeta && (
             <img className="node-library__icon" src={groupMeta.icon} alt="" aria-hidden="true" />
           )}
-          <span className="node-library__name">{node.name}</span>
+          <span className="node-library__name">{resolveCategoryLabel(node.name)}</span>
           <span className="node-library__count">{node.count}</span>
         </button>
         {isExpanded && hasChildren && (

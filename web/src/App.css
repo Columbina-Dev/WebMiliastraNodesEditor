@@ -13,6 +13,7 @@
   --cursor-stretch-diagonal-rl: url('./assets/cursor/Stretch_RL-60.png') 26 34, nwse-resize;
   --cursor-text-invalid: url('./assets/cursor/TextInvalid-60.png') 20 20, not-allowed;
   --cursor-jump: url('./assets/cursor/Jump-60.png') 24 18, pointer;
+  --app-version-info-height: 32px;
 }
 
 .app--system-pointer {
@@ -283,12 +284,17 @@ option {
 }
 
 .app__version-info {
+  position: fixed;
+  transform: translateX(-50%);
+  left: 50%;
+  z-index: 2000;
+  width: 100%;
   text-align: center;
   font-size: 16px;
   font-weight: 600;
   padding: 6px 0;
   color: rgba(247, 247, 255, 0.85);
-  background: rgba(17, 17, 24, 0.92);
+  background: rgba(17, 17, 24);
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
@@ -861,7 +867,74 @@ option {
   border: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 14px;
   padding: 18px;
-  user-select: text;
+}
+
+.gia-modal__section {
+  margin-bottom: 16px;
+}
+
+.gia-modal__section-title {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.gia-modal__list {
+  margin: 0;
+  padding-left: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13px;
+  color: rgba(246, 246, 255, 0.85);
+}
+
+.gia-modal__field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.gia-modal__field label {
+  font-size: 13px;
+  opacity: 0.75;
+}
+
+.gia-modal__uid {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.gia-modal__uid input {
+  flex: 1;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.05);
+  color: inherit;
+  padding: 10px 12px;
+  font-size: 14px;
+}
+
+.gia-modal__uid input:focus {
+  outline: 1px solid rgba(92, 186, 255, 0.55);
+}
+
+.gia-modal__uid-button {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-pointer);
+}
+
+.gia-modal__uid-button img {
+  width: 16px;
+  height: 16px;
 }
 
 .gia-modal__code {
@@ -871,6 +944,7 @@ option {
   line-height: 1.5;
   white-space: pre;
   color: #d4d4d4;
+  user-select: text;
 }
 
 .gia-modal__actions {
@@ -1073,6 +1147,11 @@ option {
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
+}
+
+.collab-member button:hover {
+  border-color: rgba(92, 186, 255, 0.45);
+  background: rgba(92, 186, 255, 0.18);
 }
 
 .collab-member__info {
@@ -1280,7 +1359,7 @@ option {
   line-height: 1.4;
   height: 34px;
   min-height: 34px;
-  max-height: 140px;
+  max-height: 60px;
   overflow-y: hidden;
 }
 

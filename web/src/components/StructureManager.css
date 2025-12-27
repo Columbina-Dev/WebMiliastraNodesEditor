@@ -167,6 +167,7 @@
   flex-direction: column;
   padding: 16px;
   gap: 12px;
+  min-height: 0;
 }
 
 .struct-editor__fieldset {
@@ -177,6 +178,8 @@
   display: flex;
   flex-direction: column;
   gap: 12px;
+  flex: 1;
+  min-height: 0;
 }
 
 .struct-editor__header {
@@ -329,6 +332,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 0;
 }
 
 .struct-editor__row {
@@ -514,6 +518,13 @@
   border-radius: 6px;
   padding: 6px 10px;
   cursor: var(--cursor-pointer);
+}
+
+.struct-editor__list-header button:hover,
+.struct-editor__list-remove:hover,
+.struct-editor__list-add:hover {
+  background: #2b4171;
+  border: 1px solid #0838a8;
 }
 
 .struct-editor__list-body {

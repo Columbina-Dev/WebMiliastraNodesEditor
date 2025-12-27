@@ -1,7 +1,13 @@
 """
-从米哈游OS官方获取教程的html文件
+从米哈游国际服官方获取教程的html文件
 需读取`web/public/tutorial/catalog`中`course.json`和`knowledge.json`中的path_id的值
 需在此仓库的根目录运行 `python scripts/fetch_tutorial_html.py`
+
+一键完成更新：
+cd web\public\tutorial\catalog && curl -o knowledge.json https://act-webstatic.hoyoverse.com/ugc-tutorial/knowledge/sea/zh-cn/catalog.json && curl -o course.json https://act-webstatic.hoyoverse.com/ugc-tutorial/course/sea/zh-cn/catalog.json && cd ..\..\..\.. && python scripts\fetch_tutorial_html.py
+
+备用：
+Push-Location web/public/tutorial/catalog; curl.exe -o knowledge.json https://act-webstatic.hoyoverse.com/ugc-tutorial/knowledge/sea/zh-cn/catalog.json; curl.exe -o course.json https://act-webstatic.hoyoverse.com/ugc-tutorial/course/sea/zh-cn/catalog.json; Pop-Location; python scripts/fetch_tutorial_html.py
 """
 
 from __future__ import annotations

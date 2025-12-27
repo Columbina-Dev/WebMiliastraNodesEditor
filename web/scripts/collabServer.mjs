@@ -120,6 +120,7 @@ wss.on('connection', (socket, request) => {
           hostId,
           projectId: String(message.projectId ?? ''),
           name: String(message.name ?? ''),
+          appVersion: String(message.appVersion ?? ''),
           requiresPassword: Boolean(message.requiresPassword),
           ownerNickname: String(message.ownerNickname ?? ''),
           address: remoteAddress || String(message.address ?? ''),

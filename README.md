@@ -148,9 +148,9 @@ npm run dev
   16. 另存为：复制此节点图到当前项目的其他路径
   17. 导出此节点图为 `.server.json` / `.client.json` 文件
 
-## 额外页面
+### 额外页面
 
-### UGC教程相关
+#### UGC教程相关
 ![Screenshot-04](/media/tut4.png)  
 
 此项目也可查看保存在本地的官方综合指南，点击主页底部的 <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" />  图标，或在节点图编辑页面点击右上角的教程按钮即可打开教程页面。
@@ -161,7 +161,7 @@ npm run dev
 
 提交Issue时请附上顶部的版本号信息，如有修改，请提供修改所基于的[官方千星奇域指南版本号](#查看官方运行的webapp版本号)。
 
-### 特效预览
+#### 特效预览
 ![Screenshot-05](/media/tut5.png)  
 
 此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。

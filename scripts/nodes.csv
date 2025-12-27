@@ -135,7 +135,7 @@
 707,action.shop.modifyBuyInfo,修改物品收购表中道具收购信息,Modify Item Purchase Info in the Purchase List
 706,action.shop.modifyBackpackSellInfo,修改背包商店商品出售信息,Modify Inventory Shop Item Sales Info
 674,action.affix.modifyValue,设置装备词条值,(EN_TBC)Modify Equipment Affix Value
-791,action.affix.replaceAtIndex,替换装备到指定栏位,(test)Official_action.replaceAffixAtIndex
+791,action.affix.replaceAtIndex,替换装备到指定栏位,Replace Equipment to The Specified Slot
 673,action.affix.remove,移除装备词条,Remove Equipment Affix
 672,action.affix.add,装备添加词条,Add Affix to Equipment
 742,action.affix.addAtIndex,装备指定序号添加词条,Add Affix to Equipment at Specified ID
@@ -168,9 +168,9 @@
 771,action.chat.setPlayerCurrentChannel,设置玩家当前频道,Set Player's Current Channel
 770,action.chat.modifyPlayerChannelPermission,修改玩家频道权限,Modify Player Channel Permission
 772,action.giftBox.consume,消耗礼盒,Consume Gift Box
-790,action.pathBlocking.toggle,激活/关闭寻路阻挡,(test)Official_action.pathBlocking.toggle
-789,action.pathBlocking.funcToggle,激活/关闭寻路阻挡功能,(test)Official_action.pathBlocking.funcToggle
-798,action.complexConstruct.setPresetState,设置复杂造物的预设状态值,(test)Official_action.construct.setPresetState
+790,action.pathBlocking.toggle,激活/关闭寻路阻挡,Enable/Disable Pathfinding Obstacle
+789,action.pathBlocking.funcToggle,激活/关闭寻路阻挡功能,Enable/Disable Pathfinding Obstacle Feature
+798,action.complexConstruct.setPresetState,设置复杂造物的预设状态值,Set the Preset Status Value of the Complex Creation
 351,event.graphVariableChanged,节点图变量变化时,When Node Graph Variable Changes
 36,event.customVariableChanged,自定义变量变化时,When Custom Variable Changes
 67,event.presetStateChanged,预设状态变化时,When Preset Status Changes
@@ -228,7 +228,7 @@
 683,event.backpackItemCountChanged,背包道具数量变化时,When the Quantity of Inventory Item Changes
 682,event.backpackItemLost,背包道具失去时,When Item Is Lost From Inventory
 620,event.constructReachedPatrolWaypoint,造物抵达巡逻路点时,When Creation Reaches Patrol Waypoint
-799,event.complexConstructPresetStateChanged,复杂造物预设状态变化时,(test)Official_event.complexConstructPresetStateChanged
+799,event.complexConstructPresetStateChanged,复杂造物预设状态变化时,When Complex Creation Preset Status Changes
 3,flow.branch.multi,多分支,Multiple Branches
 2,flow.branch.ifElse,双分支,Double Branch
 766,query.matchModeAndPlayerCount,查询对局游玩方式及人数,Query Game Mode and Player Number
@@ -265,7 +265,7 @@
 319,query.entities.byTypeOnField,获取场上指定类型实体,Get Specified Type of Entities on the Field
 99,query.entity.transform,获取实体位置与旋转,Get Entity Location and Rotation
 671,query.entity.elementStats,获取实体元素属性,Get Entity Elemental Attribute
-788,query.entity.elementAttachment,查询实体的元素附着状态,(test)Official_query.entity.elementAttachment
+788,query.entity.elementAttachment,查询实体的元素附着状态,Check Entity's Elemental Effect Status
 518,query.entity.upVector,获取实体向上向量,Get Entity Upward Vector
 516,query.entity.forwardVector,获取实体向前向量,Get Entity Forward Vector
 517,query.entity.rightVector,获取实体向右向量,Get Entity Right Vector
@@ -318,7 +318,7 @@
 606,query.hatred.targetOfOwner,获取指定实体的仇恨目标,Get the Aggro Target of the Specified Entity
 607,query.hatred.ownersByListContainingTarget,获取目标所在仇恨列表的拥有者列表,Get List of Owners Who Have the Target in Their Aggro List
 621,query.path.pointInfo,获取指定路径点信息,Get Specified Waypoint Info
-787,query.path.pointCount,获得全局路径的路点个数,(test)Official_query.path.pointCount
+787,query.path.pointCount,获得全局路径的路点个数,Get the Number of Waypoints in the Global Path
 271,query.preset.indicesByUnitTag,以单位标签获取预设点位列表,Get Preset Point List by Unit Tag
 270,query.preset.transformByIndex,查询预设点位置旋转,Query Preset Point Position Rotation
 653,query.settlement.playerSuccess,获取玩家结算成功状态,Get Player Settlement Success Status
@@ -342,7 +342,7 @@
 675,query.equip.entryList,获取装备词条列表,Get Equipment Affix List
 677,query.equip.entryValue,获取装备词条数值,Get Equipment Affix Value
 676,query.equip.entryConfigId,获取装备词条配置ID,Get Equipment Affix Config ID
-792,query.equip.indexBySlot,获取指定装备栏位的装备索引,(test)Official_query.equip.indexBySlot
+792,query.equip.indexBySlot,获取指定装备栏位的装备索引,Get the Equipment Index of the Specified Equipment Slot
 729,query.drop.coinCount,获取凋落物组件货币数量,Get Loot Component Currency Quantity
 731,query.reward.allCoins,获取战利品所有货币,Get All Trophy Currency
 730,query.reward.allItems,获取战利品所有道具,Get All Trophy Items
@@ -366,7 +366,7 @@
 179,query.entityLayoutGroups.active,查询当前激活的实体布设组列表,Get Currently Active Entity Deployment Groups
 773,query.giftBox.count,查询对应礼盒数量,Query Corresponding Gift Box Quantity
 774,query.giftBox.consumeCount,查询对应礼盒消耗数量,Query Corresponding Gift Box Consumption
-797,query.presetState.complexValue,获取复杂造物的预设状态值,(test)Official_query.presetState.complexValue
+797,query.presetState.complexValue,获取复杂造物的预设状态值,Get the Preset Status Value of the Complex Creation
 475,math.enumEquals,枚举是否相等,Enumerations Equal
 169,math.list.assemble,拼装列表,Assembly List
 14,math.equals,是否相等,Equal
@@ -431,6 +431,7 @@
 0,math.struct.assemble,拼装结构体,Assemble Structure
 客户端节点图可用
 200042,event.graphStart,节点图开始,Node Graph Begins
+200126,event.executeByOrderUniquely,按顺序唯一执行,Execute Only by Sequence
 200000,flow.graphEndBoolean,节点图结束（布尔型）,Node Graph End (Boolean)
 0,flow.graphEndInteger,节点图结束（整数）,Node Graph End (Integer)
 0,client.query.list.getValue,获取列表对应值,Get Corresponding Value From List
