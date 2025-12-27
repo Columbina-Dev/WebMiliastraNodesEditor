@@ -1303,6 +1303,26 @@ const ResourceExplorer = ({
       const groupName =
         group?.groupName ??
         (target.groupSlug === DEFAULT_GROUP_SLUG ? DEFAULT_GROUP_NAME : target.groupSlug);
+      const existingNames = new Set<string>();
+      listProjectGraphDescriptors(document).forEach((descriptor) => {
+        if (
+          descriptor.location.topFolder === topFolder &&
+          descriptor.location.categoryKey === category.key &&
+          descriptor.location.groupSlug === target.groupSlug
+        ) {
+          existingNames.add(descriptor.name);
+        }
+      });
+      const ensureUniqueGraphName = (baseName: string) => {
+        let candidate = baseName;
+        let index = 2;
+        while (existingNames.has(candidate)) {
+          candidate = `${baseName}_${index}`;
+          index += 1;
+        }
+        existingNames.add(candidate);
+        return candidate;
+      };
       const failures: string[] = [];
       const giaIssues: Array<{ file: string; issues: LocalizedText[] }> = [];
       for (const file of selectedFiles) {
@@ -1329,7 +1349,8 @@ const ResourceExplorer = ({
             };
             const fallbackName = file.name.replace(/\.gia$/i, '') || t('graph.defaultName');
             const trimmedName = graph.name?.trim();
-            const graphName = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
+            const graphNameBase = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
+            const graphName = ensureUniqueGraphName(graphNameBase);
             const environmentFromLocation = resolveEnvironmentFromLocation(location);
             const normalizedDocument: GraphDocument = {
               ...graph,
@@ -1381,7 +1402,8 @@ const ResourceExplorer = ({
           };
           const fallbackName = file.name.replace(/\.json$/i, '') || t('graph.defaultName');
           const trimmedName = parsed.name?.trim();
-          const graphName = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
+          const graphNameBase = trimmedName && trimmedName.length > 0 ? trimmedName : fallbackName;
+          const graphName = ensureUniqueGraphName(graphNameBase);
           const timestamp = new Date().toISOString();
           const normalizedComments: GraphComment[] = [];
           if (Array.isArray(parsed.comments)) {

@@ -4,5 +4,5 @@
 | GIA文件 | GIA File | - |
 | 节点图GIA文件 | Node Graph GIA File | - |
 | GIL存档 | GIL Save | - |
-| 节点图Json | Node Graph Json | - |
+| 节点图Json | Node Graph Json | Not using "JSON" |
 | Zip项目 | Zip Project | - |

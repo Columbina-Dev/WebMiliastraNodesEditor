@@ -18,7 +18,14 @@ import { useProjectStore, type ProjectTab, type TabId } from "./state/projectSto
 import type { GraphComment, GraphDocument, GraphEnvironment } from "./types/node";
 import { GRAPH_SCHEMA_VERSION } from "./types/node";
 import type { StructDocument } from "./types/struct";
-import { DEFAULT_GROUP_NAME, DEFAULT_GROUP_SLUG, PROJECT_CATEGORIES_BY_TOP, type ProjectDocument, type ProjectTopFolder } from "./types/project";
+import {
+  DEFAULT_GROUP_NAME,
+  DEFAULT_GROUP_SLUG,
+  PROJECT_CATEGORIES_BY_TOP,
+  type ProjectDocument,
+  type ProjectGraphLocation,
+  type ProjectTopFolder,
+} from "./types/project";
 import {
   buildGraphPath,
   createEmptyProjectDocument,
@@ -353,6 +360,35 @@ type GiaSaveDialogState = {
 };
 
 const ensureLeadingSlash = (path: string) => (path.startsWith("/") ? path : "/" + path);
+
+const getUniqueGraphName = (
+  document: ProjectDocument,
+  location: ProjectGraphLocation,
+  baseName: string,
+) => {
+  const usedNames = new Set<string>();
+  document.manifest.graphs.forEach((entry) => {
+    const resolved = resolveGraphLocation(entry.graphId, entry.path, {
+      groupNameHint: entry.groupName,
+      preferredTopFolder: location.topFolder,
+      fallbackCategoryKey: location.categoryKey,
+    });
+    if (
+      resolved.location.topFolder === location.topFolder &&
+      resolved.location.categoryKey === location.categoryKey &&
+      resolved.location.groupSlug === location.groupSlug
+    ) {
+      usedNames.add(entry.name);
+    }
+  });
+  let candidate = baseName;
+  let index = 2;
+  while (usedNames.has(candidate)) {
+    candidate = `${baseName}_${index}`;
+    index += 1;
+  }
+  return candidate;
+};
 
 const buildAppPath = (path: string) => {
   const relative = ensureLeadingSlash(path);
@@ -2183,6 +2219,7 @@ const App = () => {
       groupSlug: targetGroupSlug,
       groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
     };
+    const uniqueName = getUniqueGraphName(base, location, trimmedName);
     const environment = resolveEnvironmentFromLocation(location);
     const defaultInterval = getDefaultExecutionInterval(environment);
     const preservedInterval = giaSaveDialog.graph.executionIntervalSeconds;
@@ -2193,7 +2230,7 @@ const App = () => {
     const graphDoc: GraphDocument = {
       ...giaSaveDialog.graph,
       schemaVersion: GRAPH_SCHEMA_VERSION,
-      name: trimmedName,
+      name: uniqueName,
       createdAt: giaSaveDialog.graph.createdAt ?? timestamp,
       updatedAt: timestamp,
       environment,
@@ -2205,7 +2242,7 @@ const App = () => {
       ...base.manifest.graphs,
       {
         graphId,
-        name: trimmedName,
+        name: uniqueName,
         path,
         groupName: location.groupName,
         createdAt: graphDoc.createdAt,
@@ -3598,6 +3635,7 @@ const handleSaveGraphAs = useCallback(() => {
       groupSlug: targetGroupSlug,
       groupName: targetGroupName ?? DEFAULT_GROUP_NAME,
     };
+    const uniqueName = getUniqueGraphName(projectDocument, location, trimmedName);
     const environment = resolveEnvironmentFromLocation(location);
     const defaultInterval = getDefaultExecutionInterval(environment);
     const preservedInterval = saveAsDialog.graph.executionIntervalSeconds;
@@ -3609,7 +3647,7 @@ const handleSaveGraphAs = useCallback(() => {
     const timestamp = new Date().toISOString();
     const duplicatedGraph: GraphDocument = {
       ...saveAsDialog.graph,
-      name: trimmedName,
+      name: uniqueName,
       createdAt: saveAsDialog.graph.createdAt ?? timestamp,
       updatedAt: timestamp,
       environment,
@@ -3619,7 +3657,7 @@ const handleSaveGraphAs = useCallback(() => {
     setGraphDocument(newGraphId, duplicatedGraph);
     setManifestEntry({
       graphId: newGraphId,
-      name: trimmedName,
+      name: uniqueName,
       path,
       groupName: location.groupName,
       createdAt: duplicatedGraph.createdAt,
@@ -5250,7 +5288,7 @@ const handleSaveGraphAs = useCallback(() => {
       )}
       {giaSaveDialog && (
         <div
-          className="app__modal-backdrop"
+          className="app__modal-backdrop app__modal-backdrop--above-gia"
           role="dialog"
           aria-modal="true"
           onClick={handleGiaSaveCancel}
