@@ -153,18 +153,30 @@ npm run dev
 
 **Hosted domains (miliastra.columbina.dev / beta.miliastra.columbina.dev)**
 
-1. Run the signaling server (`web/scripts/collabServer.mjs`) on a Node.js host that supports WebSocket connections. Setting env vars in Vercel only tells the frontend where to connect; it does not run the signaling server for you.
-2. Expose the signaling server to the internet and allow WebSocket traffic on that port. For HTTPS sites, use `wss://` via a reverse proxy if needed.
-3. Configure the web app build to point to that signaling server:
-   - `VITE_COLLAB_SIGNAL_URL=wss://your-signal-domain.example.com`
-   - Or `VITE_COLLAB_SIGNAL_HOST=your-signal-domain.example.com` + `VITE_COLLAB_SIGNAL_PORT=5174`
-4. Deploy the web app. The shared/public signaling server is intended only for `miliastra.columbina.dev` and `beta.miliastra.columbina.dev`; for any other domain, host your own signaling server.
+1. No extra setup is required for LAN collaboration. Click Share and choose `LAN - Open` or `LAN - Password`.
+2. These official domains connect to the public signaling server at `wss://signal.columbina.dev:51982`. Shared projects are only discoverable by devices on the same local network (same public IP/LAN segment).
+3. For `Anyone with the link`, enter a public signaling server (see below). The app will generate a `/join?server=...&roomId=...` link.
+
+**Public WSS server (CollabServer)**
+
+1. Host the public signaling server in `/root/CollabServer/` on any Node.js host that supports WebSocket connections.
+2. Run `npm install`, then `npm start`.
+3. Open the local admin UI (default `http://localhost:51982`) to configure API keys and the maximum room count.
+4. Expose the server as `wss://<host>:<port>` (reverse proxy / Cloudflared tunnel, etc.).
+5. In the editor, choose `Anyone with the link`, fill in server/port/API key, and share. The generated link looks like `https://miliastra.columbina.dev/join?server=signal.example.com:51982&roomId=...`.
 
 **Local dev / LAN (`npm run dev`)**
 
-1. Run `npm install` once, then `npm run dev`. This starts Vite with `--host` and the signaling server together.
-2. On each device, open `http://<your-lan-ip>:5173` (replace with the IP shown by Vite). The app will connect to the signaling server on `:5174` by default.
-3. Ensure the machine running the dev server allows inbound TCP on port `5174` for LAN devices (firewall/router), or set `VITE_COLLAB_SIGNAL_HOST`/`VITE_COLLAB_SIGNAL_PORT` to point at another reachable signaling server.
+1. Run `npm install` once, then `npm run dev`. This starts Vite with `--host` and the LAN signaling server together.
+2. On each device, open `http://<your-lan-ip>:5173` (replace with the IP shown by Vite).
+3. Ensure the machine running the dev server allows inbound TCP on port `5174` for LAN devices, or set `VITE_COLLAB_SIGNAL_HOST`/`VITE_COLLAB_SIGNAL_PORT` to point at another reachable signaling server.
+
+**Self-hosted domain**
+
+1. The official signaling server is whitelisted for `miliastra.columbina.dev` and `beta.miliastra.columbina.dev` only.
+2. For any other domain, host your own signaling server and point the web app to it:
+   - `VITE_COLLAB_SIGNAL_URL=wss://your-signal-domain.example.com`
+   - Or `VITE_COLLAB_SIGNAL_HOST=your-signal-domain.example.com` + `VITE_COLLAB_SIGNAL_PORT=5174`
 
 ### Other UIs
 

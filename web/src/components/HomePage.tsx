@@ -18,6 +18,21 @@ export type NetworkProject = {
   ownerNickname?: string;
 };
 
+export type PublicServerEntry = {
+  id: string;
+  name: string;
+  host: string;
+  port?: string;
+};
+
+export type PublicRoomEntry = {
+  roomId: string;
+  name: string;
+  requiresPassword: boolean;
+  permission: 'viewer' | 'editor';
+  appVersion?: string;
+};
+
 interface HomePageProps {
   projects: StoredProject[];
   duplicateNameCounts: Map<string, number>;
@@ -41,6 +56,14 @@ interface HomePageProps {
   onRefreshNetwork: () => void;
   onJoinNetworkProject: (project: NetworkProject, nickname: string, password?: string) => void;
   onSendJoinRequest: (project: NetworkProject, nickname: string) => boolean;
+  publicServers: PublicServerEntry[];
+  publicRooms: PublicRoomEntry[];
+  publicServerStatus: 'disconnected' | 'connecting' | 'connected';
+  defaultPublicPort: number;
+  onSavePublicServer: (server: PublicServerEntry, shouldConnect: boolean) => void;
+  onConnectPublicServer: (server: PublicServerEntry) => void;
+  onSearchPublicRooms: (server: PublicServerEntry, query: string) => void;
+  onRequestPublicJoin: (server: PublicServerEntry, room: PublicRoomEntry) => void;
 }
 
 const formatTimestamp = (iso?: string) => {
@@ -85,6 +108,14 @@ const HomePage = ({
   onRefreshNetwork,
   onJoinNetworkProject,
   onSendJoinRequest,
+  publicServers,
+  publicRooms,
+  publicServerStatus,
+  defaultPublicPort,
+  onSavePublicServer,
+  onConnectPublicServer,
+  onSearchPublicRooms,
+  onRequestPublicJoin,
 }: HomePageProps) => {
   const { t } = useI18n();
   const [isDragging, setIsDragging] = useState(false);
@@ -93,6 +124,15 @@ const HomePage = ({
   const [joinNickname, setJoinNickname] = useState(defaultNickname);
   const [joinPassword, setJoinPassword] = useState('');
   const [requestCooldown, setRequestCooldown] = useState(0);
+  const [isServerModalOpen, setIsServerModalOpen] = useState(false);
+  const [serverAlias, setServerAlias] = useState('');
+  const [serverHost, setServerHost] = useState('');
+  const [serverPort, setServerPort] = useState('');
+  const [editingServer, setEditingServer] = useState<PublicServerEntry | null>(null);
+  const [isBrowserOpen, setIsBrowserOpen] = useState(false);
+  const [browserServer, setBrowserServer] = useState<PublicServerEntry | null>(null);
+  const [publicRoomQuery, setPublicRoomQuery] = useState('');
+  const [publicRoomSearched, setPublicRoomSearched] = useState(false);
   const decodeInputRef = useRef<HTMLInputElement | null>(null);
   const convertInputRef = useRef<HTMLInputElement | null>(null);
   const dragCounterRef = useRef(0);
@@ -178,6 +218,59 @@ const HomePage = ({
 
   const hasHistory = sortedProjects.length > 0;
   const defaultProjectName = t('project.defaultName');
+  const defaultServerAlias = useMemo(() => {
+    const base = t('collab.publicServer.defaultName');
+    const existing = new Set(publicServers.map((server) => server.name));
+    if (!existing.has(base)) return base;
+    let index = 2;
+    let candidate = `${base}_${index}`;
+    while (existing.has(candidate)) {
+      index += 1;
+      candidate = `${base}_${index}`;
+    }
+    return candidate;
+  }, [publicServers, t]);
+
+  const createServerId = () => {
+    if (typeof crypto !== 'undefined' && 'randomUUID' in crypto) {
+      return crypto.randomUUID();
+    }
+    return `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+  };
+
+  const openServerModal = (server?: PublicServerEntry) => {
+    setEditingServer(server ?? null);
+    setServerAlias(server?.name ?? '');
+    setServerHost(server?.host ?? '');
+    setServerPort(server?.port ?? '');
+    setIsServerModalOpen(true);
+  };
+
+  const openBrowser = (server: PublicServerEntry) => {
+    setBrowserServer(server);
+    setIsBrowserOpen(true);
+    setPublicRoomQuery('');
+    setPublicRoomSearched(false);
+    onConnectPublicServer(server);
+  };
+
+  const handleSaveServer = (shouldConnect: boolean) => {
+    const alias = serverAlias.trim() || defaultServerAlias;
+    const host = serverHost.trim();
+    if (!host) return;
+    const port = serverPort.trim();
+    const entry: PublicServerEntry = {
+      id: editingServer?.id ?? createServerId(),
+      name: alias,
+      host,
+      port,
+    };
+    onSavePublicServer(entry, shouldConnect);
+    setIsServerModalOpen(false);
+    if (shouldConnect) {
+      openBrowser(entry);
+    }
+  };
 
   return (
     <div className="home">
@@ -325,6 +418,51 @@ const HomePage = ({
             <div className="home__network-empty">{t('home.network.empty')}</div>
           )}
         </div>
+        <hr className="home__divider" />
+        <div className="home__servers-header">
+          <h2>{t('home.publicServers.title')}</h2>
+          <button
+            type="button"
+            className="home__servers-add"
+            onClick={() => openServerModal()}
+            aria-label={t('home.publicServers.add')}
+            title={t('home.publicServers.add')}
+          >
+            +
+          </button>
+        </div>
+        <div className="home__servers">
+          {publicServers.length ? (
+            <div className="home__servers-list">
+              {publicServers.map((server) => (
+                <div key={server.id} className="home__server-item">
+                  <button
+                    type="button"
+                    className="home__server-main"
+                    onClick={() => openBrowser(server)}
+                  >
+                    <div className="home__server-name">{server.name}</div>
+                    <div className="home__server-address">
+                      {server.host}
+                      {server.port ? `:${server.port}` : ''}
+                    </div>
+                  </button>
+                  <button
+                    type="button"
+                    className="home__server-config"
+                    onClick={() => openServerModal(server)}
+                    aria-label={t('home.publicServers.config')}
+                    title={t('home.publicServers.config')}
+                  >
+                    <img src={ICON_SETTING} alt="" aria-hidden="true" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="home__servers-empty">{t('home.publicServers.empty')}</div>
+          )}
+        </div>
       </div>
       <div className="home__links">
         <div className="home__links-glass" aria-hidden="true" />
@@ -430,9 +568,13 @@ const HomePage = ({
                     id="home-join-password"
                     type="password"
                     value={joinPassword}
-                    onChange={(event) => setJoinPassword(event.target.value)}
+                    onChange={(event) =>
+                      setJoinPassword(event.target.value.replace(/\D/g, '').slice(0, 6))
+                    }
                     placeholder={t('home.network.join.password.placeholder')}
                     autoComplete="off"
+                    inputMode="numeric"
+                    maxLength={6}
                   />
                   <button
                     type="button"
@@ -458,11 +600,14 @@ const HomePage = ({
                 onClick={() => {
                   if (!pendingJoin) return;
                   if (!joinNickname.trim()) return;
-                  if (pendingJoin.requiresPassword && !joinPassword.trim()) return;
+                  if (pendingJoin.requiresPassword && !/^\d{6}$/.test(joinPassword.trim())) return;
                   onJoinNetworkProject(pendingJoin, joinNickname, joinPassword);
                   setPendingJoin(null);
                 }}
-                disabled={!joinNickname.trim() || (pendingJoin.requiresPassword && !joinPassword.trim())}
+                disabled={
+                  !joinNickname.trim() ||
+                  (pendingJoin.requiresPassword && !/^\d{6}$/.test(joinPassword.trim()))
+                }
               >
                 {t('home.network.join.action')}
               </button>
@@ -473,6 +618,164 @@ const HomePage = ({
                 }}
               >
                 {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isServerModalOpen && (
+        <div
+          className="home__server-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsServerModalOpen(false)}
+        >
+          <div
+            className="home__server-modal"
+            role="document"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>
+              {editingServer ? t('home.publicServers.editTitle') : t('home.publicServers.addTitle')}
+            </h3>
+            <div className="home__server-field">
+              <label htmlFor="home-server-alias">{t('home.publicServers.alias.label')}</label>
+              <input
+                id="home-server-alias"
+                value={serverAlias}
+                onChange={(event) => setServerAlias(event.target.value)}
+                placeholder={defaultServerAlias}
+                autoComplete="off"
+              />
+            </div>
+            <div className="home__server-field">
+              <label htmlFor="home-server-host">{t('home.publicServers.server.label')}</label>
+              <input
+                id="home-server-host"
+                value={serverHost}
+                onChange={(event) => setServerHost(event.target.value)}
+                placeholder={t('home.publicServers.server.placeholder')}
+                autoComplete="off"
+              />
+            </div>
+            <div className="home__server-field">
+              <label htmlFor="home-server-port">{t('home.publicServers.port.label')}</label>
+              <input
+                id="home-server-port"
+                value={serverPort}
+                onChange={(event) =>
+                  setServerPort(event.target.value.replace(/\\D/g, '').slice(0, 5))
+                }
+                placeholder={t('home.publicServers.port.placeholder', { port: defaultPublicPort })}
+                inputMode="numeric"
+                autoComplete="off"
+              />
+            </div>
+            <div className="home__server-actions">
+              <button
+                type="button"
+                onClick={() => handleSaveServer(false)}
+                disabled={!serverHost.trim()}
+              >
+                {t('home.publicServers.connectWithoutSaving')}
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSaveServer(true)}
+                disabled={!serverHost.trim()}
+              >
+                {t('home.publicServers.saveAndConnect')}
+              </button>
+              <button type="button" onClick={() => setIsServerModalOpen(false)}>
+                {t('common.cancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      {isBrowserOpen && browserServer && (
+        <div
+          className="home__server-overlay"
+          role="dialog"
+          aria-modal="true"
+          onClick={() => setIsBrowserOpen(false)}
+        >
+          <div
+            className="home__server-modal home__server-modal--browser"
+            role="document"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <h3>{t('home.publicServers.browserTitle', { name: browserServer.name })}</h3>
+            <div className="home__server-field">
+              <label htmlFor="home-room-id">{t('home.publicServers.roomId.label')}</label>
+              <div className="home__server-search">
+                <input
+                  id="home-room-id"
+                  value={publicRoomQuery}
+                  onChange={(event) =>
+                    setPublicRoomQuery(event.target.value.replace(/\\D/g, '').slice(0, 16))
+                  }
+                  placeholder={t('home.publicServers.roomId.placeholder')}
+                  inputMode="numeric"
+                  autoComplete="off"
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!publicRoomQuery.trim()) return;
+                    onSearchPublicRooms(browserServer, publicRoomQuery.trim());
+                    setPublicRoomSearched(true);
+                  }}
+                  disabled={!publicRoomQuery.trim() || publicServerStatus !== 'connected'}
+                >
+                  {t('home.publicServers.search')}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (!publicRoomSearched) return;
+                    onSearchPublicRooms(browserServer, publicRoomQuery.trim());
+                  }}
+                  disabled={!publicRoomSearched || publicServerStatus !== 'connected'}
+                >
+                  {t('home.publicServers.refresh')}
+                </button>
+              </div>
+              {publicServerStatus === 'connecting' && (
+                <div className="home__server-hint">{t('home.publicServers.connecting')}</div>
+              )}
+            </div>
+            <div className="home__server-rooms">
+              {publicRooms.length ? (
+                <div className="home__server-room-list">
+                  {publicRooms.map((room) => {
+                    const permissionLabel =
+                      room.permission === 'viewer'
+                        ? t('collab.share.permission.viewer')
+                        : t('collab.share.permission.editor');
+                    const hint = room.requiresPassword
+                      ? `${t('home.publicServers.room.requiresPassword')}, ${permissionLabel}`
+                      : permissionLabel;
+                    return (
+                      <button
+                        key={room.roomId}
+                        type="button"
+                        className="home__server-room"
+                        onClick={() => onRequestPublicJoin(browserServer, room)}
+                      >
+                        <div className="home__server-room-name">{room.name}</div>
+                        <div className="home__server-room-meta">{hint}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="home__servers-empty">{t('home.publicServers.rooms.empty')}</div>
+              )}
+            </div>
+            <div className="home__server-actions">
+              <button type="button" onClick={() => setIsBrowserOpen(false)}>
+                {t('common.close')}
               </button>
             </div>
           </div>

@@ -582,6 +582,9 @@ const SettingsPage = ({
                   {t('settings.about.project.p1.link')}
                 </a>
               </p>
+              <p>
+                {t('settings.about.project.p2.text')}
+              </p>
               <br></br>
               <p>
                 {t('settings.about.credits.title')}

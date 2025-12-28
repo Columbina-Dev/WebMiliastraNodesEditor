@@ -97,6 +97,9 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.join.projectMissing,未找到共享项目，请重试,找不到共享專案，請重試,Shared project not found. Please try again.,Shared project not found. Please try again.,共有プロジェクトが見つかりません。再試行してください。
 0,collab.nickname.fallback,用户,使用者,User,User,ユーザー
 0,collab.presence.more,以及{count}位编辑者,以及{count}位編輯者,And {count} more,And {count} more,ほか {count} 人
+0,collab.publicServer.connectFailed,连接服务器失败,連線伺服器失敗,Failed to connect to the server.,Failed to connect to the server.,サーバーに接続できませんでした
+0,collab.publicServer.defaultName,Collab Server,Collab Server,Collab Server,Collab Server,Collab Server
+0,collab.publicServer.roomCreateFailed,创建房间失败,建立房間失敗,Failed to create room.,Failed to create room.,ルームの作成に失敗しました
 0,collab.saving,保存中...,儲存中...,Saving...,Saving...,保存中...
 0,collab.share.button,确认,確認,Confirm,Confirm,確認
 0,collab.share.disabled,当前设置无法共享,目前設定無法共享,Sharing is disabled by current settings.,Sharing is disabled by current settings.,現在の設定では共有できません
@@ -104,6 +107,21 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.editorLimit.label,连接人数上限（含自己）,連線人數上限（含自己）,Connection limit (incl. host),Connection limit (incl. host),接続人数の上限（自分含む）
 0,collab.share.label,共享,共享,Share,Share,共有
 0,collab.share.limitReached,已达到连接上限,已達到連線上限,Connection limit reached,Connection limit reached,接続上限に達しました
+0,collab.share.link.apiKey.label,API Key,API Key,API Key,API Key,API キー
+0,collab.share.link.apiKey.placeholder,可选,選填,Optional,Optional,任意
+0,collab.share.link.includePassword,链接中包含密码,連結中包含密碼,Include password in link,Include password in link,リンクにパスワードを含める
+0,collab.share.link.password.label,访问密码（可选）,存取密碼（選填）,Access password (optional),Access password (optional),アクセスパスワード（任意）
+0,collab.share.link.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
+0,collab.share.link.port.label,端口,連接埠,Port,Port,ポート
+0,collab.share.link.port.placeholder,默认 {port},預設 {port},Default {port},Default {port},既定 {port}
+0,collab.share.link.portInvalid,端口格式不正确,連接埠格式不正確,Invalid port.,Invalid port.,ポートが無効です
+0,collab.share.link.server.label,服务器地址,伺服器位址,Server address,Server address,サーバーアドレス
+0,collab.share.link.server.placeholder,signal.example.com,signal.example.com,signal.example.com,signal.example.com,signal.example.com
+0,collab.share.link.serverRequired,请输入服务器地址,請輸入伺服器位址,Server address is required.,Server address is required.,サーバーアドレスを入力してください
+0,collab.share.link.title,共享链接,共享連結,Share link,Share link,共有リンク
+0,collab.share.link.visibility.label,可见性,可見性,Visibility,Visibility,公開範囲
+0,collab.share.link.visibility.private,私密（仅链接可见）,私密（僅連結可見）,Private (link only),Private (link only),非公開（リンクのみ）
+0,collab.share.link.visibility.public,公开（可在服务器中发现）,公開（可在伺服器中搜尋）,Public (discoverable on server),Public (discoverable on server),公開（サーバーで検索可能）
 0,collab.share.members.empty,暂无成员,暫無成員,No collaborators,No collaborators,参加者はいません
 0,collab.share.members.remove,移除权限,移除權限,Remove Access,Remove Access,権限を削除
 0,collab.share.members.title,已加入成员,参加者,Collaborators,Collaborators,参加者
@@ -111,8 +129,9 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.open.sharedAria,查看共享状态,查看共享狀態,View sharing status,View sharing status,共有状態を表示
 0,collab.share.owner.nickname,房主昵称,房主暱稱,Host nickname,Host nickname,ホストのニックネーム
 0,collab.share.password.change,更改密码,變更密碼,Change password,Change password,パスワードを変更
+0,collab.share.password.invalid,请输入 6 位数字密码,請輸入 6 位數字密碼,Enter a 6-digit password.,Enter a 6-digit password.,6 桁の数字パスワードを入力してください
 0,collab.share.password.label,设置密码,設定密碼,Set password,Set password,パスワードを設定
-0,collab.share.password.placeholder,输入共享密码,輸入共享密碼,Enter password,Enter password,パスワードを入力
+0,collab.share.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
 0,collab.share.permission.editor,编辑者,編輯者,Editor,Editor,編集者
 0,collab.share.permission.label,权限,權限,Access permission,Access permission,権限
 0,collab.share.permission.viewer,查看者,檢視者,Viewer,Viewer,閲覧者
@@ -124,7 +143,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.saveRequired,共享前请先保存项目,共享前請先儲存專案,Please save the project before sharing.,Please save the project before sharing.,共有する前にプロジェクトを保存してください
 0,collab.share.scope.label,共享范围,共享範圍,General access,General access,共有範囲
 0,collab.share.scope.link,拥有链接的任何人,擁有連結的任何人,Anyone with the link,Anyone with the link,リンクを知っている全員
-0,collab.share.scope.linkHint,暂不支持,暫不支援,Coming soon,Coming soon,近日対応
+0,collab.share.scope.linkHint,需要公共服务器,需要公用伺服器,Requires public server,Requires public server,公開サーバーが必要
 0,collab.share.scope.localOpen,局域网-开放,區域網路－開放,LAN - Open,LAN - Open,LAN（ローカル）- オープン
 0,collab.share.scope.localPassword,局域网-密码,區域網路－密碼,LAN - Password,LAN - Password,LAN（ローカル）- パスワード
 0,collab.share.scope.restricted,受限（不共享）,受限（不共享）,Restricted (Not sharing),Restricted (Not sharing),制限（共有しない）
@@ -358,7 +377,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,home.network.join.action,加入,加入,Join,Join,参加
 0,home.network.join.nickname,你的昵称,你的暱稱,Your nickname,Your nickname,ニックネーム
 0,home.network.join.password,共享密码,共有密碼,Password,Password,パスワード
-0,home.network.join.password.placeholder,输入密码,輸入密碼,Enter password,Enter password,パスワードを入力
+0,home.network.join.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
 0,home.network.join.request,免密发送请求,免密送出請求,Send request directly,Send request directly,パスワードなしでリクエスト送信
 0,home.network.join.requestCooldown,请稍候 {seconds}s,請稍候 {seconds}s,Wait {seconds}s,Wait {seconds}s,{seconds} s お待ちください
 0,home.network.join.title,加入「{name}」,加入「{name}」,Join「{name}」,Join「{name}」,「{name}」に参加
@@ -366,6 +385,32 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,home.network.refreshingToast,刷新中...,重新整理中...,Refreshing...,Refreshing...,更新中...
 0,home.network.reload,刷新,重新整理,Refresh,Refresh,更新
 0,home.network.title,局域网项目,區域網路專案,Local Network Projects,Local Network Projects,LAN プロジェクト
+0,home.publicServers.add,添加服务器,新增伺服器,Add server,Add server,サーバーを追加
+0,home.publicServers.addTitle,添加公共服务器,新增公用伺服器,Add public server,Add public server,公開サーバーを追加
+0,home.publicServers.alias.label,别名,別名,Alias,Alias,エイリアス
+0,home.publicServers.browserTitle,浏览「{name}」,瀏覽「{name}」,Browse「{name}」,Browse「{name}」,「{name}」を閲覧
+0,home.publicServers.config,服务器设置,伺服器設定,Server settings,Server settings,サーバー設定
+0,home.publicServers.connectWithoutSaving,连接（不保存）,連線（不儲存）,Connect without saving,Connect without saving,保存せず接続
+0,home.publicServers.connecting,连接中...,連線中...,Connecting...,Connecting...,接続中...
+0,home.publicServers.empty,暂无已保存服务器,尚無已儲存伺服器,No saved servers yet,No saved servers yet,保存済みサーバーはありません
+0,home.publicServers.editTitle,编辑公共服务器,編輯公用伺服器,Edit public server,Edit public server,公開サーバーを編集
+0,home.publicServers.join.action,加入,加入,Join,Join,参加
+0,home.publicServers.join.nickname,你的昵称,你的暱稱,Your nickname,Your nickname,ニックネーム
+0,home.publicServers.join.password,密码,密碼,Password,Password,パスワード
+0,home.publicServers.join.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
+0,home.publicServers.join.title,加入「{name}」,加入「{name}」,Join「{name}」,Join「{name}」,「{name}」に参加
+0,home.publicServers.port.label,端口,連接埠,Port,Port,ポート
+0,home.publicServers.port.placeholder,默认 {port},預設 {port},Default {port},Default {port},既定 {port}
+0,home.publicServers.refresh,刷新,重新整理,Refresh,Refresh,更新
+0,home.publicServers.room.requiresPassword,需要密码,需要密碼,Requires password,Requires password,パスワードが必要
+0,home.publicServers.roomId.label,房间 ID,房間 ID,Room ID,Room ID,ルーム ID
+0,home.publicServers.roomId.placeholder,输入 16 位房间 ID,輸入 16 位房間 ID,Enter 16-digit room ID,Enter 16-digit room ID,16 桁のルーム ID を入力
+0,home.publicServers.rooms.empty,未找到公共房间,找不到公開房間,No public rooms found,No public rooms found,公開ルームが見つかりません
+0,home.publicServers.saveAndConnect,保存并连接,儲存並連線,Save and connect,Save and connect,保存して接続
+0,home.publicServers.search,搜索,搜尋,Search,Search,検索
+0,home.publicServers.server.label,服务器地址,伺服器位址,Server address,Server address,サーバーアドレス
+0,home.publicServers.server.placeholder,signal.example.com,signal.example.com,signal.example.com,signal.example.com,signal.example.com
+0,home.publicServers.title,公共服务器,公用伺服器,Public Servers,Public Servers,公開サーバー
 0,home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,Genshin Impact - Miliastra Wonderland Node Graph Simulator,Genshin Impact - Miliastra Wonderland Node Graph Simulator,『原神・千星奇域』ノードグラフシミュレーター
 0,inspector.comments,注释,註解,Notes,Notes,注釈
 0,inspector.comments.empty,暂无注释,暫無註解,No notes,No notes,注釈はありません
@@ -486,6 +531,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,settings.about.project.p1.link,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor
 0,settings.about.project.p1.middle,协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：,以本協議發布（見頁面底部），程式碼託管於GitHub，歡迎各位使用者Star並參與貢獻：,"license, the source codes are available on GitHub. Feel free to star the repository and contribute:","license, the source codes are available on GitHub. Feel free to star the repository and contribute:",本プロジェクトは本ライセンスで公開され、ソースコードは GitHub で管理しています。Star や貢献を歓迎します：
 0,settings.about.project.p1.prefix,此项目基于,本專案基於,This project is released based on the,This project is released based on the,本プロジェクトは次のライセンスに基づいて公開されています：
+0,settings.about.project.p2.text,本地化状态：简中、繁中、美英、英英、日语文本已完成。简中与美英为人工编写；繁中与英英由 LLM AI 生成并经人工审查与改进；日语完全由 LLM AI 生成，尚未审查，正在寻求贡献者协助校对。,本地化狀態：簡中、繁中、美英、英英、日語文本已完成。簡中與美英為人工撰寫；繁中與英英由 LLM AI 生成並經人工審查與改進；日語完全由 LLM AI 生成，尚未審查，正尋求貢獻者協助校對。,Localization status: CHS, CHT, EN-US, EN-UK, and JPN text maps are complete. CHS and EN-US are written manually; CHT and EN-UK were generated by LLM AI and reviewed/improved; JPN is fully generated by LLM AI and not yet reviewed, and we are looking for contributors to help review it.,Localization status: CHS, CHT, EN-US, EN-UK, and JPN text maps are complete. CHS and EN-US are written manually; CHT and EN-UK were generated by LLM AI and reviewed/improved; JPN is fully generated by LLM AI and not yet reviewed, and we are looking for contributors to help review it.,ローカライズ状況：CHS、CHT、EN-US、EN-UK、JPN のテキストマップは完成しています。CHS と EN-US は手動作成、CHT と EN-UK は LLM AI 生成後にレビュー・改善済み、JPN は LLM AI による自動生成のみで未レビューのため、校正に協力いただける方を募集しています。
 0,settings.about.title,关于,關於,About,About,概要
 0,settings.backToEditor,返回节点图编辑器,返回節點圖編輯器,Return to Node Graph Editor,Return to Node Graph Editor,ノードグラフエディターに戻る
 0,settings.backToHome,返回主页,返回首頁,Return to Homepage,Return to Homepage,ホームに戻る

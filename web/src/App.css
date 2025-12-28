@@ -1072,6 +1072,34 @@ option {
   outline: 1px solid rgba(92, 186, 255, 0.55);
 }
 
+.collab-link {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.collab-link input {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  background: rgba(255, 255, 255, 0.04);
+  color: inherit;
+  padding: 8px 10px;
+  font-size: 13px;
+}
+
+.collab-checkbox {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.collab-checkbox input {
+  accent-color: #6aa7ff;
+}
+
 .collab-options {
   display: flex;
   flex-direction: column;
