@@ -5715,6 +5715,7 @@ displayNameEN: "Modify Inventory Item Quantity",
 
   // ───────────────────────────── 48-寻路阻挡 ─────────────────────────────
   // 执行节点/寻路阻挡
+  // 6.3 分类
   {
     // 6.3 新
     id: "action.pathBlocking.toggle",
@@ -5767,6 +5768,7 @@ displayNameEN: "Modify Inventory Item Quantity",
 
   // ───────────────────────────── 49-造物预设状态 ─────────────────────────────
   // 执行节点/造物预设状态
+  // 6.3 分类
   {
     // 6.3 新
     id: "action.complexConstruct.setPresetState",
@@ -7971,6 +7973,7 @@ displayNameEN: "Modify Inventory Item Quantity",
 
   // ───────────────────────────── 26-造物预设状态 ─────────────────────────────
   // 事件节点/造物预设状态
+  // 6.3 分类
   {
     // 6.3 新
     id: "event.complexConstructPresetStateChanged",
@@ -11602,6 +11605,7 @@ displayNameEN: "Modify Inventory Item Quantity",
   },
   // ───────────────────────────── 33-造物预设状态 ─────────────────────────────
   // 查询节点/造物预设状态
+  // 6.3 分类
   {
     // 6.3 新
     id: "query.presetState.complexValue",

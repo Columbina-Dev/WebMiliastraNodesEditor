@@ -104,9 +104,14 @@ const readTextMapCsv = async () => {
 
   const header = rows[0].map((cell) => sanitizeHeader(cell));
   const expected = ['key', ...LANGUAGE_KEYS];
-  if (header.length < expected.length || expected.some((key, index) => header[index] !== key)) {
+  const keyIndex = header.indexOf('key');
+  if (keyIndex < 0) {
+    fail(`Invalid CSV header. Missing "key" column. Got: ${header.join(',')}`);
+  }
+  const sliced = header.slice(keyIndex, keyIndex + expected.length);
+  if (sliced.length < expected.length || expected.some((key, index) => sliced[index] !== key)) {
     fail(
-      `Invalid CSV header. Expected: ${expected.join(',')}. Got: ${header.join(',')}`
+      `Invalid CSV header. Expected: ${expected.join(',')} after "key". Got: ${header.join(',')}`
     );
   }
 
@@ -114,7 +119,7 @@ const readTextMapCsv = async () => {
   const map = new Map();
   for (const row of rows.slice(1)) {
     if (!row.length) continue;
-    const key = (row[0] ?? '').trim();
+    const key = (row[keyIndex] ?? '').trim();
     if (!key || key.startsWith('#')) continue;
 
     if (map.has(key)) {
@@ -125,7 +130,7 @@ const readTextMapCsv = async () => {
     const entry = {};
     for (let index = 0; index < LANGUAGE_KEYS.length; index += 1) {
       const language = LANGUAGE_KEYS[index];
-      entry[language] = (row[index + 1] ?? '').replace(/\r/g, '');
+      entry[language] = (row[keyIndex + 1 + index] ?? '').replace(/\r/g, '');
     }
 
     if (LANGUAGE_KEYS.every((language) => !entry[language].trim())) {

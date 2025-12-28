@@ -1,659 +1,659 @@
-key,chs,cht,en-us,en-uk,jpn
-app.autoSave.recoveredToast,已从自动保存恢复,,Recovered from auto save,,
-app.dock.collapse,折叠操作栏,,Collapse action dock,,
-app.dock.commentMode,注释模式,,Notes Mode,,
-app.dock.executionInterval,执行时间间隔,,Execution Interval,,
-app.dock.expand,展开操作栏,,Expand action dock,,
-app.dock.zoomLevel,缩放比例,,Zoom scale,,
-app.exportGraphJson.action,导出为Json节点图,,Export as Json node graph,,
-app.exportGraphJson.title,导出为Json节点图,,Export as Json node graph,,
-app.exportProject.failedAlert,导出项目失败，请稍后再试。,,"Export as project failed, please try again later.",,
-app.giaConvert.download,下载GIA文件,,Download GIA file,,
-app.giaConvert.errorsTitle,转换错误,,Conversion errors,,
-app.giaConvert.invalidGraph,无效的节点图Json,,Invalid node graph Json,,
-app.giaConvert.invalidJson,无效的Json文件,,Invalid Json file,,
-app.giaConvert.modalTitle,节点图Json转GIA（实验）,,Convert Node Graph Json To GIA (Experimental),,
-app.giaConvert.precheckFailed,GIA转换预检查失败，请查看控制台。,,GIA conversion precheck failed. Check the console.,,
-app.giaConvert.uidInvalid,请输入9-10位UID,,Enter a 9-10 digit UID,,
-app.giaConvert.uidLabel,设定UID,,Set UID,,
-app.giaConvert.uidPlaceholder,输入UID（9~10位数字）,,Enter UID (9-10 digits),,
-app.giaConvert.uidRandom,生成随机UID,,Generate random UID,,
-app.giaConvert.warningsTitle,不支持或部分转换的项目,,Unsupported or partially converted items,,
-app.giaDecode.downloadGraphJson,下载节点图Json,,Download node graph JSON,,
-app.giaDecode.downloadPreviewJson,下载预览Json,,Download preview JSON,,
-app.giaDecode.failedTitle,解码失败,,Decode failed,,
-app.giaDecode.importErrorsTitle,未导入项,,Items not imported,,
-app.giaDecode.importUnavailable,此GIA文件无法转换为节点图Json。,,This GIA file cannot be converted into node graph JSON.,,
-app.giaDecode.importWarningsTitle,已忽略项,,Ignored items,,
-app.giaDecode.modalTitle,解码GIA文件,,Decode GIA file,,
-app.giaDecode.previewTooltip,预览Json为解码后的GIA节点图，仅供预览，无法被编辑器加载。,,"Preview Json refers to the decoded GIA node graph, and is for inspection only, cannot be loaded by this editor.",,
-app.giaDecode.saveGraph,保存此节点图到...,,Save this node graph to...,,
-app.giaDecode.unknownError,解码GIA文件失败解码过程中发生未知错误，请确认文件是否有效。,,"Unknown error occured while decoding GIA file, please confirm the validity of the file.",,
-app.giaExportExperimental.action,导出为GIA文件（实验）,,Export as GIA file (Experimental),,
-app.giaExportExperimental.failedHint,GIA导出失败：请查看控制台以获取更多信息。,,GIA export failed: Please inspect the console for more details.,,
-app.giaExportExperimental.failedTitle,GIA导出失败,,GIA export failed,,
-app.giaExportExperimental.title,GIA导出（实验）,,Export as GIA file (Experimental),,
-app.giaExportExperimental.uidRequiredTooltip,请输入9-10位UID后再导出,,Enter 9-10 digit UID before exporting,,
-app.giaExportExperimental.warningsIntro,GIA导出完成，但存在以下限制：,,"GIA export completed, but has the following limitations:",,
-app.giaImport.save.newFolderLabel,新建文件夹,,New folder,,
-app.giaImport.save.newFolderPlaceholder,输入新文件夹名称（可选）,,Enter new folder name (optional),,
-app.giaImport.save.newProjectOption,新建项目,,New project,,
-app.giaImport.save.projectLabel,目标项目,,Target project,,
-app.giaImport.save.projectMissing,未找到所选项目,,Selected project not found,,
-app.giaImport.save.successToast,已保存节点图到项目,,Node graph saved to project,,
-app.giaImport.save.title,保存节点图到...,,Save node graph to...,,
-app.gilExport.failedMessage,导出失败：{error},,Export failed: {error},,
-app.gilExport.pickTemplate,选择GIL模板存档,,Selecte GIL template save file,,
-app.gilExport.prompt.line1,请选择一个GIL模板存档保存当前节点图项目的数据。,,Please select a GIL template save to hold data of the current node graph project.,,
-app.gilExport.prompt.line2,注意：此操作会覆盖所选.gil模板存档中的所有节点图数据！,,Notice: This action will replace all original node graph data in the selected GIL template save!,,
-app.gilExport.title,导出为GIL存档,,Export as GIL save,,
-app.history.loadFailedAlert,读取历史项目失败，数据可能已损坏。,,"Failed to retrieve history projects, the data may be corrupted.",,
-app.importProject.confirmTitle,项目导入确认,,Project Import Confirmation,,
-app.importProject.continueQuestion,是否继续？,,Continue?,,
-app.importProject.failedAlert,导入项目失败，请确认文件是否为有效的节点项目压缩包。,,"Failed to import project, please confirm that you are uploading the correct Zip project for this app.",,
-app.importProject.successToast,项目导入成功,,Project Import Success,,
-app.importProject.versionWarning,导入的项目版本（{incomingVersion}）高于当前编辑器版本（{currentVersion}），继续导入可能导致数据丢失或出现未知问题。,,"The project you are attempting to import ({incomingVersion}) has higher version than current editor ({currentVersion}), continuing may cause data loss or unknown error.",,
-app.menu.file,文件,,File,,
-app.menu.file.editProjectInfo,编辑项目信息,,Edit Project Metadata,,
-app.menu.file.exportGil,导出为GIL存档,,Export As GIL Save,,
-app.menu.file.exportZip,导出为Zip项目,,Export As Zip Project,,
-app.menu.file.saveProject,保存项目,,Save Project,,
-app.menu.window,窗口,,Window,,
-app.menu.window.clientExplorer,客户端节点图资源管理器,,Server Node Graph Resource Explorer,,
-app.menu.window.goHome,返回主页,,Return To Homepage,,
-app.menu.window.serverExplorer,服务器节点图资源管理器,,Client Node Graph Resource Explorer,,
-app.menu.window.structManager,高级数据管理,,Advanced Data Management,,
-app.notFound.message,未找到页面：{path},,Page Not Found: {path},,
-app.projectInfo.nameLabel,项目名称,,Project Name,,
-app.projectInfo.namePlaceholder,输入项目名称,,Enter project name,,
-app.projectInfo.nameRequired,项目名称不能为空,,Project name cannot be empty,,
-app.projectInfo.title,编辑项目信息,,Edit Project Metadata,,
-app.projectInfo.updatedToast,已更新项目名称,,Updated Project Name,,
-app.save.savedToast,已保存到浏览器本地存储,,Successfully Saved To Browser Local Storage,,
-app.saveAs.error.categoryMissing,未找到可用的分类,,Unable to find available category,,
-app.saveAs.error.clientKindMismatch,不同类型的客户端节点图无法互相另存。,,Unable to save as across client and server node graphs.,,
-app.saveAs.error.createFolderFailed,新建文件夹失败，请稍后重试,,"Failed to create folder, please try again later",,
-app.saveAs.error.folderRequired,请选择或新建一个文件夹,,Please select or create a folder,,
-app.saveAs.error.nameRequired,请输入节点图名称,,Please enter name for node graph,,
-app.saveAs.error.topFolderMismatch,客户端与服务器的节点图不能互相另存,,Unable to save as across client and server node graphs,,
-app.saveAs.noCategories,未找到可用的分类,,Unable to find available category,,
-app.saveAs.pathPreview,保存路径：{path},,Saving to: {path},,
-app.saveAs.successToast,已另存为新的节点图,,Successfully saved as new node graph,,
-app.saveAs.title,另存为节点图,,Save As New Node Graph,,
-app.saveAs.topFolder.client,客户端节点图,,Client Node Graph,,
-app.saveAs.topFolder.server,服务器节点图,,Server Node Graph,,
-app.saveAs.topFolderLabel,顶层目录,,Top Path,,
-app.tabs.closeAria,关闭 {label},,Close {label},,
-collab.chat.button,交流,,Chat,,
-collab.chat.empty,暂无消息,,No messages yet,,
-collab.chat.goBottom,回到底部,,Jump to bottom,,
-collab.chat.label,交流,,Chat,,
-collab.chat.placeholder,输入消息...,,Type a message...,,
-collab.chat.send,发送,,Send,,
-collab.chat.title,交流,,Chat,,
-collab.disconnect.owner,已与房主断开连接,,Disconnected from host,,
-collab.join.denied,加入请求被拒绝,,Join request denied,,
-collab.join.password.invalid,密码不正确,,Incorrect password,,
-collab.join.projectMissing,未找到共享项目，请重试,,Shared project not found. Please try again.,,
-collab.nickname.fallback,用户,,User,,
-collab.presence.more,+ {count} 位编辑者,,And {count} more,,
-collab.saving,保存中...,,Saving...,,
-collab.share.button,确认,,Confirm,,
-collab.share.disabled,当前设置无法共享,,Sharing is disabled by current settings.,,
-collab.share.editorLimit.hint,包含自己，0 为不限制，1 为不共享，最多 6 人,,Includes host. 0 = unlimited; 1 = not sharing; max 6.,,
-collab.share.editorLimit.label,连接人数上限（含自己）,,Connection limit (incl. host),,
-collab.share.label,共享,,Share,,
-collab.share.limitReached,已达到连接上限,,Connection limit reached,,
-collab.share.members.empty,暂无成员,,No collaborators,,
-collab.share.members.remove,移除权限,,Remove Access,,
-collab.share.members.title,已加入成员,,Collaborators,,
-collab.share.open.aria,打开共享设置,,Open sharing settings,,
-collab.share.open.sharedAria,查看共享状态,,View sharing status,,
-collab.share.owner.nickname,房主昵称,,Host nickname,,
-collab.share.password.change,更改密码,,Change password,,
-collab.share.password.label,设置密码,,Set password,,
-collab.share.password.placeholder,输入共享密码,,Enter password,,
-collab.share.permission.editor,编辑者,,Editor,,
-collab.share.permission.label,权限,,Access permission,,
-collab.share.permission.viewer,查看者,,Viewer,,
-collab.share.readOnly,仅可查看共享状态,,Read-only sharing status,,
-collab.share.requests.approve,同意加入,,Approve request,,
-collab.share.requests.empty,暂无加入请求,,No join requests,,
-collab.share.requests.ignore,忽略请求,,Ignore request,,
-collab.share.requests.title,加入请求,,Join requests,,
-collab.share.saveRequired,共享前请先保存项目,,Please save the project before sharing.,,
-collab.share.scope.label,共享范围,,General access,,
-collab.share.scope.link,拥有链接的任何人,,Anyone with the link,,
-collab.share.scope.linkHint,暂不支持,,Coming soon,,
-collab.share.scope.localOpen,局域网-开放,,LAN - Open,,
-collab.share.scope.localPassword,局域网-密码,,LAN - Password,,
-collab.share.scope.restricted,受限（不共享）,,Restricted (Not sharing),,
-collab.share.section.access,常规访问,,General Access,,
-collab.share.section.owner,房主设置,,Host Settings,,
-collab.share.title,共享「{name}」,,Share {name},,
-collab.share.viewerNotice,当前为仅查看模式，无法编辑,,"You are in view-only mode, editing is disabled",,
-collab.signal.offline,协作服务未连接,,Signaling Server Offline,,
-collab.versionMismatch.message,当前版本（{currentVersion}）与房主版本（{incomingVersion}）不一致，无法协作,,"You cannot collaborate with different editor versions. (Current: {currentVersion}, Host: {incomingVersion})",,
-collab.versionMismatch.title,版本不一致,,Version mismatch,,
-common.back,返回,,Return,,
-common.backHome,返回主页,,Return To Homepage,,
-common.cancel,取消,,Cancel,,
-common.category,分类,,Category,,
-common.categoryNotFound,未找到对应的分类,,Category not found,,
-common.close,关闭,,Close,,
-common.comment,注释,,Notes,,
-common.configId,配置ID,,Configuration ID,,
-common.confirm,确认,,Confirm,,
-common.continue,继续,,Continue,,
-common.copied,已复制,,Copied,,
-common.copy,复制,,Copy,,
-common.cut,剪切,,Cut,,
-common.defaultGroupName,未分类页签,未分類頁籤,Uncategorized Tab,,
-common.delete,删除,,Delete,,
-common.downloadJson,下载Json,,Download Json,,
-common.effects,特效库,,Effects Database,,
-common.empty,空,,Null,,
-common.enterValue,输入值,,Enter value,,
-common.error,错误,,Error,,
-common.export,导出,,Export,,
-common.filter,筛选,,Filter,,
-common.folder,文件夹,,Folder,,
-common.forward,前进,,Forward,,
-common.github,GitHub,,GitHub,,
-common.goHome,返回主页,,Return To Homepage,,
-common.gotIt,知道了,,Understood,,
-common.graph,节点图,,Node Graph,,
-common.id,ID,,ID,,
-common.idWithValue,ID：{id},,ID: {id},,
-common.info,信息,,Information,,
-common.key,键,,Key,,
-common.keyType,键类型,,Key Type,,
-common.listValues,列表值,,List Values,,
-common.moreActions,更多操作,,More Actions,,
-common.moveDown,向下移动,,Move Up,,
-common.moveUp,向上移动,,Move Down,,
-common.name,名称,,Name,,
-common.no,否,否,No,,
-common.noGraphOpen,当前没有打开的节点图。,,No node graph is loaded,,
-common.noId,暂无 ID,,No ID,,
-common.noProjectOpen,当前没有打开的项目。,,No project is loaded,,
-common.ok,确定,,Okay,,
-common.open,打开,,Open,,
-common.paste,粘贴,,Paste,,
-common.redo,重做,,Redo,,
-common.rename,重命名,,Rename,,
-common.retry,重试,,Retry,,
-common.save,保存,,Save,,
-common.saveAs,另存为,,Save as,,
-common.seconds,秒,,s,,
-common.settings,设置,,Settings,,
-common.tutorial,教程,,Tutorial,,
-common.type,类型,,Type,,
-common.uiLanguage.chs,简体中文,简体中文,简体中文,简体中文,简体中文
-common.uiLanguage.cht,繁體中文,繁體中文,繁體中文,繁體中文,繁體中文
-common.uiLanguage.enUk,British English,British English,British English,British English,British English
-common.uiLanguage.enUs,American English,American English,American English,American English,American English
-common.uiLanguage.jpn,日本語,日本語,日本語,日本語,日本語
-common.undo,撤销,撤銷,Undo,,
-common.uninitialized,未初始化,,Uninitialized,,
-common.unset,未设置,,Unset,,
-common.value,值,,Value,,
-common.valueType,值类型,,Value type,,
-common.yes,是,是,Yes,,
-effects.categories.aria,特效分类,,Effects Category,,
-effects.category.limited,限时特效,,Timed Effects,,
-effects.category.loop,循环特效,,Looping Effects,,
-effects.empty,未找到匹配的特效,,No effects found,,
-effects.error.loadFailed,特效资源加载失败，请稍后重试。,,"Failed to load effect resources, please try again later.",,
-effects.loading,正在加载特效...,,Loading effects...,,
-effects.scale.label,缩放,,Scale,,
-effects.search.aria,搜索特效,,Search Effects,,
-effects.search.badge,搜索结果：“{query}” · 共 {count} 项,,"Search Result: ""{query}"" ({count} found)",,
-effects.search.placeholder,搜索特效名称或配置 ID...,,Enter effect name or configuration ID...,,
-effects.stats.all,限时特效 · {limited} 个 | 循环特效 · {loop} 个,,{limited} Timed Effects | {loop} Looping Effects,,
-effects.stats.filtered,当前显示 {count} 个特效,,Currently displaying {count} effect(s),,
-effects.title,千星沙箱特效预览,,Miliastra Sandbox Effects Preview,,
-effects.toast.copied,已复制：,,Copied:,,
-effects.toast.copyFailed,复制失败，请手动复制,,"Failed to copy, please try again manually",,
-effects.watermark.aria,作者水印,,Creator's watermark,,
-effects.watermark.text,特效预览 by BiliBili Ayaya小王,,Effects preview by BiliBili Ayaya小王,,
-gia.decode.headerFooterMismatch,GIA文件头或尾标签校验失败,,Failed to verify GIA file header or footer,,
-gia.decode.invalidLength,GIA文件长度不合法,,Invalid GIA file length,,
-gia.decode.protoSizeMismatch,GIA文件protobuf长度不匹配,,GIA protobuf length mismatch,,
-gia.decode.sizeMismatch,GIA文件长度校验失败,,Failed to verify GIA file length,,
-gia.decode.unknownFileType,未知的GIA文件类型,,Unknown GIA file type,,
-gia.decode.unsupportedVersion,暂不支持该版本的GIA文件,,GIA file version unsupported,,
-gia.export.commentNodeMissing,GIA：注释指向的节点不存在，已忽略。,,"GIA: A node where a note is pointing to does not exist, thus ignored.",,
-gia.export.dataOutIndexMissing,GIA：无法定位 {nodeType}.{portId} 的 data-out 序号。,,GIA: Unable to locate the data-out index of {nodeType}.{portID} .,,
-gia.export.edgeMissingNode,GIA：无法解析连线 {edgeId}（节点缺失）,,GIA: Unable to resolve connection {edgeID} (Missing node(s)),,
-gia.export.edgeUnknownPort,GIA：连线 {edgeId} 引用了未知端口。,,GIA: Connection {edgeID} involved an unknown port.,,
-gia.export.edgeUnsupported,GIA：暂不支持从 {sourceType}.{sourcePortId} 到 {targetType}.{targetPortId} 的连线。,,GIA: Currently unable to process connectiosn between {sourceType}.{sourcePortId} and {targetType}.{targetPortId} .,,
-gia.export.flowInIndexMissing,GIA：无法定位 {nodeType}.{portId} 的 flow-in 序号。,,GIA: Unable to locate the flow-in index of {nodeType}.{portID} .,,
-gia.export.multipleComments,GIA：节点“{type}”存在多个注释，仅导出第一个。,,"GIA: Node ""{type}"" contains multiple notes, only exporting the first.",,
-gia.export.noExportableNodes,导出为GIA文件：未找到可导出的节点。,,Export as GIA file: No exportable node found,,
-gia.export.nodeMissingOfficialId,GIA：节点“{type}”缺少官方 ID，无法导出。,,"GIA: Node ""{type}"" has not yet been mapped with reference of the official editor, unable to export.",,
-gia.export.nodeUnimplemented,GIA：当前环境暂未实现对节点“{type}”的导出。,,"GIA: The current environment does not support exporting the node ""{type}"".",,
-gia.export.nodeUnsupported,GIA：节点“{type}”暂不支持导出，将被忽略。,,"GIA: Currently do not support exporting the node ""{type}"", skipped.",,
-gia.export.unboundCommentPlacedAtOrigin,"GIA：存在未绑定节点且缺少坐标的注释，已放置在 (0,0)。",,"GIA: Note(s) is/are not bound to a node and does/do not have coordinate(s) detected, placing at (0,0).",,
-gia.import.edgeMissingNode,GIA：连线包含缺失的节点，已跳过。,,"GIA: Connection involves missing node(s), skipped.",,
-gia.import.graphValuesSkipped,GIA：暂不支持图变量，已跳过。,,"GIA: Graph variables are not supported yet, skipped.",,
-gia.import.noGraph,GIA：未找到可导入的节点图。,,GIA: No importable node graph found.,,
-gia.import.nodeIndexInvalid,GIA：节点索引无效，已跳过。,,"GIA: Invalid node index, skipped.",,
-gia.import.nodeMissingId,GIA：节点缺少官方ID，已跳过。,,"GIA: Node is missing official ID, skipped.",,
-gia.import.nodeMissingMapping,GIA：官方ID {nodeId} 未映射，已跳过。,,"GIA: Official node ID {nodeId} is not mapped, skipped.",,
-gia.import.pinUnsupported,GIA：不支持的引脚类型 {kind}，已跳过。,,"GIA: Unsupported pin kind {kind}, skipped.",,
-gia.import.portIndexMissing,"GIA：无法解析端口索引（{nodeId}, {index}），已跳过。",,"GIA: Unable to resolve port index ({nodeId}, {index}), skipped.",,
-gia.import.unknownGraphType,GIA：未知图类型 {type}，可能无法导入。,,"GIA: Unknown graph type {type}, may not be importable.",,
-gia.import.valueUnsupported,GIA：不支持 {nodeId}.{portId} 的输入值。,,"GIA: Input value unsupported for {nodeId}.{portId}.",,
-gil.export.lengthMismatch,模板GIL存档的长度信息异常，请重新从原神导出。,,"Abnormal file size for template GIL save, please re-export it from Genshin Impact.",,
-gil.export.notImplemented,GIL导出映射尚未完成（节点图格式仍在反推），请暂时使用`导出为Zip项目`。,,GIL export mapping is not yet complete (Node graph protocol is still being reverse-engineered). Please use `Export As Zip Project` for now.,,
-gil.export.templateCorrupted,模板GIL存档疑似已损坏，请重新从原神导出。,,"Template GIL save might have corrupted, please re-export it from Genshin Impact.",,
-gil.export.unrecognizedHeader,无法识别的GIL文件头，请使用正式版原神导出GIL存档。,,"Unable to identify the GIL header, please use the latest version of Genshin Impact to export GIL save.",,
-graph.defaultName,新建节点图,,New Node Graph,,
-graph.nameLabel,节点图名称,,Node Graph Name,,
-graph.namePlaceholder,新建节点图,,New Node Graph,,
-graphCanvas.branchParamLabel,判断参数,,(test)Official_branch.parameter.verification,,
-graphCanvas.deleteEdge,删除连线,,Delete Connection,,
-graphCanvas.disconnectNodes,断开节点连线,,Disconnect Node Connection(s),,
-graphCanvas.flowOutAdd,添加分支,,Add Branch,,
-graphCanvas.flowOutDelete,删除分支,,Delete Branch,,
-graphCanvas.flowOutInsertAbove,向上插入,,Insert Upwards,,
-graphCanvas.flowOutInsertBelow,向下插入,,Insert Downwards,,
-graphCanvas.nodeCategory.achievement,成就,,Achievements,,
-graphCanvas.nodeCategory.audio,音效,,Sound Effects,,
-graphCanvas.nodeCategory.camera,镜头,,Camera,,
-graphCanvas.nodeCategory.camp,阵营相关,,Faction Related,,
-graphCanvas.nodeCategory.cardSelector,卡牌选择器,,Deck Selector,,
-graphCanvas.nodeCategory.characterDisturbance,角色扰动装置,,Character Disruptor Device,,
-graphCanvas.nodeCategory.characterSkill,角色技能,,Character Skills,,
-graphCanvas.nodeCategory.chatChannel,聊天频道,,Chat Channel,,
-graphCanvas.nodeCategory.collision,碰撞,,Collision,,
-graphCanvas.nodeCategory.collisionSource,碰撞触发源,,Collision Trigger Source,,
-graphCanvas.nodeCategory.collisionTrigger,碰撞触发器,,Collision Triggers,,
-graphCanvas.nodeCategory.combat,战斗,,Combat,,
-graphCanvas.nodeCategory.common,通用,,Common Nodes,,
-graphCanvas.nodeCategory.construct,造物,,Creations,,
-graphCanvas.nodeCategory.constructPatrol,造物巡逻,,Creation Patrol,,
-graphCanvas.nodeCategory.constructPresetState,造物预设状态,,Construct Preset State,,
-graphCanvas.nodeCategory.customAggro,自定义仇恨,,Custom Aggro,,
-graphCanvas.nodeCategory.customVariable,自定义变量,,Custom Variables,,
-graphCanvas.nodeCategory.dict,字典,,Dictionary,,
-graphCanvas.nodeCategory.effects,特效,,Special Effects,,
-graphCanvas.nodeCategory.entity,实体相关,,Entity Related,,
-graphCanvas.nodeCategory.entityPlacementGroup,实体布设组,,Entity Deployment Group,,
-graphCanvas.nodeCategory.equipment,装备,,Equipment,,
-graphCanvas.nodeCategory.event,事件节点,,Event Nodes,,
-graphCanvas.nodeCategory.execution,执行节点,,Execution Nodes,,
-graphCanvas.nodeCategory.flow,流程控制节点,,Flow Control Nodes,,
-graphCanvas.nodeCategory.followMover,跟随运动器,,Follow Motion Device,,
-graphCanvas.nodeCategory.globalTimer,全局计时器,,Global Timer,,
-graphCanvas.nodeCategory.hiddenClientBuiltin,<隐藏>客户端节点自带,,<Hidden>Client_Auto,,
-graphCanvas.nodeCategory.hitDetection,命中判定,,Hit Detection,,
-graphCanvas.nodeCategory.item,道具,,Items,,
-graphCanvas.nodeCategory.itemBag,道具与背包,,Items and Inventory,,
-graphCanvas.nodeCategory.leaderboard,排行榜,,Leaderboard,,
-graphCanvas.nodeCategory.level,关卡相关,,Stage Related,,
-graphCanvas.nodeCategory.levelSettlement,关卡结算,,Stage Settlement,,
-graphCanvas.nodeCategory.lightComponent,光源组件,,Light Source Components,,
-graphCanvas.nodeCategory.list,列表,,Lists,,
-graphCanvas.nodeCategory.listRelated,列表相关,,List Operations,,
-graphCanvas.nodeCategory.logic,运算节点,,Operation Nodes,,
-graphCanvas.nodeCategory.math,数学,,Math,,
-graphCanvas.nodeCategory.minimapMarker,小地图标识组件,,Mini-Map Marker Component,,
-graphCanvas.nodeCategory.mover,运动器,,Motion Devices,,
-graphCanvas.nodeCategory.nameplate,铭牌,,Nameplate,,
-graphCanvas.nodeCategory.path,路径,,Global Path,,
-graphCanvas.nodeCategory.pathBlocking,寻路阻挡,,Path Blocking,,
-graphCanvas.nodeCategory.playerCharacter,玩家与角色相关,,Player and Character Related,,
-graphCanvas.nodeCategory.presetPoint,预设点,,Preset Points,,
-graphCanvas.nodeCategory.presetState,预设状态,,Preset Status,,
-graphCanvas.nodeCategory.profession,职业,,Class,,
-graphCanvas.nodeCategory.projectile,投射物,,Projectiles,,
-graphCanvas.nodeCategory.query,查询节点,,Query Nodes,,
-graphCanvas.nodeCategory.rank,段位,,Rank,,
-graphCanvas.nodeCategory.raycast,射线,,Ray,,
-graphCanvas.nodeCategory.scan,扫描,,Scanning,,
-graphCanvas.nodeCategory.scanTag,扫描标签,,Scan Tags,,
-graphCanvas.nodeCategory.shop,商店,,Shop,,
-graphCanvas.nodeCategory.signal,信号,,Signals,,
-graphCanvas.nodeCategory.skill,技能,,Skills,,
-graphCanvas.nodeCategory.struct,结构体,,Structures,,
-graphCanvas.nodeCategory.tab,选项卡,,Tabs,,
-graphCanvas.nodeCategory.tag,标签,,Tags,,
-graphCanvas.nodeCategory.textBubble,文本气泡,,Text Bubbles,,
-graphCanvas.nodeCategory.timer,定时器,,Timer,,
-graphCanvas.nodeCategory.trigger,触发器,,Triggers,,
-graphCanvas.nodeCategory.uiWidgetGroup,界面控件组,,UI Control Groups,,
-graphCanvas.nodeCategory.unitState,单位状态,,Unit Status,,
-graphCanvas.nodeCategory.unitTag,单位标签,,Unit Tags,,
-graphCanvas.nodeCategory.wonderlandGift,奇域礼盒相关,,Wonderland Gift Boxes,,
-graphCanvas.nodeLibrary.filter.source,筛选 · 可连接从「{label}」输出的节点,,Filtering nodes which can be connected from「{label}」,,
-graphCanvas.nodeLibrary.filter.target,筛选 · 可输入到「{label}」的节点,,Filtering nodes which can input to「{label}」,,
-graphCanvas.watermark.client,客户端节点图编辑,,Edit Client Node Graph,,
-graphCanvas.watermark.server,服务器节点图编辑,,Edit Server Node Graph,,
-graphComments.action.delete,删除注释,,Delete Note,,
-graphComments.action.edit,编辑注释,,Edit Note,,
-graphComments.action.finishEdit,完成编辑,,Finish Editing,,
-graphComments.action.pin,固定注释,,Pin Note,,
-graphComments.action.unpin,取消固定,,Unpin Note,,
-graphComments.empty,暂无内容,,No content,,
-graphComments.placeholder,输入注释...,,Enter note...,,
-graphComments.view,查看注释,,View Note,,
-home.actions.convertGia,节点图Json转GIA文件,,Convert Json To GIA (Experimental),,
-home.actions.convertGia.loading,转换中...,,Converting...,,
-home.actions.create,新建项目,,New Project,,
-home.actions.decodeGia,解码GIA文件,,Decode GIA File,,
-home.actions.decodeGia.loading,解码中…,,Decoding...,,
-home.actions.importZip,导入Zip项目,,Import Zip Project,,
-home.deleteDialog.message.nameWrap,「{name}」,「{name}」,「{name}」,,「{name}」
-home.deleteDialog.message.prefix,确定要删除项目,,Confirm to delete project,,
-home.deleteDialog.message.suffix,吗？此操作无法撤销。,,? This action cannot be undone.,,
-home.deleteDialog.title,确认删除,,Confirm Deletion,,
-home.dropzone,拖放项目Zip到此处导入,,Drag & drop Zip here to import,,
-home.history.deleteAria,删除 {name},,Delete {name},,
-home.history.empty,暂无历史项目,,No Saved Project Yet,,
-home.history.exportAll,导出所有,,Export All,,
-home.history.title,历史项目,,Saved Projects,,
-home.network.empty,暂无共享项目,,No shared projects found,,
-home.network.join.action,加入,,Join,,
-home.network.join.nickname,你的昵称,,Your nickname,,
-home.network.join.password,共享密码,,Password,,
-home.network.join.password.placeholder,输入密码,,Enter password,,
-home.network.join.request,免密发送请求,,Send request directly,,
-home.network.join.requestCooldown,请稍候 {seconds}s,,Wait {seconds}s,,
-home.network.join.title,加入「{name}」,,Join {name},,
-home.network.refreshedToast,刷新完成,,Refreshed,,
-home.network.refreshingToast,刷新中...,,Refreshing...,,
-home.network.reload,刷新,,Refresh,,
-home.network.title,局域网项目,,Local Network Projects,,
-home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,Genshin Impact - Miliastra Wonderland Node Graph Simulator,,
-inspector.comments,注释,,Notes,,
-inspector.comments.empty,暂无注释,,No note,,
-inspector.comments.placeholder,（空注释）,,(Empty note),,
-inspector.connections,连接,,Connection,,
-inspector.connections.inputs,输入,,Input,,
-inspector.connections.inputs.empty,无输入连接,,No input connection,,
-inspector.connections.outputs,输出,,Output,,
-inspector.connections.outputs.empty,无输出连接,,No output connection,,
-inspector.dataInputDefaults,数据输入默认值,,Default data input,,
-inspector.dataInputDefaults.empty,该节点没有可配置的数据输入,,This node does not have any input port,,
-inspector.definition,定义,,Definition,,
-inspector.deleteNode,删除节点,,Delete Node,,
-inspector.instanceName,节点实例名称,,Node Title Name,,
-inspector.instanceName.hint,留空则继承定义名称,,Leave empty to use pre-defined title,,
-inspector.placeholder.selectNode,选择画布中的节点查看详细信息,,Select a node in the canvas to view its detailed information,,
-inspector.title,节点详情,,Node Information,,
-nodeLibrary.collapse,收起节点库,,Collapse Node Library,,
-nodeLibrary.expand,展开节点库,,Expand Node Library,,
-nodeLibrary.search.empty,未找到匹配的节点,,No matched node found,,
-nodeLibrary.search.placeholder,搜索节点或分类...,,Search node or category...,,
-nodeLibrary.title,节点库,,Node Library,,
-project.category.booleanFilter,布尔过滤器节点图,,Boolean Filter Node Graph,,
-project.category.creationSkill,造物技能节点图,,Creation Skill Node Graph,,
-project.category.creationState,造物状态节点图,,Creation Status Node Graph,,
-project.category.creationStateDecision,造物状态决策节点图,,Creation Status Decision Node Graph,,
-project.category.entity,实体节点图,,Entity Node Graph,,
-project.category.integerFilter,整数过滤器节点图,,Integer Filter Node Graph,,
-project.category.item,道具节点图,,Item Node Graph,,
-project.category.profession,职业节点图,,Class Node Graph,,
-project.category.roleSkill,角色技能节点图,,Character Skill Node Graph,,
-project.category.skill,技能节点图,,Skull Node Graph,,
-project.category.stats,状态节点图,,Status Node Graph,,
-project.defaultName,未命名项目,,Untitled Project,,
-project.path.invalid,无效的路径：,,Invalid path:,,
-project.structPath.invalid,无效的结构体路径：,,Invalid path for structure:,,
-projectIO.warning.exportGraphMissingJson,节点图「{graphID}」缺少Json数据，未导出。,,"Node graph「{graphID}」is lacking of Json data, not exported.",,
-projectIO.warning.exportStructMissingJson,结构体「{structID}」缺少Json数据，未导出。,,"Structure「{graphID}」is lacking of Json data, not exported.",,
-projectIO.warning.graphMissingJson,节点图「{graphID}」缺少对应的Json数据，已跳过。,,"Corresponding Json data for node graph「{graphID}」is not found, skipped.",,
-projectIO.warning.manifestGraphFileMissing,manifest.json 中的节点图「{graphID}」在压缩包中找不到对应的Json文件，已跳过。,,"Corresponding Json file for node graph「{graphID}」based on manifest.json is not found, skipped.",,
-projectIO.warning.manifestMissing,压缩包缺少 manifest.json，将尝试自动构建。,,"manifest.json not found in the Zip project, attempting to reconstruct...",,
-projectIO.warning.manifestMissingGraphId,manifest.json 中存在缺少 graphId 的记录，已自动分配新的随机 graphId。,,"manifest.json contained a record without graphId, new random graphId has been assigned.",,
-projectIO.warning.manifestMissingStructId,manifest.json 中存在缺少 structId 的结构体记录，已自动分配新的随机 structId。,,"manifest.json contained a structure without structId, a new random structId has been assigned.",,
-projectIO.warning.manifestReadFailed,读取 manifest.json 失败：{error},,Failed to read manifest.json: {error},,
-projectIO.warning.manifestStructFileMissing,manifest.json 中的结构体「{structID}」在压缩包中找不到对应Json文件，已跳过。,,"Corresponding Json file for structure「{structID}」based on manifest.json is not found, skipped.",,
-projectIO.warning.parseFailed,解析「{path}」时出错：{error},,Failed to process「{path}」: {error},,
-projectIO.warning.structMissingJson,结构体「{structID}」缺少对应Json数据，已跳过。,,"Corresponding Json data for structure「{structID}」is not found, skipped.",,
-projectIO.warning.unknownFilePathMoved,文件路径「{path}」无法识别，已自动放入「{target}」,,"Unable to identify file path「{path}」, automatically moved to「{target}」",,
-resourceExplorer.context.copyGraphId,复制节点图ID,,Copy node graph ID,,
-resourceExplorer.context.importGia,实验：导入节点图GIA文件,,Experimental: Import Node Graph GIA File,,
-resourceExplorer.context.importJson,导入Json节点图,,Import Json node graph,,
-resourceExplorer.context.newFolder,新建文件夹,,New Folder,,
-resourceExplorer.context.newGraph,新建节点图,,New Node Graph,,
-resourceExplorer.context.pasteFolder,粘贴文件夹,,Paste Folder,,
-resourceExplorer.context.pasteGraph,粘贴节点图,,Paste Node Graph,,
-resourceExplorer.copyGraphId.autoCopyFailed,无法自动复制，请手动复制：,,"Unable to copy, please do so manually:",,
-resourceExplorer.copyGraphId.manualCopy,请手动复制：,,Please copy manually:,,
-resourceExplorer.copyGraphId.successMessage,节点图ID已复制到剪贴板：,,Node graph ID has been copied to clipboard:,,
-resourceExplorer.copyGraphId.successTitle,节点图ID已复制,,Node graph ID has been copied,,
-resourceExplorer.copyGraphId.title,复制节点图ID,,Copy node graph ID,,
-resourceExplorer.defaultFolderName,新建文件夹,,New Folder,,
-resourceExplorer.deleteFolder.message,确定要删除文件夹「{name}」吗？此操作无法撤销。,,Confirm to delete folder「{name}」? This action cannot be undone.,,
-resourceExplorer.deleteFolder.title,确认删除,,Confirm Deletion,,
-resourceExplorer.deleteGraph.message,确定要删除节点图「{name}」吗？此操作无法撤销。,,Confirm to delete node graph「{name}」? This action cannot be undone.,,
-resourceExplorer.deleteGraph.title,确认删除,,Confirm Deletion,,
-resourceExplorer.error.copyGraph.contentNotFound,未找到节点图内容。,,Failed to fetch node graph content.,,
-resourceExplorer.error.copyGraph.crossType,无法跨类型复制节点图。,,Unable to copy node graph across categories.,,
-resourceExplorer.error.copyGraph.entryNotFound,未找到节点图记录。,,Node graph entry not found.,,
-resourceExplorer.error.copyGraph.targetCategoryNotFound,未找到目标分类。,,Target category not found.,,
-resourceExplorer.error.copyGraph.title,无法复制节点图,,Unable To Copy Node Graph,,
-resourceExplorer.error.createGraph.title,无法新建节点图,,Unable To Create New Node Graph,,
-resourceExplorer.error.exportFolder.empty,该文件夹下没有节点图。,,No node graph under this folder.,,
-resourceExplorer.error.exportFolder.notFound,未找到要导出的文件夹。,,Target folder not found.,,
-resourceExplorer.error.exportGraph.contentNotFound,未找到节点图内容。,,Failed to fetch node graph content.,,
-resourceExplorer.error.exportGraph.title,无法导出节点图,,Unable To Export Node Graph,,
-resourceExplorer.error.import.title,无法导入,,Unable To Import,,
-resourceExplorer.error.moveFolder.title,无法移动文件夹,,Unable To Move Folder,,
-resourceExplorer.error.paste.folderCrossExplorer,无法在不同类型的资源管理器之间粘贴文件夹。,,Unable to paste folder across different categories.,,
-resourceExplorer.error.paste.title,无法粘贴,,Unable To Paste,,
-resourceExplorer.error.pasteGraph.crossExplorer,无法在不同类型的资源管理器之间粘贴节点图。,,Unable to paste node graph across different categories.,,
-resourceExplorer.error.pasteGraph.title,无法粘贴节点图,,Unable To Paste Node Graph,,
-resourceExplorer.folder.count,{count} 项,,{count} files,,
-resourceExplorer.folders.empty,暂无文件夹,,No Folder,,
-resourceExplorer.graph.error,节点图存在错误,,Error in the node graph,,
-resourceExplorer.graph.rename.placeholder,输入节点图名称...,,Enter node graph name...,,
-resourceExplorer.graphs.empty,暂无节点图,,No Node Graph,,
-resourceExplorer.import.dropOverlay,导入Json/GIA节点图,,Import Json/GIA node graph,,
-resourceExplorer.import.giaWarnings.hint,以下GIA文件包含未导入的项目：,,The following GIA files have items that were not imported:,,
-resourceExplorer.import.giaWarnings.title,GIA导入警告,,GIA import warnings,,
-resourceExplorer.import.partialFailure.hint,以下文件导入失败：,,Failed to import the following files:,,
-resourceExplorer.import.partialFailure.title,部分节点图导入失败,,Failed To Import Some Node Graphs,,
-resourceExplorer.itemType.folder,文件夹,,Folder,,
-resourceExplorer.openGraph.errorHint,检测到以下问题，请导出Json并手动修复后重新导入：,,"Detected following issues, please export Json and fix them manually before importing:",,
-resourceExplorer.openGraph.errorTitle,无法打开节点图,,Unable To Open Node Graph,,
-resourceExplorer.search.placeholder,搜索当前路径...,,Search current path...,,
-resourceExplorer.sidebar.clientGraphs,客户端节点图,,Client Node Graphs,,
-resourceExplorer.sidebar.serverGraphs,服务器节点图,,Server Node Graphs,,
-resourceExplorer.validation.envMismatch.clientInServer,节点图标记为客户端，但当前位置为服务器节点图目录,,"Node graph is marked as client, but currently stored in server directory",,
-resourceExplorer.validation.envMismatch.serverInClient,节点图标记为服务器，但当前位置为客户端节点图目录,,"Node graph is marked as server, but currently stored in client directory",,
-resourceExplorer.validation.invalidNodeTypes,以下节点类型不属于当前节点库分类：{types},,The following node(s) does/do not belong to current node library class: {types},,
-settings.about.credits.hackermdch.desc,- 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件,,- Providing UgcUtil.dll to encode/decode GIL saves,,
-settings.about.credits.hackermdch.name,hackermdch,,hackermdch,,
-settings.about.credits.title,特别鸣谢（时间顺序）：,,Special Thanks (Chronological):,,
-settings.about.credits.wuYijun.desc,- 提供 gia.proto及其他工具 帮助编码/解码GIA文件,,- Providing gia.proto and related tools to encode/decode GIA files,,
-settings.about.credits.wuYijun.name,Wu-Yijun,,Wu-Yijun,,
-settings.about.disclaimer.p1.link,《原神》及《原神·千星奇域》使用条款,,"Genshin Impact and ""Genshin Impact - Miliastra Wonderland"" Terms of Service",,
-settings.about.disclaimer.p1.prefix,声明：该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。该项目90%以上代码均由AI生成。此项目仅供学习和交流使用，严禁用于商业用途。使用时请务必遵守,,"Declaration: This project is a fan-made creation and is not affiliated with miHoYo / HoYoverse. All referenced materials belong to their original copyright holders. Over 90% of the code in this project is generated by AI. This project is only intended to be used for learning, and should not be used for any commercial purpose. While using, you are expected to strictly follow the",,
-settings.about.disclaimer.p1.suffix,，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。,,". The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of ""Genshin Impact""",,
-settings.about.disclaimer.p2,使用此网页应用时即默认表示您已阅读并同意以上声明。,,It is expected that you have read through and agree with the above declaration when using this web application.,,
-settings.about.license.appName,"《原神·千星奇域》节点图模拟器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","《原神·千星奇域》節點圖模擬器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）",Genshin Impact - Miliastra Wonderland Node Graph Simulator,Genshin Impact - Miliastra Wonderland Node Graph Simulator,
-settings.about.license.copyright,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev
-settings.about.license.p1,"This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
-settings.about.license.p2,"This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
-settings.about.license.p3.link,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/
-settings.about.license.p3.prefix,"You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see"
-settings.about.license.p3.suffix,.,.,.,.,.
-settings.about.project.p1.license,GPL V3,GPL V3,GPL V3,GPL V3,GPL V3
-settings.about.project.p1.link,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,,https://github.com/Columbina-Dev/WebMiliastraNodesEditor
-settings.about.project.p1.middle,协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：,,"license, the source codes are available on GitHub. Feel free to star the repository and contribute:",,
-settings.about.project.p1.prefix,此项目基于,,This project is released based on the,,
-settings.about.title,关于,,About,,
-settings.backToEditor,返回节点图编辑器,,Return to Node Graph Editor,,
-settings.backToHome,返回主页,,Return to Homepage,,
-settings.collab.avatar.clear,清除头像,,Clear avatar,,
-settings.collab.avatar.error,头像处理失败，请选择图片文件,,Failed to process image. Please choose an image file.,,
-settings.collab.avatar.hint,支持常见图片格式，超过 1MB 将自动压缩,,Common image formats; over 1MB will be compressed.,,
-settings.collab.avatar.label,个人头像,,Profile picture,,
-settings.collab.avatar.processing,处理中...,,Processing...,,
-settings.collab.avatar.upload,上传头像,,Upload,,
-settings.collab.nickname.fallback,用户,,User,,
-settings.collab.nickname.hint,最多12个字符，不能包含空格,,Up to 12 characters; no spaces.,,
-settings.collab.nickname.label,默认昵称,,Default nickname,,
-settings.collab.nickname.placeholder,请输入昵称,,Enter nickname,,
-settings.editorControls.enterInputOnNodeInsert.hint,在创建节点后立即聚焦节点库的搜索输入框（移动端推荐否）,,Immediately enters input mode to search node when inserting a node. (Recommend No for mobile users),,
-settings.editorControls.enterInputOnNodeInsert.label,插入节点时是否立刻进入输入模式,,Enter Input Mode When Inserting A Node,,
-settings.editorControls.multiSelect.box,框选选择,,Box Selection,,
-settings.editorControls.multiSelect.box.desc,节点需要完全包含在选框内才能选中（蓝色选框）,,Node(s) must entirely be inside the selection box to be selected (Blue box),,
-settings.editorControls.multiSelect.label,*多选模式,,*Multi Select Option,,
-settings.editorControls.multiSelect.leftBoxRightTouch,向左框选/向右接触,,Left for Box Selection / Right for Touch Selection,,
-settings.editorControls.multiSelect.leftBoxRightTouch.desc,向左拖动使用框选，向右拖动使用触碰。,,"Box Selection mode when moving towards the left, and Touch Selection mode when moving towards the right",,
-settings.editorControls.multiSelect.leftTouchRightBox,向左接触/向右框选,,Left for Touch Selection / Right for Box Selection,,
-settings.editorControls.multiSelect.leftTouchRightBox.desc,向左拖动使用触碰选择，向右拖动使用框选。,,"Touch Selection mode when moving towards the left, and Box Selection mode when moving towards the right",,
-settings.editorControls.multiSelect.touch,接触选择,,Touch Selection,,
-settings.editorControls.multiSelect.touch.desc,选框触碰到节点即可选中（绿色选框）,,Node(s) are selected as long as it touches the border of the selection box (Green box),,
-settings.editorControls.panButton.hint,选择平移画布时使用的鼠标按键,,Select the mouse key used to move the canvas,,
-settings.editorControls.panButton.label,*平移画布,,*Canvas Movement,,
-settings.editorControls.panButton.middle,中键,,Middle Key,,
-settings.editorControls.panButton.right,右键,,Right Key,,
-settings.editorControls.searchAllLanguages.hint,启用后，可用其它语言的节点名进行搜索，并在节点名旁以括号显示匹配语言的名称。,,"When activated, the search will match node titles in all languages, and display the matched language title in parentheses.",,
-settings.editorControls.searchAllLanguages.label,允许搜索所有语言的节点名,,Allow Searching Node Titles Across All Languages,,
-settings.editorControls.tip,* 标记的设置对触摸模式无效,,Settings with the * label are invalid to touch mode,,
-settings.editorControls.touchNote,当前检测为触摸环境，部分设置将不会生效,,"Detected as touch mode, some settings are invalid",,
-settings.editorControls.zoomControl.both,同时启用,,Activate Both,,
-settings.editorControls.zoomControl.hint,选择缩放时使用的方式,,Select the control for zoom scaling,,
-settings.editorControls.zoomControl.keys,Ctrl +/-,,Ctrl +/-,,
-settings.editorControls.zoomControl.label,*画布缩放,,*Canvas Zoom,,
-settings.editorControls.zoomControl.wheel,鼠标滚轮,,Mouse Scroll,,
-settings.giaExport.enable.hint,允许导出为GIA文件（实验）,,Allow exporting as GIA file (Experimental),,
-settings.giaExport.enable.label,实验：开启GIA导出功能,,Experimental: Allow GIA Exporting,,
-settings.giaExport.fixedUid.hint,UID需为9~10位数字,,UID must be 9-10 digits,,
-settings.giaExport.fixedUid.placeholder,请输入UID（9~10位数字）,,Enter UID (9-10 digits),,
-settings.giaExport.uidMode.fixed,固定UID,,Fixed UID,,
-settings.giaExport.uidMode.label,设定UID,,UID Setting,,
-settings.giaExport.uidMode.perExport,导出时随机生成,,Randomly Generate On Export,,
-settings.giaExport.uidMode.perSession,每次进入网页时随机生成,,Randomly Generate On Every Visit To The Site,,
-settings.gilExport.enable.hint,允许导出为GIL存档（实验）,,Allow exporting as GIL save (Experimental),,
-settings.gilExport.enable.label,实验：开启GIL导出功能,,Experimental: Allow GIL Exporting,,
-settings.global.pointerStyle.hint,切换网站使用的鼠标样式,,Switch the style of cursor in this website,,
-settings.global.pointerStyle.label,指针样式,,Cursor Style,,
-settings.global.pointerStyle.sandbox,千星沙箱,,Miliastra Sandbox,,
-settings.global.pointerStyle.system,系统,,System,,
-settings.global.primaryLanguage.hint,优先使用此语言显示界面文字。,,First choice of language for UI in this website,,
-settings.global.primaryLanguage.label,UI语言（首选） | Language (Main) | UI言語（主）,UI語言（首選） | Language (Main) | UI言語（主）,Interface Language (Primary) | UI語言（首選） | UI言語（主）,,UI言語（主） | Language (Main) | UI語言（首選）
-settings.global.secondaryLanguage.hint,当首选语言缺少某条文本时，使用此语言作为备用,,"When primary language is lacking of localization text for a certain key, this language will be the preferred fall back",,
-settings.global.secondaryLanguage.label,UI语言（备用）| Language (Backup) | UI言語（スペア）,UI語言（備用）| Language (Backup) | UI言語（スペア）,Interface Language (Backup) | UI語言（備用） | UI言語（スペア）,,UI言語（スペア）| Language (Backup) | UI語言（備用）
-settings.group.collaboration,共享设置,,Sharing Settings,,
-settings.group.editorControls,节点图编辑器控制,,Node Graph Editor Control,,
-settings.group.giaExport,GIA导出设置,,GIA Export Settings,,
-settings.group.gilExport,GIL导出设置,,GIL Export Settings,,
-settings.group.global,全局设置,,Global Settings,,
-settings.subtitle,所有设置数据包括头像仅保存在本地浏览器,,All settings data (incl. avatar image) are only stored locally in the browser,,
-settings.tabs.collaboration,个人资料设置,,Profile Settings,,
-settings.tabs.export,导出设置,,Export Settings,,
-settings.tabs.general,通用设置,,General Settings,,
-settings.title,设置,,Settings,,
-struct.defaultName,结构体,,Structure,,
-struct.field.defaultKey,变量,,Variable,,
-struct.kind.basic,基础结构体,,Basic Structure,,
-struct.kind.runtime,局内存档结构体,,In-Game Data Structure,,
-struct.paramType.army,阵营,,Faction List,,
-struct.paramType.armyList,阵营列表,,Faction List,,
-struct.paramType.bool,布尔值,,Boolean,,
-struct.paramType.boolList,布尔值列表,,Boolean List,,
-struct.paramType.configId,配置ID,,Configuration ID,,
-struct.paramType.configIdList,配置ID列表,,Configuration ID List,,
-struct.paramType.dict,字典,,Dictionary,,
-struct.paramType.dictList,字典列表,,Dictionary List,,
-struct.paramType.entity,实体,,Entity,,
-struct.paramType.entityId,元件ID,,Prefab ID,,
-struct.paramType.entityIdList,元件ID列表,,Prefab ID List,,
-struct.paramType.entityList,实体列表,,Entity List,,
-struct.paramType.float,浮点数,,Floating Point Numbers,,
-struct.paramType.floatList,浮点数列表,,Floating Point List,,
-struct.paramType.guid,GUID,,GUID,,
-struct.paramType.guidList,GUID列表,,GUID List,,
-struct.paramType.int32,整数,,Integer,,
-struct.paramType.int32List,整数列表,,Integer List,,
-struct.paramType.string,字符串,,String,,
-struct.paramType.stringList,字符串列表,,String List,,
-struct.paramType.struct,结构体,,Structure,,
-struct.paramType.structList,结构体列表,,Structure List,,
-struct.paramType.vector3,三维向量,,3D Vector,,
-struct.paramType.vector3List,三维向量列表,,3D Vector List,,
-struct.validation.dictKeyLabel,的第 {index} 个键,,,,
-struct.validation.dictListLabel,的第 {index} 个字典,,,,
-struct.validation.dictValueLabel,的第 {index} 个值,,,,
-struct.validation.invalidFormat,{label} 格式无效,,,,
-struct.validation.listItemLabel,的第 {index} 项,,,,
-struct.validation.mustBeBool,需为布尔值,,must be boolean value,,
-struct.validation.mustBeFloat,需为浮点数,,must be float value,,
-struct.validation.mustBeGuid,需为合法的 GUID,,must be valid GUID,,
-struct.validation.mustBeInteger,需为整数,,must be integer,,
-struct.validation.mustBePositiveInteger,需为正整数,,must be positive integer,,
-struct.validation.mustBeVector3,"需为三维向量 (x,y,z)",,"must be 3D vector (x,y,z)",,
-struct.validation.structListInvalidRef,的第 {index} 个引用无效,,,,
-struct.validation.variableIndex,第 {index} 个变量,,,,
-struct.validation.variableNamed,变量「{name}」,,Variable「{name}」,,
-structManager.actions.applyAll,全部应用,,Apply All,,
-structManager.actions.createStruct,创建结构体,,Create Structure,,
-structManager.copyConfigId,复制配置ID,,Copy Configuration ID,,
-structManager.deleteStruct.message,确认删除该结构体吗？,,Confirm to delete this structure?,,
-structManager.deleteStruct.title,删除结构体,,Delete Structure,,
-structManager.dict.addEntry,添加键值,,Add KV Set,,
-structManager.empty,请选择结构体以开始编辑,,Select a structure to start editing,,
-structManager.error.invalidStruct,当前结构体存在非法结构，无法保存。,,,,
-structManager.exportGroup.empty,该页签下没有结构体,,No structure under this tab,,
-structManager.exportGroup.errorTitle,导出失败,,Export Failed,,
-structManager.field.add,新增变量,,Add New Variables,,
-structManager.field.newKey,新增变量{index},,Add variable {index},,
-structManager.group.create,新建页签,,New Tab,,
-structManager.group.disband,解散页签,,Remove Tab,,
-structManager.group.exportZip,导出页签为Zip,,Export group as Zip,,
-structManager.group.importZip,导入Zip页签,,Import group using Zip,,
-structManager.groupDialog.createTitle,新建页签,,New Tab,,
-structManager.groupDialog.namePlaceholder,页签名称,,Tab name,,
-structManager.groupDialog.renameTitle,重命名页签,,Rename Tab,,
-structManager.import.errorTitle,导入失败,,Import Failed,,
-structManager.import.errorWithReason,导入失败：{error},,Import failed: {error},,
-structManager.import.variables.invalidFormat,变量文件格式不正确,,Invalid variables formats,,
-structManager.import.zip.noStructFiles,Zip中没有可用的结构体文件,,No valid structure file found in the Zip file,,
-structManager.import.zip.parseFailed,Zip文件解析失败,,Failed to parse Zip file,,
-structManager.import.zip.successMessage,成功导入 {count} 个结构体,,Successfully imported {count} structure(s),,
-structManager.import.zip.successTitle,导入完成,,Import Success,,
-structManager.search.placeholder,搜索结构体...,,Search structure...,,
-structManager.struct.changeGroup,更改页签,,Change Tab,,
-structManager.struct.create,新建结构体,,New Structure,,
-structManager.struct.import,导入结构体,,Import Structure,,
-structManager.validationDialog.title,变量校验失败,,Failed to validate variables,,
-structManager.variables.export,导出变量,,Export Variables,,
-structManager.variables.import,导入变量,,Import Variables,,
-tabs.explorer.client,客户端节点图资源管理器,,Server Node Graph Resource Explorer,,
-tabs.explorer.server,服务器节点图资源管理器,,Client Node Graph Resource Explorer,,
-tabs.structManager,高级数据管理器,,Advanced Data Management,,
-tutorial.catalog.aria,教程目录,,,,
-tutorial.catalog.collapseSection,折叠章节,,,,
-tutorial.catalog.count,共 {count} 篇条目,,,,
-tutorial.catalog.expandSection,展开章节,,,,
-tutorial.catalog.loadFailed,目录加载失败,,,,
-tutorial.catalog.loadFailedWithStatus,加载目录失败 ({status}),,,,
-tutorial.catalog.loading,目录加载中...,,,,
-tutorial.catalog.noMatch,未找到匹配的条目,,,,
-tutorial.catalog.title.course,课程目录,,,,
-tutorial.catalog.title.knowledge,知识库目录,,,,
-tutorial.content.loading,内容加载中...,,,,
-tutorial.content.notFound,未找到对应内容,,,,
-tutorial.download.button,下载 {name},,Download {name},,
-tutorial.download.fallbackName,资源文件,,Resource,,
-tutorial.download.prefix,tutorial,tutorial,tutorial,tutorial,tutorial
-tutorial.landing.desc.prefix,运行在本地的官方综合指南镜像版，灵感来源于,,,,
-tutorial.landing.enter,进入,,,,
-tutorial.landing.title,综合指南,,,,
-tutorial.logoAlt,原神·千星奇域,,,,
-tutorial.meta.updatedAt,最近更新：,,,,
-tutorial.placeholder.comingSoon,内容建设中，敬请期待。,,,,
-tutorial.placeholder.title,文档建设中,,,,
-tutorial.search.placeholder,搜索文档,,,,
-tutorial.slogan,悠游千星，共筑奇域,,,,
-tutorial.tabs.course,教程,,,,
-tutorial.tabs.course.desc,任务式教学课程,,,,
-tutorial.tabs.knowledge,说明书,,,,
-tutorial.tabs.knowledge.desc,专题文档索引,,,,
+official?,key,chs,cht,en-us,en-uk,jpn
+0,app.autoSave.recoveredToast,已从自动保存恢复,已從自動儲存還原,Recovered from auto-save,Recovered from auto-save,自動保存から復元しました
+0,app.dock.collapse,折叠操作栏,摺疊操作欄,Collapse Action Dock,Collapse Action Dock,操作ドックを折りたたむ
+0,app.dock.commentMode,注释模式,註解模式,Notes Mode,Notes Mode,注釈モード
+1,app.dock.executionInterval,执行时间间隔,執行時間間隔,Execution Interval,Execution Interval,実行時間間隔
+0,app.dock.expand,展开操作栏,展開操作欄,Expand Action Dock,Expand Action Dock,操作ドックを展開
+0,app.dock.zoomLevel,缩放比例,縮放比例,Zoom Level,Zoom Level,ズーム倍率
+0,app.exportGraphJson.action,导出为节点图Json,匯出為節點圖Json,Export as Node Graph Json,Export as Node Graph Json,ノードグラフ Json としてエクスポート
+0,app.exportGraphJson.title,导出为节点图Json,匯出為節點圖Json,Export as Node Graph Json,Export as Node Graph Json,ノードグラフ Json としてエクスポート
+0,app.exportProject.failedAlert,导出项目失败，请稍后再试。,匯出專案失敗，請稍後再試。,Failed to export project. Please try again later.,Failed to export project. Please try again later.,プロジェクトのエクスポートに失敗しました。しばらくしてから再試行してください。
+0,app.giaConvert.download,下载GIA文件,下載GIA檔案,Download GIA File,Download GIA File,GIA ファイルをダウンロード
+0,app.giaConvert.errorsTitle,转换错误,轉換錯誤,Conversion Errors,Conversion Errors,変換エラー
+0,app.giaConvert.invalidGraph,无效的节点图Json,無效的節點圖Json,Invalid node graph Json,Invalid node graph Json,無効なノードグラフ Json
+0,app.giaConvert.invalidJson,无效的Json文件,無效的Json檔案,Invalid Json File,Invalid Json File,無効な Json ファイル
+0,app.giaConvert.modalTitle,节点图Json转GIA（实验）,節點圖Json轉GIA（實驗）,Convert Node Graph Json To GIA (Experimental),Convert Node Graph Json To GIA (Experimental),ノードグラフ Json を GIA に変換（実験的機能）
+0,app.giaConvert.precheckFailed,GIA转换预检查失败，请查看控制台。,GIA轉換前檢查失敗，請查看主控台。,GIA conversion pre-check failed. Check the console.,GIA conversion pre-check failed. Check the console.,GIA 変換の事前チェックに失敗しました。コンソールを確認してください。
+0,app.giaConvert.uidInvalid,请输入9–10位UID,請輸入9–10位UID,Enter a 9–10 digit UID,Enter a 9–10 digit UID,9～10 桁の UID を入力してください
+0,app.giaConvert.uidLabel,设定UID,設定UID,Set UID,Set UID,UID を設定
+0,app.giaConvert.uidPlaceholder,输入UID（9～10位数字）,輸入UID（9～10位數字）,Enter UID (9–10 digits),Enter UID (9–10 digits),UID を入力（9～10 桁）
+0,app.giaConvert.uidRandom,生成随机UID,產生隨機UID,Generate Random UID,Generate Random UID,ランダム UID を生成
+0,app.giaConvert.warningsTitle,不支持或部分转换的项目,不支援或部分轉換的項目,Unsupported or Partially Converted Items,Unsupported or Partially Converted Items,未対応／一部のみ変換された項目
+0,app.giaDecode.downloadGraphJson,下载节点图Json,下載節點圖Json,Download Node Graph Json,Download Node Graph Json,ノードグラフ Json をダウンロード
+0,app.giaDecode.downloadPreviewJson,下载预览Json,下載預覽Json,Download Preview Json,Download Preview Json,プレビュー Json をダウンロード
+0,app.giaDecode.failedTitle,解码失败,解碼失敗,Decode Failed,Decode Failed,デコードに失敗しました
+0,app.giaDecode.importErrorsTitle,未导入项,未匯入項目,Not Imported Items,Not Imported Items,未インポート項目
+0,app.giaDecode.importUnavailable,此GIA文件无法转换为节点图Json。,此GIA檔案無法轉換為節點圖Json。,This GIA file cannot be converted to Node Graph Json.,This GIA file cannot be converted to Node Graph Json.,この GIA ファイルはノードグラフ Json に変換できません。
+0,app.giaDecode.importWarningsTitle,已忽略项,已忽略項目,Ignored Items,Ignored Items,無視した項目
+0,app.giaDecode.modalTitle,解码GIA文件,解碼GIA檔案,Decode GIA File,Decode GIA File,GIA ファイルをデコード
+0,app.giaDecode.previewTooltip,预览Json为解码后的GIA节点图，仅供预览，无法被编辑器加载。,預覽Json為解碼後的GIA節點圖，僅供查看，無法被本編輯器載入。,Preview Json is the decoded GIA node graph. It is for inspection only and cannot be loaded by this editor.,Preview Json is the decoded GIA node graph. It is for inspection only and cannot be loaded by this editor.,プレビュー Json はデコード後の GIA ノードグラフです。確認用であり、このエディターでは読み込めません。
+0,app.giaDecode.saveGraph,保存此节点图到...,將此節點圖儲存到...,Save this node graph to...,Save this node graph to...,このノードグラフを...に保存
+0,app.giaDecode.unknownError,解码GIA文件失败解码过程中发生未知错误，请确认文件是否有效。,解碼GIA檔案失敗。解碼過程中發生未知錯誤，請確認檔案是否有效。,An unknown error occurred while decoding the GIA file. Please confirm that the file is valid.,An unknown error occurred while decoding the GIA file. Please confirm that the file is valid.,GIA ファイルのデコード中に不明なエラーが発生しました。ファイルが有効か確認してください。
+0,app.giaExportExperimental.action,导出为GIA文件（实验）,匯出為GIA檔案（實驗）,Export as GIA File (Experimental),Export as GIA File (Experimental),GIA ファイルとしてエクスポート（実験的機能）
+0,app.giaExportExperimental.failedHint,GIA导出失败：请查看控制台以获取更多信息。,GIA匯出失敗：請查看主控台以取得更多資訊。,GIA export failed. Check the console for more details.,GIA export failed. Check the console for more details.,GIA のエクスポートに失敗しました。詳細はコンソールを確認してください。
+0,app.giaExportExperimental.failedTitle,GIA导出失败,GIA匯出失敗,GIA Export Failed,GIA Export Failed,GIA のエクスポートに失敗しました
+0,app.giaExportExperimental.title,GIA导出（实验）,GIA匯出（實驗）,GIA Export (Experimental),GIA Export (Experimental),GIA エクスポート（実験的機能）
+0,app.giaExportExperimental.uidRequiredTooltip,请输入9–10位UID后再导出,請輸入9–10位UID後再匯出。,Enter a 9–10 digit UID before exporting.,Enter a 9–10 digit UID before exporting.,エクスポート前に 9～10 桁の UID を入力してください。
+0,app.giaExportExperimental.warningsIntro,GIA导出完成，但存在以下限制：,GIA匯出完成，但有以下限制：,"GIA export completed, but has the following limitations:","GIA export completed, but has the following limitations:",GIA のエクスポートは完了しましたが、以下の制限があります：
+0,app.giaImport.save.newFolderLabel,新建文件夹,新增資料夾,New Folder,New Folder,新しいフォルダー
+0,app.giaImport.save.newFolderPlaceholder,输入新文件夹名称（可选）,輸入新資料夾名稱（選填）,Enter new folder name (optional),Enter new folder name (optional),新しいフォルダー名を入力（任意）
+0,app.giaImport.save.newProjectOption,新建项目,新增專案,New Project,New Project,新規プロジェクト
+0,app.giaImport.save.projectLabel,目标项目,目標專案,Target Project,Target Project,対象プロジェクト
+0,app.giaImport.save.projectMissing,未找到所选项目,找不到所選專案,Selected project not found,Selected project not found,選択したプロジェクトが見つかりません
+0,app.giaImport.save.successToast,已保存节点图到项目,已將節點圖儲存至專案,Node graph saved to project,Node graph saved to project,ノードグラフをプロジェクトに保存しました
+0,app.giaImport.save.title,保存节点图到...,將節點圖儲存至...,Save node graph to...,Save node graph to...,ノードグラフの保存先...
+0,app.gilExport.failedMessage,导出失败：{error},匯出失敗：{error},Export failed: {error},Export failed: {error},エクスポートに失敗しました：{error}
+0,app.gilExport.pickTemplate,选择GIL模板存档,選擇GIL範本存檔,Select GIL Template Save File,Select GIL Template Save File,GIL テンプレート保存ファイルを選択
+0,app.gilExport.prompt.line1,请选择一个GIL模板存档保存当前节点图项目的数据。,請選擇一個GIL範本存檔，用來存放目前節點圖專案的資料。,Please select a GIL template save to store the data for the current node graph project.,Please select a GIL template save to store the data for the current node graph project.,現在のノードグラフプロジェクトのデータを保存するため、GIL テンプレート保存ファイルを選択してください。
+0,app.gilExport.prompt.line2,注意：此操作会覆盖所选.gil模板存档中的所有节点图数据！,注意：此操作會覆蓋所選.gil範本存檔中的所有節點圖資料！,Note: This action will overwrite all node graph data in the selected .gil template save!,Note: This action will overwrite all node graph data in the selected .gil template save!,注意：この操作により、選択した .gil テンプレート保存ファイル内のノードグラフデータがすべて上書きされます！
+0,app.gilExport.title,导出为GIL存档,匯出為GIL存檔,Export as GIL Save,Export as GIL Save,GIL 保存としてエクスポート
+0,app.history.loadFailedAlert,读取历史项目失败，数据可能已损坏。,讀取歷史專案失敗，資料可能已損壞。,Failed to load project history. The data may be corrupted.,Failed to load project history. The data may be corrupted.,履歴プロジェクトの読み込みに失敗しました。データが破損している可能性があります。
+0,app.importProject.confirmTitle,项目导入确认,專案匯入確認,Project Import Confirmation,Project Import Confirmation,プロジェクトのインポート確認
+0,app.importProject.continueQuestion,是否继续？,要繼續嗎？,Continue?,Continue?,続行しますか？
+0,app.importProject.failedAlert,导入项目失败，请确认文件是否为有效的节点项目压缩包。,匯入專案失敗，請確認檔案是否為有效的節點專案壓縮包。,Failed to import project. Please confirm you are uploading a valid Zip Project for this app.,Failed to import project. Please confirm you are uploading a valid Zip Project for this app.,プロジェクトのインポートに失敗しました。このアプリ用の有効な Zip プロジェクトをアップロードしているか確認してください。
+0,app.importProject.successToast,项目导入成功,專案匯入成功,Project Imported Successfully,Project Imported Successfully,プロジェクトをインポートしました
+0,app.importProject.versionWarning,导入的项目版本（{incomingVersion}）高于当前编辑器版本（{currentVersion}），继续导入可能导致数据丢失或出现未知问题。,匯入的專案版本（{incomingVersion}）高於目前編輯器版本（{currentVersion}），繼續匯入可能導致資料遺失或發生未知問題。,The project you're importing ({incomingVersion}) is newer than the current editor ({currentVersion}). Continuing may cause data loss or unexpected issues.,The project you're importing ({incomingVersion}) is newer than the current editor ({currentVersion}). Continuing may cause data loss or unexpected issues.,インポートするプロジェクトのバージョン（{incomingVersion}）は現在のエディター（{currentVersion}）より新しいため、続行するとデータ損失や予期しない問題が発生する可能性があります。
+0,app.menu.file,文件,檔案,File,File,ファイル
+0,app.menu.file.editProjectInfo,编辑项目信息,編輯專案資訊,Edit Project Metadata,Edit Project Metadata,プロジェクト情報を編集
+0,app.menu.file.exportGil,导出为GIL存档,匯出為GIL存檔,Export as GIL Save,Export as GIL Save,GIL 保存としてエクスポート
+0,app.menu.file.exportZip,导出为Zip项目,匯出為Zip專案,Export as Zip Project,Export as Zip Project,Zip プロジェクトとしてエクスポート
+0,app.menu.file.saveProject,保存项目,儲存專案,Save Project,Save Project,プロジェクトを保存
+1,app.menu.window,窗口,視窗,Window,Window,ウィンドウ
+1,app.menu.window.clientExplorer,客户端节点图资源管理器,用戶端節點圖資源總管,Client Node Graph Resource Explorer,Client Node Graph Resource Explorer,クライアントノードグラフリソースマネージャー
+0,app.menu.window.goHome,返回主页,返回首頁,Return To Homepage,Return To Homepage,ホームに戻る
+1,app.menu.window.serverExplorer,服务器节点图资源管理器,伺服器節點圖資源總管,Server Node Graph Resource Explorer,Server Node Graph Resource Explorer,サーバーノードグラフリソースマネージャー
+0,app.menu.window.structManager,高级数据管理,進階資料管理,Advanced Data Management,Advanced Data Management,高度なデータ管理
+0,app.notFound.message,未找到页面：{path},找不到頁面：{path},Page Not Found: {path},Page Not Found: {path},ページが見つかりません：{path}
+0,app.projectInfo.nameLabel,项目名称,專案名稱,Project Name,Project Name,プロジェクト名
+0,app.projectInfo.namePlaceholder,输入项目名称,輸入專案名稱,Enter project name,Enter project name,プロジェクト名を入力
+0,app.projectInfo.nameRequired,项目名称不能为空,專案名稱不可為空,Project name cannot be empty,Project name cannot be empty,プロジェクト名は空にできません
+0,app.projectInfo.title,编辑项目信息,編輯專案資訊,Edit Project Metadata,Edit Project Metadata,プロジェクト情報を編集
+0,app.projectInfo.updatedToast,已更新项目名称,已更新專案名稱,Project name updated,Project name updated,プロジェクト名を更新しました
+0,app.save.savedToast,已保存到浏览器本地存储,已儲存到瀏覽器本機儲存空間,Saved to browser local storage,Saved to browser local storage,ブラウザーのローカルストレージに保存しました
+0,app.saveAs.error.categoryMissing,未找到可用的分类,找不到可用的分類,Unable to find an available category,Unable to find an available category,利用可能なカテゴリが見つかりません
+0,app.saveAs.error.clientKindMismatch,不同类型的客户端节点图无法互相另存。,不同類型的客戶端節點圖無法互相另存。,Unable to save as between different client node graph types.,Unable to save as between different client node graph types.,異なる種類のクライアントノードグラフ間では「別名で保存」できません。
+0,app.saveAs.error.createFolderFailed,新建文件夹失败，请稍后重试,新增資料夾失敗，請稍後重試,Failed to create folder. Please try again later.,Failed to create folder. Please try again later.,フォルダーの作成に失敗しました。しばらくしてから再試行してください。
+0,app.saveAs.error.folderRequired,请选择或新建一个文件夹,請選擇或新增一個資料夾,Please select or create a folder,Please select or create a folder,フォルダーを選択するか新規作成してください
+0,app.saveAs.error.nameRequired,请输入节点图名称,請輸入節點圖名稱,Please enter a node graph name,Please enter a node graph name,ノードグラフ名を入力してください
+0,app.saveAs.error.topFolderMismatch,客户端与服务器的节点图不能互相另存,客戶端與伺服器端的節點圖無法互相另存,Unable to save as between client and server node graphs,Unable to save as between client and server node graphs,クライアントとサーバーのノードグラフ間では「別名で保存」できません
+0,app.saveAs.noCategories,未找到可用的分类,找不到可用的分類,Unable to find an available category,Unable to find an available category,利用可能なカテゴリが見つかりません
+0,app.saveAs.pathPreview,保存路径：{path},儲存路徑：{path},Saving to: {path},Saving to: {path},保存先：{path}
+0,app.saveAs.successToast,已另存为新的节点图,已另存為新的節點圖,Saved as a new node graph,Saved as a new node graph,新しいノードグラフとして保存しました
+0,app.saveAs.title,另存为节点图,另存為節點圖,Save As New Node Graph,Save As New Node Graph,ノードグラフを別名で保存
+1,app.saveAs.topFolder.client,客户端节点图,用戶端節點圖,Client Node Graph,Client Node Graph,クライアントノードグラフ
+1,app.saveAs.topFolder.server,服务器节点图,伺服器節點圖,Server Node Graph,Server Node Graph,サーバーノードグラフ
+0,app.saveAs.topFolderLabel,顶层目录,頂層目錄,Top-level Folder,Top-level Folder,最上位フォルダー
+0,app.tabs.closeAria,关闭 {label},關閉 {label},Close {label},Close {label},{label} を閉じる
+0,collab.chat.button,交流,聊天,Chat,Chat,チャット
+0,collab.chat.empty,暂无消息,暫無訊息,No messages yet,No messages yet,メッセージはまだありません
+0,collab.chat.goBottom,回到底部,跳到最底部,Jump to bottom,Jump to bottom,一番下へ移動
+0,collab.chat.label,交流,聊天,Chat,Chat,チャット
+0,collab.chat.placeholder,输入消息...,輸入訊息...,Type a message...,Type a message...,メッセージを入力...
+0,collab.chat.send,发送,送出,Send,Send,送信
+0,collab.chat.title,交流,聊天,Chat,Chat,チャット
+0,collab.disconnect.owner,已与房主断开连接,已與房主中斷連線,Disconnected from host,Disconnected from host,ホストとの接続が切断されました
+0,collab.join.denied,加入请求被拒绝,加入請求被拒絕,Join request denied,Join request denied,参加リクエストが拒否されました
+0,collab.join.password.invalid,密码不正确,密碼不正確,Incorrect password,Incorrect password,パスワードが正しくありません
+0,collab.join.projectMissing,未找到共享项目，请重试,找不到共享專案，請重試,Shared project not found. Please try again.,Shared project not found. Please try again.,共有プロジェクトが見つかりません。再試行してください。
+0,collab.nickname.fallback,用户,使用者,User,User,ユーザー
+0,collab.presence.more,以及{count}位编辑者,以及{count}位編輯者,And {count} more,And {count} more,ほか {count} 人
+0,collab.saving,保存中...,儲存中...,Saving...,Saving...,保存中...
+0,collab.share.button,确认,確認,Confirm,Confirm,確認
+0,collab.share.disabled,当前设置无法共享,目前設定無法共享,Sharing is disabled by current settings.,Sharing is disabled by current settings.,現在の設定では共有できません
+0,collab.share.editorLimit.hint,包含自己，0 为不限制，1 为不共享，最多 6 人,包含自己，0＝不限制；1＝不共享；最多 6 人。,Includes host. 0 = unlimited; 1 = not sharing; max 6.,Includes host. 0 = unlimited; 1 = not sharing; max 6.,ホストを含みます。0＝無制限、1＝共有しない、最大 6 人。
+0,collab.share.editorLimit.label,连接人数上限（含自己）,連線人數上限（含自己）,Connection limit (incl. host),Connection limit (incl. host),接続人数の上限（自分含む）
+0,collab.share.label,共享,共享,Share,Share,共有
+0,collab.share.limitReached,已达到连接上限,已達到連線上限,Connection limit reached,Connection limit reached,接続上限に達しました
+0,collab.share.members.empty,暂无成员,暫無成員,No collaborators,No collaborators,参加者はいません
+0,collab.share.members.remove,移除权限,移除權限,Remove Access,Remove Access,権限を削除
+0,collab.share.members.title,已加入成员,参加者,Collaborators,Collaborators,参加者
+0,collab.share.open.aria,打开共享设置,開啟共享設定,Open sharing settings,Open sharing settings,共有設定を開く
+0,collab.share.open.sharedAria,查看共享状态,查看共享狀態,View sharing status,View sharing status,共有状態を表示
+0,collab.share.owner.nickname,房主昵称,房主暱稱,Host nickname,Host nickname,ホストのニックネーム
+0,collab.share.password.change,更改密码,變更密碼,Change password,Change password,パスワードを変更
+0,collab.share.password.label,设置密码,設定密碼,Set password,Set password,パスワードを設定
+0,collab.share.password.placeholder,输入共享密码,輸入共享密碼,Enter password,Enter password,パスワードを入力
+0,collab.share.permission.editor,编辑者,編輯者,Editor,Editor,編集者
+0,collab.share.permission.label,权限,權限,Access permission,Access permission,権限
+0,collab.share.permission.viewer,查看者,檢視者,Viewer,Viewer,閲覧者
+0,collab.share.readOnly,仅可查看共享状态,僅可查看共享狀態,Read-only sharing status,Read-only sharing status,共有状態のみ表示（読み取り専用）
+0,collab.share.requests.approve,同意加入,同意加入,Approve request,Approve request,承認
+0,collab.share.requests.empty,暂无加入请求,暫無加入請求,No join requests,No join requests,参加リクエストはありません
+0,collab.share.requests.ignore,忽略请求,忽略請求,Ignore request,Ignore request,無視
+0,collab.share.requests.title,加入请求,加入請求,Join requests,Join requests,参加リクエスト
+0,collab.share.saveRequired,共享前请先保存项目,共享前請先儲存專案,Please save the project before sharing.,Please save the project before sharing.,共有する前にプロジェクトを保存してください
+0,collab.share.scope.label,共享范围,共享範圍,General access,General access,共有範囲
+0,collab.share.scope.link,拥有链接的任何人,擁有連結的任何人,Anyone with the link,Anyone with the link,リンクを知っている全員
+0,collab.share.scope.linkHint,暂不支持,暫不支援,Coming soon,Coming soon,近日対応
+0,collab.share.scope.localOpen,局域网-开放,區域網路－開放,LAN - Open,LAN - Open,LAN（ローカル）- オープン
+0,collab.share.scope.localPassword,局域网-密码,區域網路－密碼,LAN - Password,LAN - Password,LAN（ローカル）- パスワード
+0,collab.share.scope.restricted,受限（不共享）,受限（不共享）,Restricted (Not sharing),Restricted (Not sharing),制限（共有しない）
+0,collab.share.section.access,常规访问,一般存取,General Access,General Access,一般アクセス
+0,collab.share.section.owner,房主设置,房主設定,Host Settings,Host Settings,ホスト設定
+0,collab.share.title,共享「{name}」,共享「{name}」,Share {name},Share {name},「{name}」を共有
+0,collab.share.viewerNotice,当前为仅查看模式，无法编辑,目前為僅檢視模式，無法編輯,You are in view-only mode. Editing is disabled.,You are in view-only mode. Editing is disabled.,閲覧専用モードのため編集できません
+0,collab.signal.offline,协作服务未连接,協作服務未連線,Signaling Server Offline,Signaling Server Offline,シグナリングサーバーがオフラインです
+0,collab.versionMismatch.message,当前版本（{currentVersion}）与房主版本（{incomingVersion}）不一致，无法联机,目前版本（{currentVersion}）與房主版本（{incomingVersion}）不一致，無法連線協作,"Unable to collaborate with different editor versions. (Current: {currentVersion}, Host: {incomingVersion})","Unable to collaborate with different editor versions. (Current: {currentVersion}, Host: {incomingVersion})",エディターのバージョンが一致しないため協作できません。（現在：{currentVersion}／ホスト：{incomingVersion}）
+0,collab.versionMismatch.title,版本不一致,版本不一致,Version Mismatch,Version Mismatch,バージョン不一致
+0,common.back,返回,返回,Return,Return,戻る
+0,common.backHome,返回主页,返回首頁,Return To Homepage,Return To Homepage,ホームに戻る
+0,common.cancel,取消,取消,Cancel,Cancel,キャンセル
+0,common.category,分类,分類,Category,Category,カテゴリ
+0,common.categoryNotFound,未找到对应的分类,找不到對應的分類,Category not found,Category not found,カテゴリが見つかりません
+0,common.close,关闭,關閉,Close,Close,閉じる
+0,common.comment,注释,註解,Notes,Notes,注釈
+0,common.configId,配置ID,設定ID,Configuration ID,Configuration ID,設定 ID
+0,common.confirm,确认,確認,Confirm,Confirm,確認
+0,common.continue,继续,繼續,Continue,Continue,続行
+0,common.copied,已复制,已複製,Copied,Copied,コピーしました
+0,common.copy,复制,複製,Copy,Copy,コピー
+0,common.cut,剪切,剪下,Cut,Cut,切り取り
+1,common.defaultGroupName,未分类页签,未分類頁籤,Uncategorized Tab,Uncategorized Tab,未分類タブ
+0,common.delete,删除,刪除,Delete,Delete,削除
+0,common.downloadJson,下载Json,下載Json,Download Json,Download Json,Json をダウンロード
+0,common.effects,特效库,特效資料庫,Effects Database,Effects Database,エフェクトデータベース
+0,common.empty,空,空值,Null,Null,null
+0,common.enterValue,输入值,輸入值,Enter value,Enter value,値を入力
+0,common.error,错误,錯誤,Error,Error,エラー
+0,common.export,导出,匯出,Export,Export,エクスポート
+0,common.filter,筛选,篩選,Filter,Filter,フィルター
+0,common.folder,文件夹,資料夾,Folder,Folder,フォルダー
+0,common.forward,前进,前進,Forward,Forward,進む
+0,common.github,GitHub,GitHub,GitHub,GitHub,GitHub
+0,common.goHome,返回主页,返回首頁,Return To Homepage,Return To Homepage,ホームに戻る
+0,common.gotIt,知道了,知道了,Understood,Understood,了解しました
+0,common.graph,节点图,節點圖,Node Graph,Node Graph,ノードグラフ
+0,common.id,ID,ID,ID,ID,ID
+0,common.idWithValue,ID：{id},ID：{id},ID: {id},ID: {id},ID：{id}
+0,common.info,信息,資訊,Information,Information,情報
+0,common.key,键,鍵,Key,Key,キー
+0,common.keyType,键类型,鍵類型,Key Type,Key Type,キー種別
+0,common.listValues,列表值,清單值,List Values,List Values,リスト値
+0,common.moreActions,更多操作,更多操作,More Actions,More Actions,その他の操作
+0,common.moveDown,向下移动,向下移動,Move Down,Move Down,下へ移動
+0,common.moveUp,向上移动,向上移動,Move Up,Move Up,上へ移動
+0,common.name,名称,名稱,Name,Name,名前
+0,common.no,否,否,No,No,いいえ
+0,common.noGraphOpen,当前没有打开的节点图。,目前沒有開啟的節點圖。,No node graph is loaded,No node graph is loaded,開いているノードグラフはありません
+0,common.noId,暂无 ID,沒有 ID,No ID,No ID,ID なし
+0,common.noProjectOpen,当前没有打开的项目。,目前沒有開啟的專案。,No project is loaded,No project is loaded,開いているプロジェクトはありません
+0,common.ok,确定,確定,Okay,Okay,OK
+0,common.open,打开,開啟,Open,Open,開く
+0,common.paste,粘贴,貼上,Paste,Paste,貼り付け
+0,common.redo,重做,重做,Redo,Redo,やり直し
+0,common.rename,重命名,重新命名,Rename,Rename,名前を変更
+0,common.retry,重试,重試,Retry,Retry,再試行
+0,common.save,保存,儲存,Save,Save,保存
+0,common.saveAs,另存为,另存為,Save As,Save As,名前を付けて保存
+1,common.seconds,秒,秒,s,s,秒
+0,common.settings,设置,設定,Settings,Settings,設定
+0,common.tutorial,教程,教學,Tutorial,Tutorial,チュートリアル
+0,common.type,类型,類型,Type,Type,種類
+0,common.uiLanguage.chs,简体中文,简体中文,简体中文,简体中文,简体中文
+0,common.uiLanguage.cht,繁體中文,繁體中文,繁體中文,繁體中文,繁體中文
+0,common.uiLanguage.enUk,British English,British English,British English,British English,British English
+0,common.uiLanguage.enUs,American English,American English,American English,American English,American English
+0,common.uiLanguage.jpn,日本語,日本語,日本語,日本語,日本語
+0,common.undo,撤销,撤銷,Undo,Undo,元に戻す
+0,common.uninitialized,未初始化,未初始化,Uninitialized,Uninitialized,未初期化
+0,common.unset,未设置,未設定,Unset,Unset,未設定
+0,common.value,值,值,Value,Value,値
+0,common.valueType,值类型,值類型,Value Type,Value Type,値の種別
+0,common.yes,是,是,Yes,Yes,はい
+0,effects.categories.aria,特效分类,特效分類,Effects Category,Effects Category,エフェクトカテゴリ
+1,effects.category.limited,限时特效,限時特效,Timed Effects,Timed Effects,時限エフェクト
+1,effects.category.loop,循环特效,循環特效,Looping Effects,Looping Effects,ループエフェクト
+0,effects.empty,未找到匹配的特效,找不到符合的特效,No effects found,No effects found,該当するエフェクトが見つかりません
+0,effects.error.loadFailed,特效资源加载失败，请稍后重试。,特效資源載入失敗，請稍後重試。,Failed to load effect resources. Please try again later.,Failed to load effect resources. Please try again later.,エフェクト資源の読み込みに失敗しました。しばらくしてから再試行してください。
+0,effects.loading,正在加载特效...,正在載入特效...,Loading effects...,Loading effects...,エフェクトを読み込み中...
+0,effects.scale.label,缩放,縮放,Scale,Scale,スケール
+0,effects.search.aria,搜索特效,搜尋特效,Search Effects,Search Effects,エフェクトを検索
+0,effects.search.badge,搜索结果：「{query}」· 共 {count} 项,搜尋結果：「{query}」· 共 {count} 項,Search Result:「{query}」({count} found),Search Result:「{query}」({count} found),検索結果：「{query}」・{count} 件
+0,effects.search.placeholder,搜索特效名称或配置ID...,搜尋特效名稱或設定ID...,Enter effect name or configuration ID...,Enter effect name or configuration ID...,エフェクト名または設定 ID を入力...
+0,effects.stats.all,限时特效 · {limited} 个 | 循环特效 · {loop} 个,期間限定特效 · {limited} 個｜循環特效 · {loop} 個,{limited} Timed Effects | {loop} Looping Effects,{limited} Timed Effects | {loop} Looping Effects,期間限定 {limited} 件｜ループ {loop} 件
+0,effects.stats.filtered,当前显示 {count} 个特效,目前顯示 {count} 個特效,Currently displaying {count} effect(s),Currently displaying {count} effect(s),現在 {count} 件を表示中
+0,effects.title,千星沙箱特效预览,千星沙箱特效預覽,Miliastra Sandbox Effects Preview,Miliastra Sandbox Effects Preview,ミリアストラ サンドボックス エフェクトプレビュー
+0,effects.toast.copied,已复制：,已複製：,Copied:,Copied:,コピーしました：
+0,effects.toast.copyFailed,复制失败，请手动复制,複製失敗，請手動複製,Failed to copy. Please copy manually.,Failed to copy. Please copy manually.,コピーに失敗しました。手動でコピーしてください。
+0,effects.watermark.aria,作者水印,作者浮水印,Creator's watermark,Creator's watermark,作者の透かし
+0,effects.watermark.text,特效预览 by BiliBili Ayaya小王,特效預覽 by BiliBili Ayaya小王,Effects preview by BiliBili Ayaya小王,Effects preview by BiliBili Ayaya小王,エフェクトプレビュー by BiliBili Ayaya小王
+0,gia.decode.headerFooterMismatch,GIA文件头或尾标签校验失败,GIA檔案頭／尾標籤校驗失敗,Failed to verify GIA file header or footer,Failed to verify GIA file header or footer,GIA ファイルのヘッダー／フッター検証に失敗しました
+0,gia.decode.invalidLength,GIA文件长度不合法,GIA檔案長度不合法,Invalid GIA file length,Invalid GIA file length,GIA ファイル長が不正です
+0,gia.decode.protoSizeMismatch,GIA文件protobuf长度不匹配,GIA檔案protobuf長度不一致,GIA protobuf length mismatch,GIA protobuf length mismatch,GIA protobuf 長が一致しません
+0,gia.decode.sizeMismatch,GIA文件长度校验失败,GIA檔案長度校驗失敗,Failed to verify GIA file length,Failed to verify GIA file length,GIA ファイル長の検証に失敗しました
+0,gia.decode.unknownFileType,未知的GIA文件类型,未知的GIA檔案類型,Unknown GIA file type,Unknown GIA file type,不明な GIA ファイル種別
+0,gia.decode.unsupportedVersion,暂不支持该版本的GIA文件,暫不支援此版本的GIA檔案,GIA file version unsupported,GIA file version unsupported,このバージョンの GIA ファイルは未対応です
+0,gia.export.commentNodeMissing,GIA：注释指向的节点不存在，已忽略。,GIA：註解指向的節點不存在，已忽略。,GIA: A node that a note points to does not exist and was ignored.,GIA: A node that a note points to does not exist and was ignored.,GIA：注釈が指しているノードが存在しないため無視しました。
+0,gia.export.dataOutIndexMissing,GIA：无法定位 {nodeType}.{portId} 的 data-out 序号。,GIA：無法定位 {nodeType}.{portId} 的 data-out 序號。,GIA: Unable to locate the data-out index of {nodeType}.{portId}.,GIA: Unable to locate the data-out index of {nodeType}.{portId}.,GIA：{nodeType}.{portId} の data-out インデックスを特定できません。
+0,gia.export.edgeMissingNode,GIA：无法解析连线 {edgeId}（节点缺失）,GIA：無法解析連線 {edgeId}（節點缺失）,GIA: Unable to resolve connection {edgeId} (missing node(s)).,GIA: Unable to resolve connection {edgeId} (missing node(s)).,GIA：接続 {edgeId} を解決できません（ノード欠落）
+0,gia.export.edgeUnknownPort,GIA：连线 {edgeId} 引用了未知端口。,GIA：連線 {edgeId} 引用了未知連接埠。,GIA: Connection {edgeId} references an unknown port.,GIA: Connection {edgeId} references an unknown port.,GIA：接続 {edgeId} が不明なポートを参照しています。
+0,gia.export.edgeUnsupported,GIA：暂不支持从 {sourceType}.{sourcePortId} 到 {targetType}.{targetPortId} 的连线。,GIA：暫不支援從 {sourceType}.{sourcePortId} 到 {targetType}.{targetPortId} 的連線。,GIA: Connections from {sourceType}.{sourcePortId} to {targetType}.{targetPortId} are not supported yet.,GIA: Connections from {sourceType}.{sourcePortId} to {targetType}.{targetPortId} are not supported yet.,GIA：{sourceType}.{sourcePortId} から {targetType}.{targetPortId} への接続は未対応です。
+0,gia.export.flowInIndexMissing,GIA：无法定位 {nodeType}.{portId} 的 flow-in 序号。,GIA：無法定位 {nodeType}.{portId} 的 flow-in 序號。,GIA: Unable to locate the flow-in index of {nodeType}.{portId}.,GIA: Unable to locate the flow-in index of {nodeType}.{portId}.,GIA：{nodeType}.{portId} の flow-in インデックスを特定できません。
+0,gia.export.multipleComments,GIA：节点“{type}”存在多个注释，仅导出第一个。,GIA：節點「{type}」存在多個註解，僅匯出第一個。,"GIA: Node ""{type}"" contains multiple notes; only the first will be exported.","GIA: Node ""{type}"" contains multiple notes; only the first will be exported.",GIA：ノード「{type}」に複数の注釈があるため、最初の 1 つのみエクスポートします。
+0,gia.export.noExportableNodes,导出为GIA文件：未找到可导出的节点。,匯出為GIA檔案：找不到可匯出的節點。,Export as GIA File: No exportable nodes found.,Export as GIA File: No exportable nodes found.,GIA ファイルとしてエクスポート：エクスポート可能なノードが見つかりません。
+0,gia.export.nodeMissingOfficialId,GIA：节点“{type}”缺少官方ID，无法导出。,GIA：節點「{type}」缺少官方ID，無法匯出。,"GIA: Node ""{type}"" is missing an official ID mapping and cannot be exported.","GIA: Node ""{type}"" is missing an official ID mapping and cannot be exported.",GIA：ノード「{type}」に公式 ID の対応付けがないためエクスポートできません。
+0,gia.export.nodeUnimplemented,GIA：当前环境暂未实现对节点“{type}”的导出。,GIA：目前環境尚未實作節點「{type}」的匯出。,"GIA: Exporting node ""{type}"" is not implemented in the current environment.","GIA: Exporting node ""{type}"" is not implemented in the current environment.",GIA：現在の環境ではノード「{type}」のエクスポートは未実装です。
+0,gia.export.nodeUnsupported,GIA：节点“{type}”暂不支持导出，将被忽略。,GIA：節點「{type}」暫不支援匯出，將被忽略。,"GIA: Node ""{type}"" is not supported for export and will be skipped.","GIA: Node ""{type}"" is not supported for export and will be skipped.",GIA：ノード「{type}」はエクスポート未対応のためスキップします。
+0,gia.export.unboundCommentPlacedAtOrigin,"GIA：存在未绑定节点且缺少坐标的注释，已放置在 (0,0)。","GIA：存在未綁定節點且缺少座標的註解，已放置於 (0,0)。","GIA: Unbound note(s) without coordinates were placed at (0,0).","GIA: Unbound note(s) without coordinates were placed at (0,0).","GIA：座標がない未紐付け注釈を (0,0) に配置しました。"
+0,gia.import.edgeMissingNode,GIA：连线包含缺失的节点，已跳过。,GIA：連線包含缺失的節點，已跳過。,GIA: Connection involves missing node(s) and was skipped.,GIA: Connection involves missing node(s) and was skipped.,GIA：接続に欠落ノードが含まれるためスキップしました。
+0,gia.import.graphValuesSkipped,GIA：暂不支持图变量，已跳过。,GIA：暫不支援圖變數，已跳過。,GIA: Graph variables are not supported yet and were skipped.,GIA: Graph variables are not supported yet and were skipped.,GIA：グラフ変数は未対応のためスキップしました。
+0,gia.import.noGraph,GIA：未找到可导入的节点图。,GIA：找不到可匯入的節點圖。,GIA: No importable node graph found.,GIA: No importable node graph found.,GIA：インポート可能なノードグラフが見つかりません。
+0,gia.import.nodeIndexInvalid,GIA：节点索引无效，已跳过。,GIA：節點索引無效，已跳過。,GIA: Invalid node index and was skipped.,GIA: Invalid node index and was skipped.,GIA：ノードインデックスが無効のためスキップしました。
+0,gia.import.nodeMissingId,GIA：节点缺少官方ID，已跳过。,GIA：節點缺少官方ID，已跳過。,GIA: Node is missing an official ID and was skipped.,GIA: Node is missing an official ID and was skipped.,GIA：ノードに公式 ID がないためスキップしました。
+0,gia.import.nodeMissingMapping,GIA：官方ID {nodeId} 未映射，已跳过。,GIA：官方ID {nodeId} 未映射，已跳過。,GIA: Official ID {nodeId} is not mapped and was skipped.,GIA: Official ID {nodeId} is not mapped and was skipped.,GIA：公式 ID {nodeId} が未対応のためスキップしました。
+0,gia.import.pinUnsupported,GIA：不支持的引脚类型 {kind}，已跳过。,GIA：不支援的引腳類型 {kind}，已跳過。,GIA: Unsupported pin kind {kind} and was skipped.,GIA: Unsupported pin kind {kind} and was skipped.,GIA：未対応のピン種別 {kind} のためスキップしました。
+0,gia.import.portIndexMissing,"GIA：无法解析端口索引（{nodeId}, {index}），已跳过。","GIA：無法解析連接埠索引（{nodeId}, {index}），已跳過。","GIA: Unable to resolve port index ({nodeId}, {index}) and was skipped.","GIA: Unable to resolve port index ({nodeId}, {index}) and was skipped.","GIA：ポートインデックスを解決できません（{nodeId}, {index}）。スキップしました。"
+0,gia.import.unknownGraphType,GIA：未知图类型 {type}，可能无法导入。,GIA：未知圖類型 {type}，可能無法匯入。,GIA: Unknown graph type {type}; it may not be importable.,GIA: Unknown graph type {type}; it may not be importable.,GIA：不明なグラフ種別 {type} のため、インポートできない可能性があります。
+0,gia.import.valueUnsupported,GIA：不支持 {nodeId}.{portId} 的输入值。,GIA：不支援 {nodeId}.{portId} 的輸入值。,GIA: Input value is unsupported for {nodeId}.{portId}.,GIA: Input value is unsupported for {nodeId}.{portId}.,GIA：{nodeId}.{portId} の入力値は未対応です。
+0,gil.export.lengthMismatch,模板GIL存档的长度信息异常，请重新从原神导出。,範本GIL存檔的長度資訊異常，請重新從原神匯出。,Abnormal file size info in the template GIL save. Please re-export it from Genshin Impact.,Abnormal file size info in the template GIL save. Please re-export it from Genshin Impact.,テンプレート GIL 保存の長さ情報が異常です。原神から再度エクスポートしてください。
+0,gil.export.notImplemented,GIL导出映射尚未完成（节点图格式仍在反推），请暂时使用「导出为Zip项目」。,GIL匯出映射尚未完成（節點圖格式仍在反推），請暫時使用「匯出為Zip專案」。,GIL export mapping is not yet complete (the node graph format is still being reverse-engineered). Please use「Export as Zip Project」for now.,GIL export mapping is not yet complete (the node graph format is still being reverse-engineered). Please use「Export as Zip Project」for now.,GIL のエクスポート対応は未完了です（ノードグラフ形式は解析中）。当面は「Zip プロジェクトとしてエクスポート」を使用してください。
+0,gil.export.templateCorrupted,模板GIL存档疑似已损坏，请重新从原神导出。,範本GIL存檔疑似已損壞，請重新從原神匯出。,The template GIL save might be corrupted. Please re-export it from Genshin Impact.,The template GIL save might be corrupted. Please re-export it from Genshin Impact.,テンプレート GIL 保存が破損している可能性があります。原神から再度エクスポートしてください。
+0,gil.export.unrecognizedHeader,无法识别的GIL文件头，请使用正式版原神导出GIL存档。,無法識別的GIL檔案頭，請使用正式版原神匯出GIL存檔。,Unable to identify the GIL header. Please export a GIL save from the official release of Genshin Impact.,Unable to identify the GIL header. Please export a GIL save from the official release of Genshin Impact.,GIL ヘッダーを認識できません。正式版の原神から GIL 保存をエクスポートしてください。
+1,graph.defaultName,新建节点图,新建節點圖,New Node Graph,New Node Graph,新規ノードグラフ
+0,graph.nameLabel,节点图名称,節點圖名稱,Node Graph Name,Node Graph Name,ノードグラフ名
+0,graph.namePlaceholder,新建节点图,新增節點圖,New Node Graph,New Node Graph,新しいノードグラフ
+1,graphCanvas.branchParamLabel,判断参数,判斷參數,Judge Parameter,Judge Parameter,判断パラメータ
+0,graphCanvas.deleteEdge,删除连线,刪除連線,Delete Connection,Delete Connection,接続を削除
+1,graphCanvas.disconnectNodes,断开节点连线,中斷節點連線,Disconnect Node Connection(s),Disconnect Node Connection(s),ノード接続を解除
+0,graphCanvas.flowOutAdd,添加分支,新增分支,Add Branch,Add Branch,分岐を追加
+0,graphCanvas.flowOutDelete,删除分支,刪除分支,Delete Branch,Delete Branch,分岐を削除
+1,graphCanvas.flowOutInsertAbove,向上插入,向上插入,Insert Above,Insert Above,上に挿入
+1,graphCanvas.flowOutInsertBelow,向下插入,向下插入,Insert Below,Insert Below,下に挿入
+1,graphCanvas.nodeCategory.achievement,成就,成就,Achievements,Achievements,アチーブメント
+1,graphCanvas.nodeCategory.audio,音效,音效,Sound Effects,Sound Effects,効果音
+1,graphCanvas.nodeCategory.camera,镜头,鏡頭,Camera,Camera,カメラ
+1,graphCanvas.nodeCategory.camp,阵营相关,陣營相關,Faction Related,Faction Related,陣営関連
+1,graphCanvas.nodeCategory.cardSelector,卡牌选择器,卡牌選擇器,Deck Selector,Deck Selector,カードセレクター
+1,graphCanvas.nodeCategory.characterDisturbance,角色扰动装置,角色擾動裝置,Character Disruptor Device,Character Disruptor Device,キャラ干渉デバイス
+1,graphCanvas.nodeCategory.characterSkill,角色技能,角色技能,Character Skills,Character Skills,キャラスキル
+1,graphCanvas.nodeCategory.chatChannel,聊天频道,聊天頻道,Chat Channel,Chat Channel,チャットチャンネル
+1,graphCanvas.nodeCategory.collision,碰撞,碰撞,Collision,Collision,衝突
+1,graphCanvas.nodeCategory.collisionSource,碰撞触发源,碰撞觸發源,Collision Trigger Source,Collision Trigger Source,衝突トリガーソース
+1,graphCanvas.nodeCategory.collisionTrigger,碰撞触发器,碰撞觸發器,Collision Triggers,Collision Triggers,衝突トリガー
+1,graphCanvas.nodeCategory.combat,战斗,戰鬥,Combat,Combat,戦闘
+1,graphCanvas.nodeCategory.common,通用,通用,Common Nodes,Common Nodes,共通
+1,graphCanvas.nodeCategory.construct,造物,造物,Creations,Creations,創造物
+1,graphCanvas.nodeCategory.constructPatrol,造物巡逻,造物巡邏,Creation Patrol,Creation Patrol,創造物の巡回
+1,graphCanvas.nodeCategory.constructPresetState,造物预设状态,造物預設狀態,Creation Preset Status,Creation Preset Status,創造物のプリセットステータス
+1,graphCanvas.nodeCategory.customAggro,自定义仇恨,自訂仇恨,Custom Aggro,Custom Aggro,カスタムアグロ
+1,graphCanvas.nodeCategory.customVariable,自定义变量,自訂變數,Custom Variables,Custom Variables,カスタム変数
+1,graphCanvas.nodeCategory.dict,字典,字典,Dictionary,Dictionary,辞書
+1,graphCanvas.nodeCategory.effects,特效,特效,Special Effects,Special Effects,エフェクト
+1,graphCanvas.nodeCategory.entity,实体相关,實體相關,Entity Related,Entity Related,エンティティ関連
+1,graphCanvas.nodeCategory.entityPlacementGroup,实体布设组,實體佈設組,Entity Deployment Group,Entity Deployment Group,実体配置グループ
+1,graphCanvas.nodeCategory.equipment,装备,裝備,Equipment,Equipment,装備
+1,graphCanvas.nodeCategory.event,事件节点,事件節點,Event Nodes,Event Nodes,イベントノード
+1,graphCanvas.nodeCategory.execution,执行节点,執行節點,Execution Nodes,Execution Nodes,実行ノード
+1,graphCanvas.nodeCategory.flow,流程控制节点,流程控制節點,Flow Control Nodes,Flow Control Nodes,フロー制御ノード
+1,graphCanvas.nodeCategory.followMover,跟随运动器,跟隨運動器,Follow Motion Device,Follow Motion Device,追従モーションデバイス
+1,graphCanvas.nodeCategory.globalTimer,全局计时器,全局計時器,Global Timer,Global Timer,グローバルタイマー
+1,graphCanvas.nodeCategory.hiddenClientBuiltin,<隐藏>客户端节点自带,<隱藏>客戶端節點自帶,<Hidden>Client Built-in,<Hidden>Client Built-in,<隠し>クライアント内蔵
+1,graphCanvas.nodeCategory.hitDetection,命中判定,命中判定,Hit Detection,Hit Detection,命中判定
+1,graphCanvas.nodeCategory.item,道具,道具,Items,Items,アイテム
+1,graphCanvas.nodeCategory.itemBag,道具与背包,道具與背包,Items and Inventory,Items and Inventory,アイテムとバッグ
+1,graphCanvas.nodeCategory.leaderboard,排行榜,排行榜,Leaderboard,Leaderboard,ランキング
+1,graphCanvas.nodeCategory.level,关卡相关,關卡相關,Stage Related,Stage Related,ステージ関連
+1,graphCanvas.nodeCategory.levelSettlement,关卡结算,關卡結算,Stage Settlement,Stage Settlement,ステージ集計
+1,graphCanvas.nodeCategory.lightComponent,光源组件,光源元件,Light Source Components,Light Source Components,光源コンポーネント
+1,graphCanvas.nodeCategory.list,列表,列表,Lists,Lists,リスト
+1,graphCanvas.nodeCategory.listRelated,列表相关,列表相關,List Operations,List Operations,リスト関連
+1,graphCanvas.nodeCategory.logic,运算节点,運算節點,Operation Nodes,Operation Nodes,運算ノード
+1,graphCanvas.nodeCategory.math,数学,數學,Math,Math,数学
+1,graphCanvas.nodeCategory.minimapMarker,小地图标识组件,小地圖標識元件,Mini-Map Marker Component,Mini-Map Marker Component,ミニマップ記号コンポーネント
+1,graphCanvas.nodeCategory.mover,运动器,運動器,Motion Devices,Motion Devices,モーションデバイス
+1,graphCanvas.nodeCategory.nameplate,铭牌,銘牌,Nameplate,Nameplate,ネームプレート
+1,graphCanvas.nodeCategory.path,路径,路徑,Global Path,Global Path,パス
+1,graphCanvas.nodeCategory.pathBlocking,寻路阻挡,尋路阻擋,Pathfinding Obstacles,Pathfinding Obstacles,経路探索の障害物
+1,graphCanvas.nodeCategory.playerCharacter,玩家与角色相关,玩家與角色相關,Player and Character Related,Player and Character Related,プレイヤーとキャラ関連
+1,graphCanvas.nodeCategory.presetPoint,预设点,預設點,Preset Points,Preset Points,プリセットポイント
+1,graphCanvas.nodeCategory.presetState,预设状态,預設狀態,Preset Status,Preset Status,プリセットステータス
+1,graphCanvas.nodeCategory.profession,职业,職業,Class,Class,ジョブ
+1,graphCanvas.nodeCategory.projectile,投射物,投射物,Projectiles,Projectiles,投射物
+1,graphCanvas.nodeCategory.query,查询节点,查詢節點,Query Nodes,Query Nodes,検索ノード
+1,graphCanvas.nodeCategory.rank,段位,段位,Rank,Rank,ランク
+1,graphCanvas.nodeCategory.raycast,射线,射線,Raycast,Raycast,ビーム
+1,graphCanvas.nodeCategory.scan,扫描,掃描,Scan,Scan,スキャン
+1,graphCanvas.nodeCategory.scanTag,扫描标签,掃描標籤,Scan Tags,Scan Tags,スキャンタグ
+1,graphCanvas.nodeCategory.shop,商店,商店,Shop,Shop,ショップ
+1,graphCanvas.nodeCategory.signal,信号,訊號,Signals,Signals,信号
+1,graphCanvas.nodeCategory.skill,技能,技能,Skills,Skills,スキル
+1,graphCanvas.nodeCategory.struct,结构体,結構體,Structures,Structures,構造体
+1,graphCanvas.nodeCategory.tab,选项卡,選項卡,Tabs,Tabs,オプションタブ
+1,graphCanvas.nodeCategory.tag,标签,標籤,Tags,Tags,タグ
+1,graphCanvas.nodeCategory.textBubble,文本气泡,文字氣泡,Text Bubbles,Text Bubbles,テキストバブル
+1,graphCanvas.nodeCategory.timer,定时器,計時器,Timer,Timer,タイマー
+1,graphCanvas.nodeCategory.trigger,触发器,觸發器,Triggers,Triggers,トリガー
+1,graphCanvas.nodeCategory.uiWidgetGroup,界面控件组,介面控制項組,UI Control Groups,UI Control Groups,UI コントロールグループ
+1,graphCanvas.nodeCategory.unitState,单位状态,單位狀態,Unit Status,Unit Status,ユニット状態
+1,graphCanvas.nodeCategory.unitTag,单位标签,單位標籤,Unit Tags,Unit Tags,ユニットタグ
+1,graphCanvas.nodeCategory.wonderlandGift,奇域礼盒相关,奇域禮盒相關,Wonderland Gift Boxes,Wonderland Gift Boxes,幻境の箱関連
+0,graphCanvas.nodeLibrary.filter.source,筛选 · 可连接从「{label}」输出的节点,篩選 · 可連接從「{label}」輸出的節點,Filter · Nodes connectable from「{label}」,Filter · Nodes connectable from「{label}」,フィルター：「{label}」から接続可能なノード
+0,graphCanvas.nodeLibrary.filter.target,筛选 · 可输入到「{label}」的节点,篩選 · 可輸入到「{label}」的節點,Filter · Nodes connectable into「{label}」,Filter · Nodes connectable into「{label}」,フィルター：「{label}」へ入力できるノード
+1,graphCanvas.watermark.client,客户端节点图编辑,用戶端節點圖編輯,Edit Client Node Graph,Edit Client Node Graph,クライアントノードグラフを編集
+1,graphCanvas.watermark.server,服务器节点图编辑,伺服器節點圖編輯,Edit Server Node Graph,Edit Server Node Graph,サーバーノードグラフを編集
+0,graphComments.action.delete,删除注释,刪除註解,Delete Note,Delete Note,注釈を削除
+0,graphComments.action.edit,编辑注释,編輯註解,Edit Note,Edit Note,注釈を編集
+0,graphComments.action.finishEdit,完成编辑,完成編輯,Finish Editing,Finish Editing,編集を完了
+0,graphComments.action.pin,固定注释,釘選註解,Pin Note,Pin Note,注釈を固定
+0,graphComments.action.unpin,取消固定,取消釘選,Unpin Note,Unpin Note,固定を解除
+0,graphComments.empty,暂无内容,暫無內容,No content,No content,内容がありません
+0,graphComments.placeholder,输入注释...,輸入註解...,Enter note...,Enter note...,注釈を入力...
+0,graphComments.view,查看注释,查看註解,View Note,View Note,注釈を表示
+0,home.actions.convertGia,节点图Json转GIA文件,節點圖Json轉GIA檔案,Convert Node Graph Json To GIA (Experimental),Convert Node Graph Json To GIA (Experimental),ノードグラフ Json を GIA に変換（実験的機能）
+0,home.actions.convertGia.loading,转换中...,轉換中...,Converting...,Converting...,変換中...
+0,home.actions.create,新建项目,新增專案,New Project,New Project,新規プロジェクト
+0,home.actions.decodeGia,解码GIA文件,解碼GIA檔案,Decode GIA File,Decode GIA File,GIA ファイルをデコード
+0,home.actions.decodeGia.loading,解码中…,解碼中…,Decoding...,Decoding...,デコード中...
+0,home.actions.importZip,导入Zip项目,匯入Zip專案,Import Zip Project,Import Zip Project,Zip プロジェクトをインポート
+0,home.deleteDialog.message.nameWrap,「{name}」,「{name}」,「{name}」,「{name}」,「{name}」
+0,home.deleteDialog.message.prefix,确定要删除项目,確定要刪除專案,Confirm to delete project,Confirm to delete project,プロジェクトを削除しますか
+0,home.deleteDialog.message.suffix,吗？此操作无法撤销。,嗎？此操作無法復原。,? This action cannot be undone.,? This action cannot be undone.,？この操作は元に戻せません。
+0,home.deleteDialog.title,确认删除,確認刪除,Confirm Deletion,Confirm Deletion,削除の確認
+0,home.dropzone,拖放项目Zip到此处导入,拖放Zip專案到此處匯入,Drag & drop Zip here to import,Drag & drop Zip here to import,ここに Zip をドラッグ＆ドロップしてインポート
+0,home.history.deleteAria,删除 {name},刪除 {name},Delete {name},Delete {name},{name} を削除
+0,home.history.empty,暂无历史项目,暫無歷史專案,No Saved Projects Yet,No Saved Projects Yet,保存済みプロジェクトはありません
+0,home.history.exportAll,导出所有,匯出全部,Export All,Export All,すべてエクスポート
+0,home.history.title,历史项目,歷史專案,Saved Projects,Saved Projects,保存済みプロジェクト
+0,home.network.empty,暂无共享项目,暫無共享專案,No shared projects found,No shared projects found,共有プロジェクトが見つかりません
+0,home.network.join.action,加入,加入,Join,Join,参加
+0,home.network.join.nickname,你的昵称,你的暱稱,Your nickname,Your nickname,ニックネーム
+0,home.network.join.password,共享密码,共有密碼,Password,Password,パスワード
+0,home.network.join.password.placeholder,输入密码,輸入密碼,Enter password,Enter password,パスワードを入力
+0,home.network.join.request,免密发送请求,免密送出請求,Send request directly,Send request directly,パスワードなしでリクエスト送信
+0,home.network.join.requestCooldown,请稍候 {seconds}s,請稍候 {seconds}s,Wait {seconds}s,Wait {seconds}s,{seconds} s お待ちください
+0,home.network.join.title,加入「{name}」,加入「{name}」,Join「{name}」,Join「{name}」,「{name}」に参加
+0,home.network.refreshedToast,刷新完成,重新整理完成,Refreshed,Refreshed,更新しました
+0,home.network.refreshingToast,刷新中...,重新整理中...,Refreshing...,Refreshing...,更新中...
+0,home.network.reload,刷新,重新整理,Refresh,Refresh,更新
+0,home.network.title,局域网项目,區域網路專案,Local Network Projects,Local Network Projects,LAN プロジェクト
+0,home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,Genshin Impact - Miliastra Wonderland Node Graph Simulator,Genshin Impact - Miliastra Wonderland Node Graph Simulator,『原神・千星奇域』ノードグラフシミュレーター
+0,inspector.comments,注释,註解,Notes,Notes,注釈
+0,inspector.comments.empty,暂无注释,暫無註解,No notes,No notes,注釈はありません
+0,inspector.comments.placeholder,（空注释）,（空註解）,(Empty note),(Empty note),（空の注釈）
+0,inspector.connections,连接,連線,Connection,Connection,接続
+0,inspector.connections.inputs,输入,輸入,Input,Input,入力
+0,inspector.connections.inputs.empty,无输入连接,無輸入連線,No input connections,No input connections,入力接続なし
+0,inspector.connections.outputs,输出,輸出,Output,Output,出力
+0,inspector.connections.outputs.empty,无输出连接,無輸出連線,No output connections,No output connections,出力接続なし
+0,inspector.dataInputDefaults,数据输入默认值,資料輸入預設值,Default data input,Default data input,データ入力の既定値
+0,inspector.dataInputDefaults.empty,该节点没有可配置的数据输入,此節點沒有可設定的資料輸入,This node has no configurable input ports.,This node has no configurable input ports.,このノードには設定可能な入力ポートがありません
+0,inspector.definition,定义,定義,Definition,Definition,定義
+0,inspector.deleteNode,删除节点,刪除節點,Delete Node,Delete Node,ノードを削除
+0,inspector.instanceName,节点实例名称,節點實例名稱,Node Title Name,Node Title Name,ノードのインスタンス名
+0,inspector.instanceName.hint,留空则继承定义名称,留空則沿用定義名稱,Leave empty to use the default title,Leave empty to use the default title,空欄の場合は定義名を使用します
+0,inspector.placeholder.selectNode,选择画布中的节点查看详细信息,選擇畫布上的節點以查看詳細資訊,Select a node on the canvas to view details,Select a node on the canvas to view details,キャンバス上のノードを選択して詳細を表示
+0,inspector.title,节点详情,節點詳情,Node Information,Node Information,ノード情報
+0,nodeLibrary.collapse,收起节点库,收起節點庫,Collapse Node Library,Collapse Node Library,ノードライブラリを折りたたむ
+0,nodeLibrary.expand,展开节点库,展開節點庫,Expand Node Library,Expand Node Library,ノードライブラリを展開
+0,nodeLibrary.search.empty,未找到匹配的节点,找不到符合的節點,No matched node found,No matched node found,該当するノードが見つかりません
+0,nodeLibrary.search.placeholder,搜索节点或分类...,搜尋節點或分類...,Search nodes or categories...,Search nodes or categories...,ノードまたはカテゴリを検索...
+0,nodeLibrary.title,节点库,節點庫,Node Library,Node Library,ノードライブラリ
+1,project.category.booleanFilter,布尔过滤器节点图,布林過濾器節點圖,Boolean Filter Node Graph,Boolean Filter Node Graph,ブールフィルターノードグラフ
+1,project.category.creationSkill,造物技能节点图,造物技能節點圖,Creation Skill Node Graph,Creation Skill Node Graph,創造物スキルノードグラフ
+1,project.category.creationState,造物状态节点图,造物狀態節點圖,Creation Status Node Graph,Creation Status Node Graph,創造物ステータスノードグラフ
+1,project.category.creationStateDecision,造物状态决策节点图,造物狀態決策節點圖,Creation Status Decision Node Graph,Creation Status Decision Node Graph,創造物ステータス決断ノードグラフ
+1,project.category.entity,实体节点图,實體節點圖,Entity Node Graph,Entity Node Graph,エンティティノードグラフ
+1,project.category.integerFilter,整数过滤器节点图,整數過濾器節點圖,Integer Filter Node Graph,Integer Filter Node Graph,整数フィルターノードグラフ
+1,project.category.item,道具节点图,道具節點圖,Item Node Graph,Item Node Graph,道具ノードグラフ
+1,project.category.profession,职业节点图,職業節點圖,Class Node Graph,Class Node Graph,ジョブノードグラフ
+1,project.category.roleSkill,角色技能节点图,角色技能節點圖,Character Skill Node Graph,Character Skill Node Graph,キャラクタースキルノードグラフ
+1,project.category.skill,技能节点图,技能節點圖,Skill Node Graph,Skill Node Graph,スキルノードグラフ
+1,project.category.stats,状态节点图,狀態節點圖,Status Node Graph,Status Node Graph,ステータスノードグラフ
+0,project.defaultName,未命名项目,未命名專案,Untitled Project,Untitled Project,無題のプロジェクト
+0,project.path.invalid,无效的路径：,無效的路徑：,Invalid path:,Invalid path:,無効なパス：
+0,project.structPath.invalid,无效的结构体路径：,無效的結構體路徑：,Invalid path for structure:,Invalid path for structure:,構造体のパスが無効：
+0,projectIO.warning.exportGraphMissingJson,节点图「{graphID}」缺少Json数据，未导出。,節點圖「{graphID}」缺少Json資料，未匯出。,Node graph「{graphID}」is missing Json data and was not exported.,Node graph「{graphID}」is missing Json data and was not exported.,ノードグラフ「{graphID}」に Json データがないためエクスポートしませんでした。
+0,projectIO.warning.exportStructMissingJson,结构体「{structID}」缺少Json数据，未导出。,結構體「{structID}」缺少Json資料，未匯出。,Structure「{structID}」is missing Json data and was not exported.,Structure「{structID}」is missing Json data and was not exported.,構造体「{structID}」に Json データがないためエクスポートしませんでした。
+0,projectIO.warning.graphMissingJson,节点图「{graphID}」缺少对应的Json数据，已跳过。,節點圖「{graphID}」缺少對應的Json資料，已跳過。,Corresponding Json data for node graph「{graphID}」was not found and was skipped.,Corresponding Json data for node graph「{graphID}」was not found and was skipped.,ノードグラフ「{graphID}」の対応する Json データが見つからないためスキップしました。
+0,projectIO.warning.manifestGraphFileMissing,manifest.json 中的节点图「{graphID}」在压缩包中找不到对应的Json文件，已跳过。,manifest.json 中的節點圖「{graphID}」在壓縮包中找不到對應的Json檔案，已跳過。,Json file for node graph「{graphID}」referenced by manifest.json was not found in the Zip and was skipped.,Json file for node graph「{graphID}」referenced by manifest.json was not found in the Zip and was skipped.,manifest.json で参照されたノードグラフ「{graphID}」の Json ファイルが Zip 内に見つからないためスキップしました。
+0,projectIO.warning.manifestMissing,压缩包缺少manifest.json，将尝试自动构建。,壓縮包缺少manifest.json，將嘗試自動建立。,manifest.json not found in the Zip project; attempting to reconstruct...,manifest.json not found in the Zip project; attempting to reconstruct...,Zip 内に manifest.json がありません。自動再構築を試みます...
+0,projectIO.warning.manifestMissingGraphId,manifest.json 中存在缺少 graphId 的记录，已自动分配新的随机 graphId。,manifest.json 中存在缺少 graphId 的紀錄，已自動分配新的隨機 graphId。,manifest.json contained a record without graphId; a new random graphId was assigned.,manifest.json contained a record without graphId; a new random graphId was assigned.,manifest.json に graphId がないレコードがあるため、新しいランダム graphId を割り当てました。
+0,projectIO.warning.manifestMissingStructId,manifest.json 中存在缺少 structId 的结构体记录，已自动分配新的随机 structId。,manifest.json 中存在缺少 structId 的結構體紀錄，已自動分配新的隨機 structId。,manifest.json contained a structure record without structId; a new random structId was assigned.,manifest.json contained a structure record without structId; a new random structId was assigned.,manifest.json に structId がない構造体レコードがあるため、新しいランダム structId を割り当てました。
+0,projectIO.warning.manifestReadFailed,读取manifest.json失败：{error},讀取manifest.json失敗：{error},Failed to read manifest.json: {error},Failed to read manifest.json: {error},manifest.json の読み込みに失敗しました：{error}
+0,projectIO.warning.manifestStructFileMissing,manifest.json 中的结构体「{structID}」在压缩包中找不到对应Json文件，已跳过。,manifest.json 中的結構體「{structID}」在壓縮包中找不到對應的Json檔案，已跳過。,Json file for structure「{structID}」referenced by manifest.json was not found in the Zip and was skipped.,Json file for structure「{structID}」referenced by manifest.json was not found in the Zip and was skipped.,manifest.json で参照された構造体「{structID}」の Json ファイルが Zip 内に見つからないためスキップしました。
+0,projectIO.warning.parseFailed,解析「{path}」时出错：{error},解析「{path}」時出錯：{error},Failed to process「{path}」: {error},Failed to process「{path}」: {error},「{path}」の処理に失敗しました：{error}
+0,projectIO.warning.structMissingJson,结构体「{structID}」缺少对应Json数据，已跳过。,結構體「{structID}」缺少對應的Json資料，已跳過。,Corresponding Json data for structure「{structID}」was not found and was skipped.,Corresponding Json data for structure「{structID}」was not found and was skipped.,構造体「{structID}」の対応する Json データが見つからないためスキップしました。
+0,projectIO.warning.unknownFilePathMoved,文件路径「{path}」无法识别，已自动放入「{target}」,檔案路徑「{path}」無法識別，已自動放入「{target}」,Unrecognized file path「{path}」; moved to「{target}」automatically.,Unrecognized file path「{path}」; moved to「{target}」automatically.,不明なファイルパス「{path}」のため、自動的に「{target}」へ移動しました。
+0,resourceExplorer.context.copyGraphId,复制节点图ID,複製節點圖ID,Copy Node Graph ID,Copy Node Graph ID,ノードグラフ ID をコピー
+0,resourceExplorer.context.importGia,实验：导入节点图GIA文件,實驗：匯入節點圖GIA檔案,Experimental: Import Node Graph GIA File,Experimental: Import Node Graph GIA File,実験：ノードグラフ GIA ファイルをインポート
+0,resourceExplorer.context.importJson,导入Json节点图,匯入節點圖Json,Import Node Graph Json,Import Node Graph Json,ノードグラフ Json をインポート
+0,resourceExplorer.context.newFolder,新建文件夹,新增資料夾,New Folder,New Folder,新しいフォルダー
+0,resourceExplorer.context.newGraph,新建节点图,新增節點圖,New Node Graph,New Node Graph,新しいノードグラフ
+0,resourceExplorer.context.pasteFolder,粘贴文件夹,貼上資料夾,Paste Folder,Paste Folder,フォルダーを貼り付け
+0,resourceExplorer.context.pasteGraph,粘贴节点图,貼上節點圖,Paste Node Graph,Paste Node Graph,ノードグラフを貼り付け
+0,resourceExplorer.copyGraphId.autoCopyFailed,无法自动复制，请手动复制：,無法自動複製，請手動複製：,Unable to copy automatically. Please copy manually:,Unable to copy automatically. Please copy manually:,自動コピーできません。手動でコピーしてください：
+0,resourceExplorer.copyGraphId.manualCopy,请手动复制：,請手動複製：,Please copy manually:,Please copy manually:,手動でコピーしてください：
+0,resourceExplorer.copyGraphId.successMessage,节点图ID已复制到剪贴板：,節點圖ID已複製到剪貼簿：,Node graph ID copied to clipboard:,Node graph ID copied to clipboard:,ノードグラフ ID をクリップボードにコピーしました：
+0,resourceExplorer.copyGraphId.successTitle,节点图ID已复制,節點圖ID已複製,Node graph ID copied,Node graph ID copied,ノードグラフ ID をコピーしました
+0,resourceExplorer.copyGraphId.title,复制节点图ID,複製節點圖ID,Copy Node Graph ID,Copy Node Graph ID,ノードグラフ ID をコピー
+0,resourceExplorer.defaultFolderName,新建文件夹,新增資料夾,New Folder,New Folder,新しいフォルダー
+0,resourceExplorer.deleteFolder.message,确定要删除文件夹「{name}」吗？此操作无法撤销。,確定要刪除資料夾「{name}」嗎？此操作無法復原。,Confirm to delete folder「{name}」? This action cannot be undone.,Confirm to delete folder「{name}」? This action cannot be undone.,フォルダー「{name}」を削除しますか？この操作は元に戻せません。
+0,resourceExplorer.deleteFolder.title,确认删除,確認刪除,Confirm Deletion,Confirm Deletion,削除の確認
+0,resourceExplorer.deleteGraph.message,确定要删除节点图「{name}」吗？此操作无法撤销。,確定要刪除節點圖「{name}」嗎？此操作無法復原。,Confirm to delete node graph「{name}」? This action cannot be undone.,Confirm to delete node graph「{name}」? This action cannot be undone.,ノードグラフ「{name}」を削除しますか？この操作は元に戻せません。
+0,resourceExplorer.deleteGraph.title,确认删除,確認刪除,Confirm Deletion,Confirm Deletion,削除の確認
+0,resourceExplorer.error.copyGraph.contentNotFound,未找到节点图内容。,找不到節點圖內容。,Failed to fetch node graph content.,Failed to fetch node graph content.,ノードグラフの内容を取得できませんでした。
+0,resourceExplorer.error.copyGraph.crossType,无法跨类型复制节点图。,無法跨類型複製節點圖。,Unable to copy node graph across categories.,Unable to copy node graph across categories.,カテゴリをまたいでノードグラフをコピーできません。
+0,resourceExplorer.error.copyGraph.entryNotFound,未找到节点图记录。,找不到節點圖記錄。,Node graph entry not found.,Node graph entry not found.,ノードグラフの記録が見つかりません。
+0,resourceExplorer.error.copyGraph.targetCategoryNotFound,未找到目标分类。,找不到目標分類。,Target category not found.,Target category not found.,対象カテゴリが見つかりません。
+0,resourceExplorer.error.copyGraph.title,无法复制节点图,無法複製節點圖,Unable To Copy Node Graph,Unable To Copy Node Graph,ノードグラフをコピーできません
+0,resourceExplorer.error.createGraph.title,无法新建节点图,無法新增節點圖,Unable To Create New Node Graph,Unable To Create New Node Graph,ノードグラフを作成できません
+0,resourceExplorer.error.exportFolder.empty,该文件夹下没有节点图。,此資料夾下沒有節點圖。,No node graphs in this folder.,No node graphs in this folder.,このフォルダーにノードグラフはありません。
+0,resourceExplorer.error.exportFolder.notFound,未找到要导出的文件夹。,找不到要匯出的資料夾。,Target folder not found.,Target folder not found.,エクスポート対象のフォルダーが見つかりません。
+0,resourceExplorer.error.exportGraph.contentNotFound,未找到节点图内容。,找不到節點圖內容。,Failed to fetch node graph content.,Failed to fetch node graph content.,ノードグラフの内容を取得できませんでした。
+0,resourceExplorer.error.exportGraph.title,无法导出节点图,無法匯出節點圖,Unable To Export Node Graph,Unable To Export Node Graph,ノードグラフをエクスポートできません
+0,resourceExplorer.error.import.title,无法导入,無法匯入,Unable To Import,Unable To Import,インポートできません
+0,resourceExplorer.error.moveFolder.title,无法移动文件夹,無法移動資料夾,Unable To Move Folder,Unable To Move Folder,フォルダーを移動できません
+0,resourceExplorer.error.paste.folderCrossExplorer,无法在不同类型的资源管理器之间粘贴文件夹。,無法在不同類型的資源管理器之間貼上資料夾。,Unable to paste folder across different explorers.,Unable to paste folder across different explorers.,異なる種類のエクスプローラー間ではフォルダーを貼り付けできません。
+0,resourceExplorer.error.paste.title,无法粘贴,無法貼上,Unable To Paste,Unable To Paste,貼り付けできません
+0,resourceExplorer.error.pasteGraph.crossExplorer,无法在不同类型的资源管理器之间粘贴节点图。,無法在不同類型的資源管理器之間貼上節點圖。,Unable to paste node graph across different explorers.,Unable to paste node graph across different explorers.,異なる種類のエクスプローラー間ではノードグラフを貼り付けできません。
+0,resourceExplorer.error.pasteGraph.title,无法粘贴节点图,無法貼上節點圖,Unable To Paste Node Graph,Unable To Paste Node Graph,ノードグラフを貼り付けできません
+0,resourceExplorer.folder.count,{count} 项,{count} 項,{count} items,{count} items,{count} 件
+0,resourceExplorer.folders.empty,暂无文件夹,暫無資料夾,No Folders,No Folders,フォルダーはありません
+0,resourceExplorer.graph.error,节点图存在错误,節點圖有錯誤,Error in the node graph,Error in the node graph,ノードグラフにエラーがあります
+0,resourceExplorer.graph.rename.placeholder,输入节点图名称...,輸入節點圖名稱...,Enter node graph name...,Enter node graph name...,ノードグラフ名を入力...
+0,resourceExplorer.graphs.empty,暂无节点图,暫無節點圖,No Node Graphs,No Node Graphs,ノードグラフはありません
+0,resourceExplorer.import.dropOverlay,导入Json/GIA节点图,匯入Json/GIA節點圖,Import Json/GIA Node Graph,Import Json/GIA Node Graph,Json/GIA ノードグラフをインポート
+0,resourceExplorer.import.giaWarnings.hint,以下GIA文件包含未导入的项目：,以下GIA檔案包含未匯入的項目：,The following GIA files have items that were not imported:,The following GIA files have items that were not imported:,次の GIA ファイルには未インポートの項目があります：
+0,resourceExplorer.import.giaWarnings.title,GIA导入警告,GIA匯入警告,GIA Import Warnings,GIA Import Warnings,GIA インポート警告
+0,resourceExplorer.import.partialFailure.hint,以下文件导入失败：,以下檔案匯入失敗：,Failed to import the following files:,Failed to import the following files:,次のファイルのインポートに失敗しました：
+0,resourceExplorer.import.partialFailure.title,部分节点图导入失败,部分節點圖匯入失敗,Failed To Import Some Node Graphs,Failed To Import Some Node Graphs,一部ノードグラフのインポートに失敗しました
+0,resourceExplorer.itemType.folder,文件夹,資料夾,Folder,Folder,フォルダー
+0,resourceExplorer.openGraph.errorHint,检测到以下问题，请导出Json并手动修复后重新导入：,檢測到以下問題，請匯出Json並手動修復後再重新匯入：,"Detected the following issues. Please export Json, fix them manually, then import again:","Detected the following issues. Please export Json, fix them manually, then import again:",次の問題が検出されました。Json をエクスポートして手動で修正し、再インポートしてください：
+0,resourceExplorer.openGraph.errorTitle,无法打开节点图,無法開啟節點圖,Unable To Open Node Graph,Unable To Open Node Graph,ノードグラフを開けません
+0,resourceExplorer.search.placeholder,搜索当前路径...,搜尋目前路徑...,Search current path...,Search current path...,現在のパスを検索...
+0,resourceExplorer.sidebar.clientGraphs,客户端节点图,客戶端節點圖,Client Node Graphs,Client Node Graphs,クライアントノードグラフ
+0,resourceExplorer.sidebar.serverGraphs,服务器节点图,伺服器端節點圖,Server Node Graphs,Server Node Graphs,サーバーノードグラフ
+0,resourceExplorer.validation.envMismatch.clientInServer,节点图标记为客户端，但当前位置为服务器节点图目录,節點圖標記為客戶端，但目前位置為伺服器端節點圖目錄,"Node graph is marked as client, but is currently in the server directory","Node graph is marked as client, but is currently in the server directory",ノードグラフはクライアント扱いですが、現在はサーバーディレクトリにあります
+0,resourceExplorer.validation.envMismatch.serverInClient,节点图标记为服务器，但当前位置为客户端节点图目录,节点图标记为伺服器端，但目前位置为用戶端節點圖目錄,"Node graph is marked as server, but is currently in the client directory","Node graph is marked as server, but is currently in the client directory",ノードグラフはサーバー扱いですが、現在はクライアントディレクトリにあります
+0,resourceExplorer.validation.invalidNodeTypes,以下节点类型不属于当前节点库分类：{types},以下節點類型不屬於目前節點庫分類：{types},The following node type(s) do not belong to the current node library category: {types},The following node type(s) do not belong to the current node library category: {types},次のノード種別は現在のノードライブラリカテゴリに属しません：{types}
+0,settings.about.credits.hackermdch.desc, - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件, - 提供 UgcUtil.dll 協助編碼／解碼 .gil 存檔檔案, - Providing UgcUtil.dll to encode/decode GIL saves, - Providing UgcUtil.dll to encode/decode GIL saves, - UgcUtil.dll を提供（.gil 保存ファイルのエンコード／デコード支援）
+0,settings.about.credits.hackermdch.name,hackermdch,hackermdch,hackermdch,hackermdch,hackermdch
+0,settings.about.credits.title,特别鸣谢（时间顺序）：,特別鳴謝（時間順序）：,Special Thanks (Chronological):,Special Thanks (Chronological):,スペシャルサンクス（時系列）：
+0,settings.about.credits.wuYijun.desc, - 提供 gia.proto及其他工具 帮助编码/解码GIA文件, - 提供 gia.proto 及其他工具，協助編碼／解碼 GIA 檔案, - Providing gia.proto and related tools to encode/decode GIA files, - Providing gia.proto and related tools to encode/decode GIA files, - gia.proto 等のツールを提供（GIA ファイルのエンコード／デコード支援）
+0,settings.about.credits.wuYijun.name,Wu-Yijun,Wu-Yijun,Wu-Yijun,Wu-Yijun,Wu-Yijun
+0,settings.about.disclaimer.p1.link,《原神》及《原神·千星奇域》使用条款,《原神》及《原神·千星奇域》使用條款,Genshin Impact and「Genshin Impact - Miliastra Wonderland」Terms of Service,Genshin Impact and「Genshin Impact - Miliastra Wonderland」Terms of Service,『原神』および『原神・千星奇域』利用規約
+0,settings.about.disclaimer.p1.prefix,声明：该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。该项目90%以上代码均由AI生成。此项目仅供学习和交流使用，严禁用于商业用途。使用时请务必遵守,聲明：本專案為同人製作，與米哈游無關。所有引用素材之版權歸原作者所有。本專案90%以上程式碼由AI生成。本專案僅供學習與交流，嚴禁用於商業用途。使用時請務必遵守,"Declaration: This project is a fan-made creation and is not affiliated with miHoYo / HoYoverse. All referenced materials belong to their original copyright holders. Over 90% of the code in this project is generated by AI. This project is only intended for learning and communication, and must not be used for any commercial purpose. While using, you are expected to strictly follow the","Declaration: This project is a fan-made creation and is not affiliated with miHoYo / HoYoverse. All referenced materials belong to their original copyright holders. Over 90% of the code in this project is generated by AI. This project is only intended for learning and communication, and must not be used for any commercial purpose. While using, you are expected to strictly follow the",声明：本プロジェクトは同人制作であり、miHoYo / HoYoverse とは無関係です。引用素材の権利は各権利者に帰属します。本プロジェクトのコードの 90% 以上は AI 生成です。本プロジェクトは学習・交流目的のみで、商用利用を禁止します。利用時は必ず次の規約を遵守してください：
+0,settings.about.disclaimer.p1.suffix,，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。,，如因使用本工具違反《原神》條款而導致帳號封禁，本專案概不負責。,. The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of「Genshin Impact」,. The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of「Genshin Impact」,なお、本ツールの使用により『原神』の規約に違反してアカウント停止等が発生した場合、本プロジェクトは一切責任を負いません。
+0,settings.about.disclaimer.p2,使用此网页应用时即默认表示您已阅读并同意以上声明。,使用本網頁應用即視為您已閱讀並同意以上聲明。,"By using this web app, you are deemed to have read and agreed to the above declaration.","By using this web app, you are deemed to have read and agreed to the above declaration.",本 Web アプリを使用した時点で、上記の声明を読み同意したものとみなします。
+0,settings.about.license.appName,"《原神·千星奇域》节点图模拟器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","《原神·千星奇域》節點圖模擬器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","『原神・千星奇域』ノードグラフシミュレーター（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）"
+0,settings.about.license.copyright,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev
+0,settings.about.license.p1,"This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
+0,settings.about.license.p2,"This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
+0,settings.about.license.p3.link,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/
+0,settings.about.license.p3.prefix,"You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see"
+0,settings.about.license.p3.suffix,.,.,.,.,.
+0,settings.about.project.p1.license,GPL V3,GPL V3,GPL V3,GPL V3,GPL V3
+0,settings.about.project.p1.link,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor
+0,settings.about.project.p1.middle,协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：,以本協議發布（見頁面底部），程式碼託管於GitHub，歡迎各位使用者Star並參與貢獻：,"license, the source codes are available on GitHub. Feel free to star the repository and contribute:","license, the source codes are available on GitHub. Feel free to star the repository and contribute:",本プロジェクトは本ライセンスで公開され、ソースコードは GitHub で管理しています。Star や貢献を歓迎します：
+0,settings.about.project.p1.prefix,此项目基于,本專案基於,This project is released based on the,This project is released based on the,本プロジェクトは次のライセンスに基づいて公開されています：
+0,settings.about.title,关于,關於,About,About,概要
+0,settings.backToEditor,返回节点图编辑器,返回節點圖編輯器,Return to Node Graph Editor,Return to Node Graph Editor,ノードグラフエディターに戻る
+0,settings.backToHome,返回主页,返回首頁,Return to Homepage,Return to Homepage,ホームに戻る
+0,settings.collab.avatar.clear,清除头像,清除頭像,Clear avatar,Clear avatar,アバターをクリア
+0,settings.collab.avatar.error,头像处理失败，请选择图片文件,頭像處理失敗，請選擇圖片檔案,Failed to process image. Please choose an image file.,Failed to process image. Please choose an image file.,画像の処理に失敗しました。画像ファイルを選択してください。
+0,settings.collab.avatar.hint,支持常见图片格式，超过1MB将自动压缩,支援常見圖片格式；超過1MB將自動壓縮,Common image formats; over 1MB will be compressed.,Common image formats; over 1MB will be compressed.,一般的な画像形式に対応。1 MB 超は自動圧縮されます。
+0,settings.collab.avatar.label,个人头像,個人頭像,Profile picture,Profile picture,プロフィール画像
+0,settings.collab.avatar.processing,处理中...,處理中...,Processing...,Processing...,処理中...
+0,settings.collab.avatar.upload,上传头像,上傳頭像,Upload,Upload,アップロード
+0,settings.collab.nickname.fallback,用户,使用者,User,User,ユーザー
+0,settings.collab.nickname.hint,最多12个字符，不能包含空格,最多12個字元，不能包含空格,Up to 12 characters; no spaces.,Up to 12 characters; no spaces.,最大 12 文字。スペースは使用できません。
+0,settings.collab.nickname.label,默认昵称,預設暱稱,Default nickname,Default nickname,既定のニックネーム
+0,settings.collab.nickname.placeholder,请输入昵称,請輸入暱稱,Enter nickname,Enter nickname,ニックネームを入力
+0,settings.editorControls.enterInputOnNodeInsert.hint,在创建节点后立即聚焦节点库的搜索输入框（移动端推荐否）,建立節點後立即聚焦節點庫的搜尋輸入框（行動端建議關閉）,Focus the node library search box immediately after inserting a node (recommended off on mobile).,Focus the node library search box immediately after inserting a node (recommended off on mobile).,ノード挿入後にノードライブラリの検索欄へ自動フォーカス（モバイルではオフ推奨）
+0,settings.editorControls.enterInputOnNodeInsert.label,插入节点时是否立刻进入输入模式,插入節點時立即進入輸入模式,Enter Input Mode When Inserting a Node,Enter Input Mode When Inserting a Node,ノード挿入時に入力モードへ移行
+0,settings.editorControls.multiSelect.box,框选选择,框選選擇,Box Selection,Box Selection,ボックス選択
+0,settings.editorControls.multiSelect.box.desc,节点需要完全包含在选框内才能选中（蓝色选框）,節點需完全包含在選框內才會選取（藍色選框）,Node(s) must be fully inside the selection box to be selected (blue box).,Node(s) must be fully inside the selection box to be selected (blue box).,ノードが選択枠内に完全に入っている場合のみ選択（青枠）
+0,settings.editorControls.multiSelect.label,*多选模式,*多選模式,*Multi-Select Option,*Multi-Select Option,*複数選択モード
+0,settings.editorControls.multiSelect.leftBoxRightTouch,向左框选/向右接触,向左框選／向右接觸,Left for Box Selection / Right for Touch Selection,Left for Box Selection / Right for Touch Selection,左：ボックス選択／右：タッチ選択
+0,settings.editorControls.multiSelect.leftBoxRightTouch.desc,向左拖动使用框选，向右拖动使用触碰。,向左拖動使用框選，向右拖動使用接觸。,"Drag left for box selection, drag right for touch selection.","Drag left for box selection, drag right for touch selection.",左にドラッグでボックス選択、右にドラッグでタッチ選択
+0,settings.editorControls.multiSelect.leftTouchRightBox,向左接触/向右框选,向左接觸／向右框選,Left for Touch Selection / Right for Box Selection,Left for Touch Selection / Right for Box Selection,左：タッチ選択／右：ボックス選択
+0,settings.editorControls.multiSelect.leftTouchRightBox.desc,向左拖动使用触碰选择，向右拖动使用框选。,向左拖動使用接觸選擇，向右拖動使用框選。,"Drag left for touch selection, drag right for box selection.","Drag left for touch selection, drag right for box selection.",左にドラッグでタッチ選択、右にドラッグでボックス選択
+0,settings.editorControls.multiSelect.touch,接触选择,接觸選擇,Touch Selection,Touch Selection,タッチ選択
+0,settings.editorControls.multiSelect.touch.desc,选框触碰到节点即可选中（绿色选框）,選框碰到節點即會選取（綠色選框）,Node(s) are selected as long as the selection box touches them (green box).,Node(s) are selected as long as the selection box touches them (green box).,選択枠がノードに触れれば選択（緑枠）
+0,settings.editorControls.panButton.hint,选择平移画布时使用的鼠标按键,選擇平移畫布時使用的滑鼠按鍵,Choose the mouse button used to pan the canvas,Choose the mouse button used to pan the canvas,キャンバス移動に使うマウスボタンを選択
+0,settings.editorControls.panButton.label,*平移画布,*平移畫布,*Canvas Movement,*Canvas Movement,*キャンバス移動
+0,settings.editorControls.panButton.middle,中键,中鍵,Middle Button,Middle Button,中ボタン
+0,settings.editorControls.panButton.right,右键,右鍵,Right Button,Right Button,右ボタン
+0,settings.editorControls.searchAllLanguages.hint,启用后，可用其它语言的节点名进行搜索，并在节点名旁以括号显示匹配语言的名称。,啟用後，可用其他語言的節點名搜尋，並在節點名旁以括号显示匹配语言的名称。,"When enabled, search matches node titles in all languages and shows the matched language in parentheses.","When enabled, search matches node titles in all languages and shows the matched language in parentheses.",有効化すると、全言語のノード名で検索でき、括弧内に一致した言語名を表示します。
+0,settings.editorControls.searchAllLanguages.label,允许搜索所有语言的节点名,允許搜尋所有語言的節點名,Allow Searching Node Titles Across All Languages,Allow Searching Node Titles Across All Languages,全言語のノード名を検索対象にする
+0,settings.editorControls.tip,* 标记的设置对触摸模式无效,* 標記的設定在觸控模式下無效,Settings marked with * do not apply in touch mode.,Settings marked with * do not apply in touch mode.,*印の設定はタッチモードでは無効です
+0,settings.editorControls.touchNote,当前检测为触摸环境，部分设置将不会生效,目前偵測為觸控環境，部分設定不會生效,Touch environment detected. Some settings will not take effect.,Touch environment detected. Some settings will not take effect.,タッチ環境が検出されました。一部の設定は適用されません。
+0,settings.editorControls.zoomControl.both,同时启用,同時啟用,Enable Both,Enable Both,両方有効
+0,settings.editorControls.zoomControl.hint,选择缩放时使用的方式,選擇縮放方式,Choose how to zoom,Choose how to zoom,ズーム方法を選択
+0,settings.editorControls.zoomControl.keys,Ctrl +/-,Ctrl +/-,Ctrl +/-,Ctrl +/-,Ctrl +/-
+0,settings.editorControls.zoomControl.label,*画布缩放,*畫布縮放,*Canvas Zoom,*Canvas Zoom,*キャンバスズーム
+0,settings.editorControls.zoomControl.wheel,鼠标滚轮,滑鼠滾輪,Mouse Wheel,Mouse Wheel,マウスホイール
+0,settings.giaExport.enable.hint,允许导出为GIA文件（实验）,允許匯出為GIA檔案（實驗）,Allow exporting as GIA File (Experimental),Allow exporting as GIA File (Experimental),GIA ファイルとしてエクスポートを許可（実験的機能）
+0,settings.giaExport.enable.label,实验：开启GIA导出功能,實驗：啟用GIA匯出功能,Experimental: Enable GIA Export,Experimental: Enable GIA Export,実験：GIA エクスポートを有効化
+0,settings.giaExport.fixedUid.hint,UID需为9~10位数字,UID需為9～10位數字,UID must be 9–10 digits,UID must be 9–10 digits,UID は 9～10 桁の数字です
+0,settings.giaExport.fixedUid.placeholder,请输入UID（9~10位数字）,請輸入UID（9～10位數字）,Enter UID (9–10 digits),Enter UID (9–10 digits),UID を入力（9～10 桁）
+0,settings.giaExport.uidMode.fixed,固定UID,固定UID,Fixed UID,Fixed UID,固定 UID
+0,settings.giaExport.uidMode.label,设定UID,設定UID,UID Setting,UID Setting,UID 設定
+0,settings.giaExport.uidMode.perExport,导出时随机生成,匯出時隨機產生,Randomly Generate on Export,Randomly Generate on Export,エクスポート時にランダム生成
+0,settings.giaExport.uidMode.perSession,每次进入网页时随机生成,每次進入網頁時隨機產生,Randomly Generate on Every Visit,Randomly Generate on Every Visit,アクセスごとにランダム生成
+0,settings.gilExport.enable.hint,允许导出为GIL存档（实验）,允許匯出為GIL存檔（實驗）,Allow exporting as GIL Save (Experimental),Allow exporting as GIL Save (Experimental),GIL 保存としてエクスポートを許可（実験的機能）
+0,settings.gilExport.enable.label,实验：开启GIL导出功能,實驗：啟用GIL匯出功能,Experimental: Enable GIL Export,Experimental: Enable GIL Export,実験：GIL エクスポートを有効化
+0,settings.global.pointerStyle.hint,切换网站使用的鼠标样式,切換網站使用的滑鼠樣式,Switch the cursor style used on this website,Switch the cursor style used on this website,Web サイトのカーソルスタイルを切り替え
+0,settings.global.pointerStyle.label,指针样式,指標樣式,Cursor Style,Cursor Style,カーソルスタイル
+0,settings.global.pointerStyle.sandbox,千星沙箱,千星沙箱,Miliastra Sandbox,Miliastra Sandbox,ミリアストラ サンドボックス
+0,settings.global.pointerStyle.system,系统,系統,System,System,システム
+0,settings.global.primaryLanguage.hint,优先使用此语言显示界面文字。,優先使用此語言顯示介面文字。,Primary language for the UI,Primary language for the UI,UI の優先言語
+0,settings.global.primaryLanguage.label,UI语言（首选） | Language (Main) | UI言語（主）,UI語言（首選） | Language (Main) | UI言語（主）,Interface Language (Primary) | UI語言（首選） | UI言語（主）,Interface Language (Primary) | UI語言（首選） | UI言語（主）,UI 言語（主） | Language (Main) | UI 語言（首選）
+0,settings.global.secondaryLanguage.hint,当首选语言缺少某条文本时，使用此语言作为备用,當首選語言缺少某條文字時，使用此語言作為備用,"If the primary language lacks a key, this language will be used as fallback.","If the primary language lacks a key, this language will be used as fallback.",主言語に項目がない場合、この言語をフォールバックとして使用します
+0,settings.global.secondaryLanguage.label,UI语言（备用）| Language (Backup) | UI言語（スペア）,UI語言（備用）| Language (Backup) | UI言語（スペア）,Interface Language (Backup) | UI語言（備用） | UI言語（スペア）,Interface Language (Backup) | UI語言（備用） | UI言語（スペア）,UI 言語（スペア）| Language (Backup) | UI 語言（備用）
+0,settings.group.collaboration,共享设置,共享設定,Sharing Settings,Sharing Settings,共有設定
+0,settings.group.editorControls,节点图编辑器控制,節點圖編輯器控制,Node Graph Editor Controls,Node Graph Editor Controls,ノードグラフエディター操作
+0,settings.group.giaExport,GIA导出设置,GIA匯出設定,GIA Export Settings,GIA Export Settings,GIA エクスポート設定
+0,settings.group.gilExport,GIL导出设置,GIL匯出設定,GIL Export Settings,GIL Export Settings,GIL エクスポート設定
+0,settings.group.global,全局设置,全域設定,Global Settings,Global Settings,全般設定
+0,settings.subtitle,所有设置数据包括头像仅保存在本地浏览器,所有設定資料（含頭像）僅儲存在本機瀏覽器中,All settings data (incl. avatar image) are stored locally in the browser only,All settings data (incl. avatar image) are stored locally in the browser only,設定データ（アバター含む）はブラウザーのローカルにのみ保存されます
+0,settings.tabs.collaboration,个人资料设置,個人資料設定,Profile Settings,Profile Settings,プロフィール設定
+0,settings.tabs.export,导出设置,匯出設定,Export Settings,Export Settings,エクスポート設定
+0,settings.tabs.general,通用设置,一般設定,General Settings,General Settings,一般設定
+0,settings.title,设置,設定,Settings,Settings,設定
+1,struct.defaultName,结构体,結構,Structure,Structure,構造体
+1,struct.field.defaultKey,变量,變數,Variable,Variable,変数
+1,struct.kind.basic,基础结构体,基礎結構,Basic Structure,Basic Structure,基礎構造体
+1,struct.kind.runtime,局内存档结构体,局内存檔資料結構,In-Game Data Structure,In-Game Data Structure,ステージ内データ構造体
+1,struct.paramType.army,阵营,陣營,Faction,Faction,陣営
+1,struct.paramType.armyList,阵营列表,陣營列表,Faction List,Faction List,陣営リスト
+1,struct.paramType.bool,布尔值,布林值,Boolean,Boolean,ブール値
+1,struct.paramType.boolList,布尔值列表,布林值列表,Boolean List,Boolean List,ブール値リスト
+1,struct.paramType.configId,配置ID,配置ID,Configuration ID,Configuration ID,配置 ID
+1,struct.paramType.configIdList,配置ID列表,配置ID列表,Configuration ID List,Configuration ID List,配置 ID リスト
+1,struct.paramType.dict,字典,字典,Dictionary,Dictionary,辞書
+1,struct.paramType.dictList,字典列表,字典列表,Dictionary List,Dictionary List,辞書リスト
+1,struct.paramType.entity,实体,實體,Entity,Entity,エンティティ
+1,struct.paramType.entityId,元件ID,元件ID,Prefab ID,Prefab ID,プレハブ ID
+1,struct.paramType.entityIdList,元件ID列表,元件ID列表,Prefab ID List,Prefab ID List,プレハブ ID リスト
+1,struct.paramType.entityList,实体列表,實體列表,Entity List,Entity List,エンティティリスト
+1,struct.paramType.float,浮点数,浮點數,Floating Point Number,Floating Point Number,浮動小数点数
+1,struct.paramType.floatList,浮点数列表,浮點數列表,Floating Point List,Floating Point List,浮動小数点数リスト
+1,struct.paramType.guid,GUID,GUID,GUID,GUID,GUID
+1,struct.paramType.guidList,GUID列表,GUID列表,GUID List,GUID List,GUID リスト
+1,struct.paramType.int32,整数,整數,Integer,Integer,整数
+1,struct.paramType.int32List,整数列表,整數列表,Integer List,Integer List,整数リスト
+1,struct.paramType.string,字符串,字串,String,String,文字列
+1,struct.paramType.stringList,字符串列表,字串列表,String List,String List,文字列リスト
+1,struct.paramType.struct,结构体,結構,Structure,Structure,構造体
+1,struct.paramType.structList,结构体列表,結構列表,Structure List,Structure List,構造体リスト
+1,struct.paramType.vector3,三维向量,三維向量,3D Vector,3D Vector,3D ベクトル
+1,struct.paramType.vector3List,三维向量列表,三維向量列表,3D Vector List,3D Vector List,3D ベクトルリスト
+0,struct.validation.dictKeyLabel,的第 {index} 个键,的第 {index} 個鍵,Key at index {index},Key at index {index},キー（{index}）
+0,struct.validation.dictListLabel,的第 {index} 个字典,的第 {index} 個字典,Dictionary at index {index},Dictionary at index {index},辞書（{index}）
+0,struct.validation.dictValueLabel,的第 {index} 个值,的第 {index} 個值,Value at index {index},Value at index {index},値（{index}）
+0,struct.validation.invalidFormat,{label} 格式无效,{label} 格式無效,{label} format is invalid,{label} format is invalid,{label} の形式が無効です
+0,struct.validation.listItemLabel,的第 {index} 项,的第 {index} 項,Item at index {index},Item at index {index},項目（{index}）
+0,struct.validation.mustBeBool,需为布尔值,需為布林值,Must be a boolean,Must be a boolean,ブール値である必要があります
+0,struct.validation.mustBeFloat,需为浮点数,需為浮點數,Must be a float,Must be a float,浮動小数点である必要があります
+0,struct.validation.mustBeGuid,需为合法的 GUID,需為合法的 GUID,Must be a valid GUID,Must be a valid GUID,有効な GUID である必要があります
+0,struct.validation.mustBeInteger,需为整数,需為整數,Must be an integer,Must be an integer,整数である必要があります
+0,struct.validation.mustBePositiveInteger,需为正整数,需為正整數,Must be a positive integer,Must be a positive integer,正の整数である必要があります
+0,struct.validation.mustBeVector3,"需为三维向量 (x,y,z)","需為三維向量 (x,y,z)","Must be a 3D vector (x,y,z)","Must be a 3D vector (x,y,z)","3D ベクトル（x,y,z）である必要があります"
+0,struct.validation.structListInvalidRef,的第 {index} 个引用无效,的第 {index} 個引用無效,Reference at index {index} is invalid,Reference at index {index} is invalid,参照（{index}）が無効です
+0,struct.validation.variableIndex,第 {index} 个变量,第 {index} 個變數,Variable #{index},Variable #{index},変数 {index}
+0,struct.validation.variableNamed,变量「{name}」,變數「{name}」,Variable「{name}」,Variable「{name}」,変数「{name}」
+1,structManager.actions.applyAll,全部应用,全部應用,Apply All,Apply All,全て適用
+1,structManager.actions.createStruct,创建结构体,建立結構,Create Structure,Create Structure,構造体を作成
+0,structManager.copyConfigId,复制配置ID,複製設定ID,Copy Configuration ID,Copy Configuration ID,設定 ID をコピー
+0,structManager.deleteStruct.message,确认删除该结构体吗？,確定要刪除此結構體嗎？,Confirm to delete this structure?,Confirm to delete this structure?,この構造体を削除しますか？
+0,structManager.deleteStruct.title,删除结构体,刪除結構體,Delete Structure,Delete Structure,構造体を削除
+0,structManager.dict.addEntry,添加键值,添加鍵值,Add KV Pair,Add KV Pair,キー／値を追加
+0,structManager.empty,请选择结构体以开始编辑,請選擇結構體以開始編輯,Select a structure to start editing,Select a structure to start editing,編集する構造体を選択してください
+0,structManager.error.invalidStruct,当前结构体存在非法结构，无法保存。,目前結構體含有非法結構，無法儲存。,Invalid structure; unable to save.,Invalid structure; unable to save.,構造体が不正のため保存できません
+0,structManager.exportGroup.empty,该页签下没有结构体,此分頁下沒有結構體,No structures under this tab,No structures under this tab,このタブに構造体はありません
+0,structManager.exportGroup.errorTitle,导出失败,匯出失敗,Export Failed,Export Failed,エクスポートに失敗しました
+1,structManager.field.add,新增变量,新增變量,Add New Variables,Add New Variables,変数を追加
+1,structManager.field.newKey,新增变量{index},新增變數{index},Add variable {index},Add variable {index},新規変数{index}
+1,structManager.group.create,新建页签,新建分頁,New Tab,New Tab,タブを新規作成
+1,structManager.group.disband,解散页签,解散分頁,Remove Tab,Remove Tab,タブを削除
+0,structManager.group.exportZip,导出页签为Zip,匯出分頁為Zip,Export Tab as Zip,Export Tab as Zip,タブを Zip としてエクスポート
+0,structManager.group.importZip,导入Zip页签,匯入Zip分頁,Import Tab from Zip,Import Tab from Zip,Zip からタブをインポート
+0,structManager.groupDialog.createTitle,新建页签,新增分頁,New Tab,New Tab,新しいタブ
+0,structManager.groupDialog.namePlaceholder,页签名称,分頁名稱,Tab name,Tab name,タブ名
+1,structManager.groupDialog.renameTitle,重命名页签,重新命名,Rename Tab,Rename Tab,名前の変更
+0,structManager.import.errorTitle,导入失败,匯入失敗,Import Failed,Import Failed,インポートに失敗しました
+0,structManager.import.errorWithReason,导入失败：{error},匯入失敗：{error},Import failed: {error},Import failed: {error},インポートに失敗しました：{error}
+0,structManager.import.variables.invalidFormat,变量文件格式不正确,變數檔案格式不正確,Invalid variable file format,Invalid variable file format,変数ファイル形式が不正です
+0,structManager.import.zip.noStructFiles,Zip中没有可用的结构体文件,Zip中沒有可用的結構體檔案,No valid structure files found in the Zip,No valid structure files found in the Zip,Zip 内に有効な構造体ファイルが見つかりません
+0,structManager.import.zip.parseFailed,Zip文件解析失败,Zip檔案解析失敗,Failed to parse Zip file,Failed to parse Zip file,Zip ファイルの解析に失敗しました
+0,structManager.import.zip.successMessage,成功导入 {count} 个结构体,成功匯入 {count} 個結構體,Successfully imported {count} structure(s),Successfully imported {count} structure(s),{count} 件の構造体をインポートしました
+0,structManager.import.zip.successTitle,导入完成,匯入完成,Import Successful,Import Successful,インポート完了
+0,structManager.search.placeholder,搜索结构体...,搜尋結構體...,Search structures...,Search structures...,構造体を検索...
+1,structManager.struct.changeGroup,更改页签,更改分頁,Change Tab,Change Tab,タブを変更
+1,structManager.struct.create,新建结构体,新建結構,New Structure,New Structure,構造体を作成
+1,structManager.struct.import,导入结构体,匯入結構,Import Structure,Import Structure,構造体をインポート
+0,structManager.validationDialog.title,变量校验失败,變數驗證失敗,Validation Failed,Validation Failed,検証に失敗しました
+1,structManager.variables.export,导出变量,匯出變量,Export Variables,Export Variables,変数をエクスポート
+1,structManager.variables.import,导入变量,匯入變量,Import Variables,Import Variables,変数をインポート
+1,tabs.explorer.client,客户端节点图资源管理器,用戶端節點圖資源總管,Client Node Graph Resource Explorer,Client Node Graph Resource Explorer,クライアントノードグラフリソースマネージャー
+1,tabs.explorer.server,服务器节点图资源管理器,伺服器節點圖資源總管,Server Node Graph Resource Explorer,Server Node Graph Resource Explorer,サーバーノードグラフリソースマネージャー
+1,tabs.structManager,高级数据管理器,高級資料管理器,Advanced Data Management,Advanced Data Management,アドバンスデータ管理
+0,tutorial.catalog.aria,教程目录,教學目錄,Catalog,Catalog,目次
+0,tutorial.catalog.collapseSection,折叠章节,摺疊章節,Collapse section,Collapse section,章を折りたたむ
+0,tutorial.catalog.count,共 {count} 篇条目,共 {count} 篇條目,{count} entries in total,{count} entries in total,全 {count} 件
+0,tutorial.catalog.expandSection,展开章节,展開章節,Expand section,Expand section,章を展開
+0,tutorial.catalog.loadFailed,目录加载失败,目錄載入失敗,Failed to load catalog,Failed to load catalog,目次の読み込みに失敗しました
+0,tutorial.catalog.loadFailedWithStatus,目录加载失败 ({status}),目錄載入失敗（{status}）,Failed to load catalog ({status}),Failed to load catalog ({status}),目次の読み込みに失敗しました（{status}）
+0,tutorial.catalog.loading,目录加载中...,目錄載入中...,Loading catalog...,Loading catalog...,目次を読み込み中...
+0,tutorial.catalog.noMatch,未找到匹配的条目,找不到符合的條目,No matched entry found,No matched entry found,該当する項目が見つかりません
+1,tutorial.catalog.title.course,课程目录,課程目錄,Tutorial Catalog,Tutorial Catalog,チュートリアル目次
+1,tutorial.catalog.title.knowledge,知识库目录,知識庫目錄,General Guide Catalog,General Guide Catalog,総合ガイド目次
+0,tutorial.content.loading,内容加载中...,內容載入中...,Loading contents...,Loading contents...,内容を読み込み中...
+0,tutorial.content.notFound,未找到对应内容,找不到對應內容,Content not found,Content not found,内容が見つかりません
+0,tutorial.download.button,下载 {name},下載 {name},Download {name},Download {name},{name} をダウンロード
+0,tutorial.download.fallbackName,资源文件,資源檔案,Resource,Resource,リソース
+0,tutorial.download.prefix,tutorial,tutorial,tutorial,tutorial,tutorial
+0,tutorial.landing.desc.prefix,运行在本地的官方综合指南镜像版，灵感来源于,在本機執行的官方綜合指南鏡像版，靈感來源於,"Mirror of the official Craftspeople Academy running locally, inspired by","Mirror of the official Craftspeople Academy running locally, inspired by",ローカルで動作する公式総合ガイドのミラー版。着想元：
+0,tutorial.landing.enter,进入,進入,Enter,Enter,入る
+1,tutorial.landing.title,综合指南,綜合指南,General Guide,General Guide,総合ガイド
+1,tutorial.logoAlt,原神·千星奇域,原神·千星奇域,Genshin Impact - Miliastra Wonderland,Genshin Impact - Miliastra Wonderland,原神・千星奇域
+0,tutorial.meta.updatedAt,最近更新：,最近更新：,Last updated:,Last updated:,最終更新：
+0,tutorial.placeholder.comingSoon,内容建设中，敬请期待。,內容建設中，敬請期待。,New contents coming soon...,New contents coming soon...,準備中です。お楽しみに。
+0,tutorial.placeholder.title,文档建设中,文件建設中,Document to be added,Document to be added,ドキュメント準備中
+0,tutorial.search.placeholder,搜索文档,搜尋文件,Search Files,Search Files,ファイルを検索
+1,tutorial.slogan,悠游千星，共筑奇域,悠遊千星，共築奇域,"Wander the Thousand Stars, Shape Myriads of Wonderlands","Wander the Thousand Stars, Shape Myriads of Wonderlands",千星を巡り、奇域を共に築く
+1,tutorial.tabs.course,教程,教學,Tutorial,Tutorial,チュートリアル
+0,tutorial.tabs.course.desc,任务式教学课程,任務式教學課程,Lesson-like tutorial courses,Lesson-like tutorial courses,タスク形式の学習コース
+1,tutorial.tabs.knowledge,综合指南,綜合指南,General Guide,General Guide,総合ガイド
+0,tutorial.tabs.knowledge.desc,专题文档索引,專題文件索引,Guidance documents,Guidance documents,トピック別ドキュメント

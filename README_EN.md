@@ -151,7 +151,7 @@ npm run dev
 
 #### Collaborative Editing (Experimental)
 
-##### Hosted domains (miliastra.columbina.dev / beta.miliastra.columbina.dev)
+**Hosted domains (miliastra.columbina.dev / beta.miliastra.columbina.dev)**
 
 1. Run the signaling server (`web/scripts/collabServer.mjs`) on a Node.js host that supports WebSocket connections. Setting env vars in Vercel only tells the frontend where to connect; it does not run the signaling server for you.
 2. Expose the signaling server to the internet and allow WebSocket traffic on that port. For HTTPS sites, use `wss://` via a reverse proxy if needed.
@@ -160,7 +160,7 @@ npm run dev
    - Or `VITE_COLLAB_SIGNAL_HOST=your-signal-domain.example.com` + `VITE_COLLAB_SIGNAL_PORT=5174`
 4. Deploy the web app. The shared/public signaling server is intended only for `miliastra.columbina.dev` and `beta.miliastra.columbina.dev`; for any other domain, host your own signaling server.
 
-##### Local dev / LAN (`npm run dev`)
+**Local dev / LAN (`npm run dev`)**
 
 1. Run `npm install` once, then `npm run dev`. This starts Vite with `--host` and the signaling server together.
 2. On each device, open `http://<your-lan-ip>:5173` (replace with the IP shown by Vite). The app will connect to the signaling server on `:5174` by default.
