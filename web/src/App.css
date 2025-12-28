@@ -1020,6 +1020,7 @@ option {
   gap: 18px;
   box-shadow: 0 24px 60px rgba(0, 0, 0, 0.55);
   overflow: auto;
+  cursor: var(--cursor-pointer);
 }
 
 .collab-modal__header h2 {
@@ -1052,6 +1053,7 @@ option {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  cursor: var(--cursor-pointer);
 }
 
 .collab-field label {
