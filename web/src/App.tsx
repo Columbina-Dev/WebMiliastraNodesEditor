@@ -876,6 +876,7 @@ const App = () => {
     };
     setPublicJoinTarget({ server, room, password: initialJoinRequest.password });
     setPublicJoinPassword(initialJoinRequest.password ?? '');
+    setPublicJoinResolved(false);
   }, [initialJoinRequest]);
 
   const [tutorialRoute, setTutorialRoute] = useState<TutorialRoute>(() =>
@@ -957,7 +958,9 @@ const App = () => {
   const [signalShares, setSignalShares] = useState<SignalShareEntry[]>([]);
   const pendingNetworkRefreshRef = useRef(false);
   const [publicServers, setPublicServers] = useState<PublicServerEntry[]>(() => loadPublicServers());
-  const [publicSignalStatus, setPublicSignalStatus] = useState<'disconnected' | 'connecting' | 'connected'>('disconnected');
+  const [publicSignalStatus, setPublicSignalStatus] = useState<
+    'disconnected' | 'connecting' | 'connected' | 'failed'
+  >('disconnected');
   const publicSignalSocketRef = useRef<WebSocket | null>(null);
   const [publicRooms, setPublicRooms] = useState<PublicRoomEntry[]>([]);
   const [activePublicServer, setActivePublicServer] = useState<PublicServerEntry | null>(null);
@@ -976,6 +979,7 @@ const App = () => {
   const [publicJoinPassword, setPublicJoinPassword] = useState('');
   const [publicJoinRequestCooldown, setPublicJoinRequestCooldown] = useState(0);
   const [publicJoinError, setPublicJoinError] = useState<string | null>(null);
+  const [publicJoinResolved, setPublicJoinResolved] = useState(false);
   const publicJoinLookupRef = useRef<{ key: string; lastSentAt: number } | null>(null);
   const [collabRoomId, setCollabRoomId] = useState<string | null>(null);
   const [pendingJoinRoomId, setPendingJoinRoomId] = useState<string | null>(null);
@@ -1361,6 +1365,7 @@ const App = () => {
     setPublicJoinError(null);
     if (!publicJoinTarget) {
       publicJoinRoomIdRef.current = null;
+      setPublicJoinResolved(false);
       return;
     }
     const roomId = publicJoinTarget.room.roomId;
@@ -2384,6 +2389,7 @@ const App = () => {
         setPublicRooms([]);
         const url = buildPublicSignalUrl(normalizedServer);
         const socket = new WebSocket(url);
+        let didOpen = false;
         publicSignalSocketRef.current = socket;
         publicConnectResolverRef.current = () => {
           resolve(normalizedServer);
@@ -2399,6 +2405,7 @@ const App = () => {
         };
 
         socket.addEventListener('open', () => {
+          didOpen = true;
           setPublicSignalStatus('connected');
           socket.send(
             JSON.stringify({
@@ -2431,7 +2438,7 @@ const App = () => {
           const isActiveSocket = publicSignalSocketRef.current === socket;
           if (isActiveSocket) {
             publicSignalSocketRef.current = null;
-            setPublicSignalStatus('disconnected');
+            setPublicSignalStatus(didOpen ? 'disconnected' : 'failed');
             setPublicRooms([]);
             if (collabSignalKindRef.current === 'public' && collabModeRef.current !== 'idle') {
               leaveCollaboratorSession('collab.disconnect.owner');
@@ -2492,36 +2499,34 @@ const App = () => {
         }
       } catch (error) {
         console.error(error);
-        openInfoDialog(t('common.error'), t('collab.publicServer.connectFailed'));
+        setPublicSignalStatus('failed');
       }
     },
-    [connectPublicSignal, openInfoDialog, sendPublicSignalMessage, t],
+    [connectPublicSignal, sendPublicSignalMessage, setPublicSignalStatus],
   );
 
   const handleRequestPublicJoin = useCallback((server: PublicServerEntry, room: PublicRoomEntry) => {
+    setPublicJoinResolved(true);
     setPublicJoinTarget({ server, room });
   }, []);
 
-  useEffect(() => {
-    if (!publicJoinTarget) {
-      publicJoinLookupRef.current = null;
-      return;
-    }
-    const roomId = publicJoinTarget.room.roomId;
-    if (!roomId) return;
-    if (publicJoinTarget.room.name && publicJoinTarget.room.name !== roomId) return;
-    const lookupKey = `${publicJoinTarget.server.host}:${publicJoinTarget.server.port ?? ''}:${roomId}`;
-    const now = Date.now();
-    const lastLookup = publicJoinLookupRef.current;
-    if (lastLookup && lastLookup.key === lookupKey && now - lastLookup.lastSentAt < PUBLIC_JOIN_LOOKUP_INTERVAL_MS) {
-      return;
-    }
-    publicJoinLookupRef.current = { key: lookupKey, lastSentAt: now };
-    let cancelled = false;
-    const lookup = async () => {
+  const requestPublicJoinRoomInfo = useCallback(
+    async (target: PublicJoinTarget) => {
+      const roomId = target.room.roomId;
+      if (!roomId) return;
+      const lookupKey = `${target.server.host}:${target.server.port ?? ''}:${roomId}`;
+      const now = Date.now();
+      const lastLookup = publicJoinLookupRef.current;
+      if (
+        lastLookup &&
+        lastLookup.key === lookupKey &&
+        now - lastLookup.lastSentAt < PUBLIC_JOIN_LOOKUP_INTERVAL_MS
+      ) {
+        return;
+      }
+      publicJoinLookupRef.current = { key: lookupKey, lastSentAt: now };
       try {
-        await connectPublicSignal(publicJoinTarget.server);
-        if (cancelled) return;
+        await connectPublicSignal(target.server);
         sendPublicSignalMessage({
           type: 'room:list',
           query: roomId,
@@ -2534,12 +2539,31 @@ const App = () => {
       } catch (error) {
         console.error(error);
       }
-    };
-    void lookup();
-    return () => {
-      cancelled = true;
-    };
-  }, [connectPublicSignal, publicJoinTarget, sendPublicSignalMessage]);
+    },
+    [connectPublicSignal, sendPublicSignalMessage],
+  );
+
+  useEffect(() => {
+    if (!publicJoinTarget) {
+      publicJoinLookupRef.current = null;
+      return;
+    }
+    if (
+      publicJoinTarget.room.name &&
+      publicJoinTarget.room.name !== publicJoinTarget.room.roomId
+    ) {
+      return;
+    }
+    void requestPublicJoinRoomInfo(publicJoinTarget);
+  }, [publicJoinTarget, requestPublicJoinRoomInfo]);
+
+  useEffect(() => {
+    if (!publicJoinTarget || publicJoinResolved || publicJoinError) return;
+    const intervalId = window.setInterval(() => {
+      void requestPublicJoinRoomInfo(publicJoinTarget);
+    }, PUBLIC_JOIN_LOOKUP_INTERVAL_MS);
+    return () => window.clearInterval(intervalId);
+  }, [publicJoinError, publicJoinResolved, publicJoinTarget, requestPublicJoinRoomInfo]);
 
   const handleConfirmPublicJoin = useCallback(async () => {
     if (!publicJoinTarget) return;
@@ -2646,6 +2670,8 @@ const App = () => {
 
   const handlePublicJoinCancel = useCallback(() => {
     setPublicJoinTarget(null);
+    setPublicJoinResolved(false);
+    setPublicJoinError(null);
   }, []);
 
   const handleProjectFileChange = useCallback(
@@ -4400,6 +4426,8 @@ const App = () => {
             if (!prev || !Array.isArray(message.rooms)) return prev;
             const match = message.rooms.find((room) => room.roomId === prev.room.roomId);
             if (!match) return prev;
+            setPublicJoinResolved(true);
+            setPublicJoinError(null);
             const mergedRoom = { ...prev.room, ...match };
             if (arePublicRoomsEqual(prev.room, mergedRoom)) {
               return prev;
@@ -4423,6 +4451,7 @@ const App = () => {
           if (!message.room) return;
           if (publicJoinTarget && publicJoinTarget.room.roomId === message.roomId) {
             setPublicJoinError(null);
+            setPublicJoinResolved(true);
           }
           setPublicJoinTarget((prev) => {
             if (!prev || prev.room.roomId !== message.roomId) return prev;
@@ -4491,6 +4520,7 @@ const App = () => {
     setCollabRoomId,
     publicJoinTarget,
     setPublicJoinError,
+    setPublicJoinResolved,
     setShareError,
     setPublicRooms,
     t,
@@ -5793,14 +5823,15 @@ const handleSaveGraphAs = useCallback(() => {
 
   const renderPublicJoinModal = () => {
     if (!publicJoinTarget || view !== 'home') return null;
-    const requiresPassword = publicJoinTarget.room.requiresPassword;
-    const joinTitle = publicJoinTarget.room.name || publicJoinTarget.room.roomId;
+    const hasRoomInfo = publicJoinResolved && !publicJoinError;
+    const requiresPassword = hasRoomInfo ? publicJoinTarget.room.requiresPassword : Boolean(publicJoinTarget.password);
+    const joinTitle = publicJoinTarget.room.name?.trim() || publicJoinTarget.room.roomId;
     const trimmedNickname = sanitizeNickname(publicJoinNickname) || localNickname;
     const trimmedPassword = publicJoinPassword.trim();
     const isPasswordValid = /^\d{6}$/.test(trimmedPassword);
     const showPasswordHint = requiresPassword && trimmedPassword.length > 0 && !isPasswordValid;
-    const canSubmit = Boolean(trimmedNickname);
-    const canJoin = canSubmit && (!requiresPassword || isPasswordValid);
+    const canSubmit = Boolean(trimmedNickname) && (hasRoomInfo || Boolean(publicJoinTarget.password));
+    const canJoin = canSubmit && (!requiresPassword || isPasswordValid) && hasRoomInfo;
     return (
       <div className="home__join-overlay" role="dialog" aria-modal="true">
         <div className="home__join-modal" role="document">
@@ -5843,7 +5874,7 @@ const handleSaveGraphAs = useCallback(() => {
                   onClick={() => {
                     void handleSendPublicJoinRequest();
                   }}
-                  disabled={!canSubmit || publicJoinRequestCooldown > 0}
+                  disabled={!canSubmit || publicJoinRequestCooldown > 0 || !hasRoomInfo}
                 >
                   {publicJoinRequestCooldown > 0
                     ? t('home.network.join.requestCooldown', { seconds: publicJoinRequestCooldown })
@@ -5854,6 +5885,9 @@ const handleSaveGraphAs = useCallback(() => {
                 <div className="home__join-hint">{t('collab.share.password.invalid')}</div>
               )}
             </div>
+          )}
+          {!hasRoomInfo && !publicJoinError && (
+            <div className="home__join-hint">{t('home.publicServers.connecting')}</div>
           )}
           {publicJoinError && <div className="home__join-hint">{publicJoinError}</div>}
           <div className="home__join-actions">

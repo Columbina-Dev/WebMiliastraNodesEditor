@@ -58,7 +58,7 @@ interface HomePageProps {
   onSendJoinRequest: (project: NetworkProject, nickname: string) => boolean;
   publicServers: PublicServerEntry[];
   publicRooms: PublicRoomEntry[];
-  publicServerStatus: 'disconnected' | 'connecting' | 'connected';
+  publicServerStatus: 'disconnected' | 'connecting' | 'connected' | 'failed';
   defaultPublicPort: number;
   onSavePublicServer: (server: PublicServerEntry, shouldConnect: boolean) => void;
   onSearchPublicRooms: (server: PublicServerEntry, query: string) => void;
@@ -734,7 +734,7 @@ const HomePage = ({
                     onSearchPublicRooms(browserServer, query);
                     setPublicRoomSearched(true);
                   }}
-                  disabled={publicServerStatus !== 'connected'}
+                  disabled={publicServerStatus === 'connecting'}
                   aria-label={t('home.publicServers.search')}
                   title={t('home.publicServers.search')}
                 >
@@ -746,7 +746,7 @@ const HomePage = ({
                     if (!publicRoomSearched) return;
                     onSearchPublicRooms(browserServer, publicRoomQuery.trim());
                   }}
-                  disabled={!publicRoomSearched || publicServerStatus !== 'connected'}
+                  disabled={publicServerStatus === 'connecting' || (!publicRoomSearched && publicServerStatus !== 'failed')}
                   aria-label={t('home.publicServers.refresh')}
                   title={t('home.publicServers.refresh')}
                 >
@@ -755,6 +755,9 @@ const HomePage = ({
               </div>
               {publicServerStatus === 'connecting' && (
                 <div className="home__server-hint">{t('home.publicServers.connecting')}</div>
+              )}
+              {publicServerStatus === 'failed' && (
+                <div className="home__server-hint">{t('collab.publicServer.connectFailed')}</div>
               )}
             </div>
             <div className="home__server-rooms">
