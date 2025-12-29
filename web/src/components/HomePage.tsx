@@ -61,7 +61,6 @@ interface HomePageProps {
   publicServerStatus: 'disconnected' | 'connecting' | 'connected';
   defaultPublicPort: number;
   onSavePublicServer: (server: PublicServerEntry, shouldConnect: boolean) => void;
-  onConnectPublicServer: (server: PublicServerEntry) => void;
   onSearchPublicRooms: (server: PublicServerEntry, query: string) => void;
   onRequestPublicJoin: (server: PublicServerEntry, room: PublicRoomEntry) => void;
 }
@@ -84,6 +83,7 @@ const ICON_TUTORIAL = new URL('../assets/icons/tutorial.png', import.meta.url).h
 const ICON_EFFECTS = new URL('../assets/icons/effects.png', import.meta.url).href;
 const ICON_SETTING = new URL('../assets/icons/setting.png', import.meta.url).href;
 const ICON_RELOAD = new URL('../assets/icons/reload.png', import.meta.url).href;
+const ICON_SEARCH = new URL('../assets/icons/search.svg', import.meta.url).href;
 
 const HomePage = ({
   projects,
@@ -113,7 +113,6 @@ const HomePage = ({
   publicServerStatus,
   defaultPublicPort,
   onSavePublicServer,
-  onConnectPublicServer,
   onSearchPublicRooms,
   onRequestPublicJoin,
 }: HomePageProps) => {
@@ -217,6 +216,11 @@ const HomePage = ({
   };
 
   const hasHistory = sortedProjects.length > 0;
+  const joinPasswordTrimmed = joinPassword.trim();
+  const showJoinPasswordHint =
+    Boolean(pendingJoin?.requiresPassword) &&
+    joinPasswordTrimmed.length > 0 &&
+    !/^\d{6}$/.test(joinPasswordTrimmed);
   const defaultProjectName = t('project.defaultName');
   const defaultServerAlias = useMemo(() => {
     const base = t('collab.publicServer.defaultName');
@@ -250,8 +254,8 @@ const HomePage = ({
     setBrowserServer(server);
     setIsBrowserOpen(true);
     setPublicRoomQuery('');
-    setPublicRoomSearched(false);
-    onConnectPublicServer(server);
+    setPublicRoomSearched(true);
+    onSearchPublicRooms(server, '');
   };
 
   const handleSaveServer = (shouldConnect: boolean) => {
@@ -265,11 +269,14 @@ const HomePage = ({
       host,
       port,
     };
-    onSavePublicServer(entry, shouldConnect);
-    setIsServerModalOpen(false);
-    if (shouldConnect) {
+    if (!shouldConnect) {
+      setIsServerModalOpen(false);
       openBrowser(entry);
+      return;
     }
+    onSavePublicServer(entry, true);
+    setIsServerModalOpen(false);
+    openBrowser(entry);
   };
 
   return (
@@ -592,6 +599,9 @@ const HomePage = ({
                       : t('home.network.join.request')}
                   </button>
                 </div>
+                {showJoinPasswordHint && (
+                  <div className="home__join-hint">{t('collab.share.password.invalid')}</div>
+                )}
               </div>
             )}
             <div className="home__join-actions">
@@ -628,7 +638,6 @@ const HomePage = ({
           className="home__server-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setIsServerModalOpen(false)}
         >
           <div
             className="home__server-modal"
@@ -698,7 +707,6 @@ const HomePage = ({
           className="home__server-overlay"
           role="dialog"
           aria-modal="true"
-          onClick={() => setIsBrowserOpen(false)}
         >
           <div
             className="home__server-modal home__server-modal--browser"
@@ -722,13 +730,15 @@ const HomePage = ({
                 <button
                   type="button"
                   onClick={() => {
-                    if (!publicRoomQuery.trim()) return;
-                    onSearchPublicRooms(browserServer, publicRoomQuery.trim());
+                    const query = publicRoomQuery.trim();
+                    onSearchPublicRooms(browserServer, query);
                     setPublicRoomSearched(true);
                   }}
-                  disabled={!publicRoomQuery.trim() || publicServerStatus !== 'connected'}
+                  disabled={publicServerStatus !== 'connected'}
+                  aria-label={t('home.publicServers.search')}
+                  title={t('home.publicServers.search')}
                 >
-                  {t('home.publicServers.search')}
+                  <img src={ICON_SEARCH} alt="" aria-hidden="true" />
                 </button>
                 <button
                   type="button"
@@ -737,8 +747,10 @@ const HomePage = ({
                     onSearchPublicRooms(browserServer, publicRoomQuery.trim());
                   }}
                   disabled={!publicRoomSearched || publicServerStatus !== 'connected'}
+                  aria-label={t('home.publicServers.refresh')}
+                  title={t('home.publicServers.refresh')}
                 >
-                  {t('home.publicServers.refresh')}
+                  <img src={ICON_RELOAD} alt="" aria-hidden="true" />
                 </button>
               </div>
               {publicServerStatus === 'connecting' && (
@@ -763,7 +775,7 @@ const HomePage = ({
                         className="home__server-room"
                         onClick={() => onRequestPublicJoin(browserServer, room)}
                       >
-                        <div className="home__server-room-name">{room.name}</div>
+                        <div className="home__server-room-name">{room.name || room.roomId}</div>
                         <div className="home__server-room-meta">{hint}</div>
                       </button>
                     );

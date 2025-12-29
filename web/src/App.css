@@ -48,6 +48,14 @@ textarea {
   cursor: var(--cursor-text);
 }
 
+input[type="checkbox"],
+input[type="radio"],
+input[type="button"],
+input[type="submit"],
+input[type="reset"] {
+  cursor: var(--cursor-pointer);
+}
+
 * {
   scrollbar-width: thin;
   scrollbar-color: rgba(128, 128, 128, 0.6) transparent;
@@ -1078,9 +1086,10 @@ option {
   display: flex;
   flex-direction: column;
   gap: 10px;
+  position: relative;
 }
 
-.collab-link input {
+.collab-link__input {
   width: 100%;
   border-radius: 10px;
   border: 1px solid rgba(255, 255, 255, 0.16);
@@ -1088,18 +1097,55 @@ option {
   color: inherit;
   padding: 8px 10px;
   font-size: 13px;
+  cursor: var(--cursor-pointer);
 }
 
 .collab-checkbox {
-  display: inline-flex;
+  display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 8px;
   font-size: 13px;
   color: rgba(255, 255, 255, 0.75);
+  cursor: var(--cursor-pointer);
 }
 
 .collab-checkbox input {
   accent-color: #6aa7ff;
+  cursor: var(--cursor-pointer);
+}
+
+.collab-link__hint {
+  position: absolute;
+  top: -6px;
+  right: 8px;
+  transform: translateY(-100%);
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-size: 12px;
+  background: rgba(0, 0, 0, 0.65);
+  color: #f7f7ff;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  pointer-events: none;
+  animation: collab-link-hint 1.3s ease-out;
+}
+
+@keyframes collab-link-hint {
+  0% {
+    opacity: 0;
+    transform: translateY(-80%);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-100%);
+  }
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-120%);
+  }
 }
 
 .collab-options {
@@ -1129,6 +1175,10 @@ option {
   margin: 0;
   font-size: 12px;
   color: rgba(255, 255, 255, 0.6);
+}
+
+.collab-hint--error {
+  color: #ff9b9b;
 }
 
 .collab-list {

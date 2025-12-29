@@ -109,6 +109,7 @@ const ICON_SHARE_LOCK = new URL("./assets/icons/lock.png", import.meta.url).href
 const ICON_SHARE_GLOBAL = new URL("./assets/icons/global.png", import.meta.url).href;
 const ICON_CHAT = new URL("./assets/icons/chat.png", import.meta.url).href;
 const ICON_CURSOR_DEFAULT = new URL("./assets/cursor/Default-60.png", import.meta.url).href;
+const ICON_CURSOR_DRAG = new URL("./assets/cursor/Drag-60.png", import.meta.url).href;
 
 const INVALID_FILENAME_CHARS = new Set(["\\", "/", ":", "*", "?", "\"", "<", ">", "|"]);
 const MAX_COLLAB_MEMBERS = 6;
@@ -123,8 +124,12 @@ const COLLAB_CURSOR_COLORS = [
 const COLLAB_SIGNAL_PORT = 5174;
 const COLLAB_PUBLIC_DEFAULT_PORT = 51982;
 const COLLAB_ROOM_ID_LENGTH = 16;
+const COLLAB_CURSOR_SYNC_MS = 34;
+const COLLAB_DRAG_SYNC_MS = 80;
+const PUBLIC_JOIN_LOOKUP_INTERVAL_MS = 2000;
 const COLLAB_CLIENT_ID_KEY = 'miliastra-editor:collab:clientId';
 const PUBLIC_SERVER_STORAGE_KEY = 'miliastra-editor:collab:publicServers';
+const PUBLIC_SHARE_DEFAULTS_KEY = 'miliastra-editor:collab:publicShareDefaults';
 const COLLAB_SIGNAL_RECONNECT_MS = 3000;
 const COLLAB_NETWORK_REFRESH_MS = 8000;
 const OFFICIAL_HOSTNAMES = new Set(['miliastra.columbina.dev', 'beta.miliastra.columbina.dev']);
@@ -193,6 +198,12 @@ type PublicServerEntry = {
   port?: string;
 };
 
+type PublicShareDefaults = {
+  server: string;
+  port: string;
+  apiKey: string;
+};
+
 type PublicRoomEntry = {
   roomId: string;
   name: string;
@@ -201,6 +212,14 @@ type PublicRoomEntry = {
   visibility?: 'public' | 'private';
   appVersion?: string;
 };
+
+const arePublicRoomsEqual = (left: PublicRoomEntry, right: PublicRoomEntry) =>
+  left.roomId === right.roomId &&
+  left.name === right.name &&
+  left.requiresPassword === right.requiresPassword &&
+  left.permission === right.permission &&
+  left.visibility === right.visibility &&
+  left.appVersion === right.appVersion;
 
 type PublicJoinTarget = {
   server: PublicServerEntry;
@@ -211,6 +230,7 @@ type PublicJoinTarget = {
 type SignalMessage =
   | { type: 'share:list'; shares: SignalShareEntry[] }
   | { type: 'room:list'; rooms: PublicRoomEntry[]; query?: string }
+  | { type: 'room:info'; roomId: string; room?: PublicRoomEntry | null }
   | { type: 'room:created'; roomId: string }
   | { type: 'room:error'; reason?: string; message?: string }
   | { type: 'join:request'; roomId: string; clientId: string; nickname: string; avatar?: string; password?: string; requestId?: string }
@@ -311,6 +331,23 @@ const formatServerParam = (server: PublicServerEntry) => {
   return `${host}${port}`;
 };
 
+const buildJoinServerParam = (server: PublicServerEntry, socketUrl?: string | null) => {
+  if (socketUrl) {
+    try {
+      const url = new URL(socketUrl);
+      const protocol = url.protocol.replace(':', '');
+      if (protocol === 'ws' || protocol === 'wss') {
+        const host = url.hostname.includes(':') ? `[${url.hostname}]` : url.hostname;
+        const port = url.port ? `:${url.port}` : '';
+        return `${protocol}://${host}${port}`;
+      }
+    } catch {
+      // fall through
+    }
+  }
+  return formatServerParam(server);
+};
+
 const loadPublicServers = (): PublicServerEntry[] => {
   if (typeof window === 'undefined') return [];
   try {
@@ -328,6 +365,34 @@ const loadPublicServers = (): PublicServerEntry[] => {
       }));
   } catch {
     return [];
+  }
+};
+
+const loadPublicShareDefaults = (): PublicShareDefaults => {
+  if (typeof window === 'undefined') return { server: '', port: '', apiKey: '' };
+  try {
+    const raw = window.localStorage.getItem(PUBLIC_SHARE_DEFAULTS_KEY);
+    if (!raw) return { server: '', port: '', apiKey: '' };
+    const parsed = JSON.parse(raw);
+    if (!parsed || typeof parsed !== 'object') {
+      return { server: '', port: '', apiKey: '' };
+    }
+    return {
+      server: typeof parsed.server === 'string' ? parsed.server : '',
+      port: typeof parsed.port === 'string' ? parsed.port : '',
+      apiKey: typeof parsed.apiKey === 'string' ? parsed.apiKey : '',
+    };
+  } catch {
+    return { server: '', port: '', apiKey: '' };
+  }
+};
+
+const persistPublicShareDefaults = (defaults: PublicShareDefaults) => {
+  if (typeof window === 'undefined') return;
+  try {
+    window.localStorage.setItem(PUBLIC_SHARE_DEFAULTS_KEY, JSON.stringify(defaults));
+  } catch {
+    // ignore storage errors
   }
 };
 
@@ -551,7 +616,8 @@ const stripAppBase = (pathname: string) => {
 };
 
 const parseJoinRequest = (pathname: string, search: string) => {
-  if (pathname !== '/join') return null;
+  const normalized = pathname.replace(/\/+$/, '');
+  if (normalized !== '/join') return null;
   const params = new URLSearchParams(search);
   const server = (params.get('server') ?? '').trim();
   const roomId = (params.get('roomId') ?? '').trim();
@@ -766,6 +832,7 @@ const App = () => {
   const [executionIntervalInput, setExecutionIntervalInput] = useState('');
   const initialRelativePath =
     typeof window !== "undefined" ? stripAppBase(window.location.pathname) : "/";
+  const isJoinPath = initialRelativePath.replace(/\/+$/, '') === '/join';
   const initialJoinRequest = useMemo(() => {
     if (typeof window === 'undefined') return null;
     return parseJoinRequest(initialRelativePath, window.location.search);
@@ -818,6 +885,8 @@ const App = () => {
     initialRouteState.view === "notFound" ? initialRouteState.path : null,
   );
   const skipInitialRecoveryRef = useRef(
+    Boolean(initialJoinRequest) ||
+    isJoinPath ||
     initialRouteState.view === "tutorial" ||
       initialRouteState.view === "effects" ||
       initialRouteState.view === "notFound" ||
@@ -846,18 +915,20 @@ const App = () => {
   const fallbackNickname = t('collab.nickname.fallback');
   const localNickname = sanitizeNickname(editorSettings.collabDefaultNickname) || fallbackNickname;
   const localAvatar = editorSettings.collabAvatar || undefined;
+  const publicShareDefaults = useMemo(() => loadPublicShareDefaults(), []);
   const [collabMode, setCollabMode] = useState<CollaborationMode>('idle');
   const [collabAccessMode, setCollabAccessMode] = useState<CollaborationAccess>('restricted');
   const [collabPermission, setCollabPermission] = useState<CollaborationPermission>('editor');
   const [collabEditorLimit, setCollabEditorLimit] = useState(0);
   const [collabPassword, setCollabPassword] = useState('');
-  const [collabLinkServer, setCollabLinkServer] = useState('');
-  const [collabLinkPort, setCollabLinkPort] = useState('');
-  const [collabLinkApiKey, setCollabLinkApiKey] = useState('');
+  const [collabLinkServer, setCollabLinkServer] = useState(publicShareDefaults.server);
+  const [collabLinkPort, setCollabLinkPort] = useState(publicShareDefaults.port);
+  const [collabLinkApiKey, setCollabLinkApiKey] = useState(publicShareDefaults.apiKey);
   const [collabLinkPassword, setCollabLinkPassword] = useState('');
   const [collabLinkVisibility, setCollabLinkVisibility] = useState<'public' | 'private'>('public');
   const [collabLinkIncludePassword, setCollabLinkIncludePassword] = useState(true);
   const [collabLinkUrl, setCollabLinkUrl] = useState('');
+  const [shareLinkCopied, setShareLinkCopied] = useState(false);
   const [collabOwnerNickname, setCollabOwnerNickname] = useState('');
   const [collabClientNickname, setCollabClientNickname] = useState('');
   const [collabMembers, setCollabMembers] = useState<CollaborationMember[]>([]);
@@ -892,15 +963,20 @@ const App = () => {
   const [activePublicServer, setActivePublicServer] = useState<PublicServerEntry | null>(null);
   const publicConnectResolverRef = useRef<(() => void) | null>(null);
   const publicConnectRejectRef = useRef<((reason?: unknown) => void) | null>(null);
+  const publicConnectPromiseRef = useRef<Promise<PublicServerEntry> | null>(null);
   const pendingPublicRoomCreateRef = useRef<{
     server: PublicServerEntry;
     includePassword: boolean;
     password?: string;
+    apiKey?: string;
   } | null>(null);
-  const pendingPublicJoinRef = useRef<PublicJoinTarget | null>(null);
+  const publicJoinRoomIdRef = useRef<string | null>(null);
   const [publicJoinTarget, setPublicJoinTarget] = useState<PublicJoinTarget | null>(null);
   const [publicJoinNickname, setPublicJoinNickname] = useState('');
   const [publicJoinPassword, setPublicJoinPassword] = useState('');
+  const [publicJoinRequestCooldown, setPublicJoinRequestCooldown] = useState(0);
+  const [publicJoinError, setPublicJoinError] = useState<string | null>(null);
+  const publicJoinLookupRef = useRef<{ key: string; lastSentAt: number } | null>(null);
   const [collabRoomId, setCollabRoomId] = useState<string | null>(null);
   const [pendingJoinRoomId, setPendingJoinRoomId] = useState<string | null>(null);
   const collabModeRef = useRef<CollaborationMode>(collabMode);
@@ -914,6 +990,15 @@ const App = () => {
   const [collabSaving, setCollabSaving] = useState(false);
   const collabClientSavingTimerRef = useRef<number | null>(null);
   const collabLockedNodesRef = useRef<Map<string, Set<string>>>(new Map());
+  const collabCursorPendingRef = useRef<{ x: number; y: number; active: boolean } | null>(null);
+  const collabCursorFrameRef = useRef<number | null>(null);
+  const collabCursorLastSentRef = useRef<{ x: number; y: number; active: boolean } | null>(null);
+  const collabCursorLastSentAtRef = useRef(0);
+  const collabCursorLastKnownRef = useRef<{ x: number; y: number; active: boolean } | null>(null);
+  const localCursorDraggingRef = useRef(false);
+  const collabDraggingNodesRef = useRef<Set<string>>(new Set());
+  const collabDragPendingDocRef = useRef<ProjectDocument | null>(null);
+  const collabDragSyncTimerRef = useRef<number | null>(null);
   const collabProjectRevisionRef = useRef(0);
   const collabLastRevisionBySenderRef = useRef<Map<string, number>>(new Map());
   const [lockedNodeIds, setLockedNodeIds] = useState<string[]>([]);
@@ -1040,6 +1125,28 @@ const App = () => {
       updateSessionState,
     ],
   );
+  const endHostSession = useCallback(() => {
+    if (collabModeRef.current !== 'host') return false;
+    const roomId = collabRoomIdRef.current;
+    if (roomId) {
+      sendCollabSignalMessage({
+        type: 'room:message',
+        roomId,
+        payload: { type: 'session:end', reason: 'host-left' },
+      });
+      sendCollabSignalMessage({
+        type: 'room:close',
+        roomId,
+      });
+    }
+    collabModeRef.current = 'idle';
+    collabRoomIdRef.current = null;
+    pendingJoinRoomIdRef.current = null;
+    setCollabMode('idle');
+    setCollabRoomId(null);
+    setPendingJoinRoomId(null);
+    return true;
+  }, [sendCollabSignalMessage]);
   const networkProjects = useMemo<NetworkProject[]>(
     () =>
       signalShares.map((entry) => ({
@@ -1074,18 +1181,62 @@ const App = () => {
   );
   const displayedCursors = useMemo(
     () =>
-      collabCursors.map((cursor, index) => ({
-        ...cursor,
-        color: cursor.color || COLLAB_CURSOR_COLORS[index % COLLAB_CURSOR_COLORS.length],
-        cursorImage: cursor.cursorImage || ICON_CURSOR_DEFAULT,
-      })),
+      collabCursors
+        .filter((cursor) => cursor.id !== clientIdRef.current)
+        .map((cursor, index) => ({
+          ...cursor,
+          color: cursor.color || COLLAB_CURSOR_COLORS[index % COLLAB_CURSOR_COLORS.length],
+          cursorImage: cursor.cursorImage || ICON_CURSOR_DEFAULT,
+        })),
     [collabCursors],
   );
+  const shareLinkValue = useMemo(() => {
+    if (!collabLinkUrl) return '';
+    const linkPassword = collabLinkPassword.trim();
+    if (collabLinkIncludePassword && linkPassword) {
+      const separator = collabLinkUrl.includes('?') ? '&' : '?';
+      return `${collabLinkUrl}${separator}pwd=${encodeURIComponent(linkPassword)}`;
+    }
+    return collabLinkUrl;
+  }, [collabLinkIncludePassword, collabLinkPassword, collabLinkUrl]);
   const scrollChatToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
     const container = chatMessagesRef.current;
     if (!container) return;
     container.scrollTo({ top: container.scrollHeight, behavior });
   }, []);
+  const copyToClipboard = useCallback(async (text: string) => {
+    if (!text) return false;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(text);
+        return true;
+      }
+    } catch {
+      // fallback below
+    }
+    const temp = window.document.createElement('textarea');
+    temp.value = text;
+    temp.style.position = 'fixed';
+    temp.style.opacity = '0';
+    window.document.body.appendChild(temp);
+    temp.select();
+    const ok = window.document.execCommand('copy');
+    window.document.body.removeChild(temp);
+    return ok;
+  }, []);
+  const handleShareLinkCopy = useCallback(async () => {
+    if (!shareLinkValue) return;
+    const ok = await copyToClipboard(shareLinkValue);
+    if (!ok) return;
+    setShareLinkCopied(true);
+    if (shareLinkCopyTimerRef.current) {
+      window.clearTimeout(shareLinkCopyTimerRef.current);
+    }
+    shareLinkCopyTimerRef.current = window.setTimeout(() => {
+      setShareLinkCopied(false);
+      shareLinkCopyTimerRef.current = null;
+    }, 1400);
+  }, [copyToClipboard, shareLinkValue]);
 
   const updateChatScrollState = useCallback(() => {
     const container = chatMessagesRef.current;
@@ -1117,6 +1268,9 @@ const App = () => {
       setCollabOwnerNickname(localNickname);
     }
   }, [collabOwnerNickname, isShareOpen, localNickname]);
+  useEffect(() => {
+    setShareLinkCopied(false);
+  }, [isShareOpen, shareLinkValue]);
   useEffect(() => {
     if (!isCollaborating) {
       setIsChatOpen(false);
@@ -1181,20 +1335,52 @@ const App = () => {
       }
       setLockedNodeIds([]);
       setCollabSaving(false);
+      localCursorDraggingRef.current = false;
       collabSignalKindRef.current = 'lan';
       collabSignalSocketRef.current = signalSocketRef.current;
       setCollabLinkUrl('');
       setCollabLinkIncludePassword(true);
+      if (collabCursorFrameRef.current) {
+        window.cancelAnimationFrame(collabCursorFrameRef.current);
+        collabCursorFrameRef.current = null;
+      }
+      collabCursorPendingRef.current = null;
+      collabCursorLastKnownRef.current = null;
+      collabDraggingNodesRef.current.clear();
+      collabDragPendingDocRef.current = null;
+      if (collabDragSyncTimerRef.current) {
+        window.clearTimeout(collabDragSyncTimerRef.current);
+        collabDragSyncTimerRef.current = null;
+      }
     }
   }, [collabMode]);
   useEffect(() => {
     persistPublicServers(publicServers);
   }, [publicServers]);
   useEffect(() => {
-    if (!publicJoinTarget) return;
+    setPublicJoinError(null);
+    if (!publicJoinTarget) {
+      publicJoinRoomIdRef.current = null;
+      return;
+    }
+    const roomId = publicJoinTarget.room.roomId;
+    if (publicJoinRoomIdRef.current === roomId) return;
+    publicJoinRoomIdRef.current = roomId;
     setPublicJoinNickname(localNickname);
     setPublicJoinPassword(publicJoinTarget.password ?? '');
   }, [localNickname, publicJoinTarget]);
+  useEffect(() => {
+    if (!publicJoinTarget) {
+      setPublicJoinRequestCooldown(0);
+    }
+  }, [publicJoinTarget]);
+  useEffect(() => {
+    if (publicJoinRequestCooldown <= 0) return;
+    const timer = window.setInterval(() => {
+      setPublicJoinRequestCooldown((prev) => (prev > 0 ? prev - 1 : 0));
+    }, 1000);
+    return () => window.clearInterval(timer);
+  }, [publicJoinRequestCooldown]);
   useEffect(() => {
     if (isChatOpen) {
       setLastChatReadAt(Date.now());
@@ -1501,6 +1687,7 @@ const App = () => {
 
   const projectFileInputRef = useRef<HTMLInputElement>(null);
   const saveToastTimerRef = useRef<number | null>(null);
+  const shareLinkCopyTimerRef = useRef<number | null>(null);
   const tabTooltipTimerRef = useRef<number | null>(null);
   const autoSaveFingerprintRef = useRef<string | null>(null);
   const graphFingerprintRef = useRef<Map<string, string>>(new Map());
@@ -1735,8 +1922,15 @@ const App = () => {
 
   const handleGoHome = useCallback(() => {
     setOpenMenu(null);
+    if (collabModeRef.current === 'client') {
+      leaveCollaboratorSession();
+      return;
+    }
+    if (collabModeRef.current === 'host') {
+      endHostSession();
+    }
     navigateHome(false);
-  }, [navigateHome]);
+  }, [endHostSession, leaveCollaboratorSession, navigateHome]);
 
   const applySettingsReturnView = useCallback(
     (options?: { viaHistory?: boolean }) => {
@@ -2165,15 +2359,22 @@ const App = () => {
       if (!normalizedServer.host) {
         return Promise.reject(new Error('invalid-host'));
       }
+      const isSameServer =
+        Boolean(activePublicServer) &&
+        activePublicServer?.host === normalizedServer.host &&
+        activePublicServer?.port === normalizedServer.port;
+      const existingSocket = publicSignalSocketRef.current;
       if (
         publicSignalConnected &&
-        activePublicServer &&
-        activePublicServer.host === normalizedServer.host &&
-        activePublicServer.port === normalizedServer.port
+        existingSocket?.readyState === WebSocket.OPEN &&
+        isSameServer
       ) {
         return Promise.resolve(normalizedServer);
       }
-      return new Promise<PublicServerEntry>((resolve, reject) => {
+      if (publicSignalStatus === 'connecting' && isSameServer && publicConnectPromiseRef.current) {
+        return publicConnectPromiseRef.current;
+      }
+      const connectPromise = new Promise<PublicServerEntry>((resolve, reject) => {
         if (publicSignalSocketRef.current) {
           publicSignalSocketRef.current.close();
           publicSignalSocketRef.current = null;
@@ -2188,11 +2389,13 @@ const App = () => {
           resolve(normalizedServer);
           publicConnectResolverRef.current = null;
           publicConnectRejectRef.current = null;
+          publicConnectPromiseRef.current = null;
         };
         publicConnectRejectRef.current = (reason) => {
           reject(reason);
           publicConnectResolverRef.current = null;
           publicConnectRejectRef.current = null;
+          publicConnectPromiseRef.current = null;
         };
 
         socket.addEventListener('open', () => {
@@ -2225,16 +2428,20 @@ const App = () => {
         });
 
         socket.addEventListener('close', () => {
-          if (publicSignalSocketRef.current === socket) {
+          const isActiveSocket = publicSignalSocketRef.current === socket;
+          if (isActiveSocket) {
             publicSignalSocketRef.current = null;
+            setPublicSignalStatus('disconnected');
+            setPublicRooms([]);
+            if (collabSignalKindRef.current === 'public' && collabModeRef.current !== 'idle') {
+              leaveCollaboratorSession('collab.disconnect.owner');
+            }
+            if (publicConnectRejectRef.current) {
+              publicConnectRejectRef.current(new Error('connection-closed'));
+            }
           }
-          setPublicSignalStatus('disconnected');
-          setPublicRooms([]);
-          if (collabSignalKindRef.current === 'public' && collabModeRef.current !== 'idle') {
-            leaveCollaboratorSession('collab.disconnect.owner');
-          }
-          if (publicConnectRejectRef.current) {
-            publicConnectRejectRef.current(new Error('connection-closed'));
+          if (publicConnectPromiseRef.current === connectPromise) {
+            publicConnectPromiseRef.current = null;
           }
         });
 
@@ -2242,6 +2449,8 @@ const App = () => {
           socket.close();
         });
       });
+      publicConnectPromiseRef.current = connectPromise;
+      return connectPromise;
     },
     [
       activePublicServer,
@@ -2249,6 +2458,7 @@ const App = () => {
       localNickname,
       leaveCollaboratorSession,
       publicSignalConnected,
+      publicSignalStatus,
     ],
   );
 
@@ -2265,18 +2475,6 @@ const App = () => {
     [connectPublicSignal],
   );
 
-  const handleConnectPublicServer = useCallback(
-    async (server: PublicServerEntry) => {
-      try {
-        await connectPublicSignal(server);
-      } catch (error) {
-        console.error(error);
-        openInfoDialog(t('common.error'), t('collab.publicServer.connectFailed'));
-      }
-    },
-    [connectPublicSignal, openInfoDialog, t],
-  );
-
   const handleSearchPublicRooms = useCallback(
     async (server: PublicServerEntry, query: string) => {
       try {
@@ -2286,6 +2484,12 @@ const App = () => {
           query,
           clientId: clientIdRef.current,
         });
+        if (query) {
+          sendPublicSignalMessage({
+            type: 'room:info',
+            roomId: query,
+          });
+        }
       } catch (error) {
         console.error(error);
         openInfoDialog(t('common.error'), t('collab.publicServer.connectFailed'));
@@ -2298,22 +2502,64 @@ const App = () => {
     setPublicJoinTarget({ server, room });
   }, []);
 
+  useEffect(() => {
+    if (!publicJoinTarget) {
+      publicJoinLookupRef.current = null;
+      return;
+    }
+    const roomId = publicJoinTarget.room.roomId;
+    if (!roomId) return;
+    if (publicJoinTarget.room.name && publicJoinTarget.room.name !== roomId) return;
+    const lookupKey = `${publicJoinTarget.server.host}:${publicJoinTarget.server.port ?? ''}:${roomId}`;
+    const now = Date.now();
+    const lastLookup = publicJoinLookupRef.current;
+    if (lastLookup && lastLookup.key === lookupKey && now - lastLookup.lastSentAt < PUBLIC_JOIN_LOOKUP_INTERVAL_MS) {
+      return;
+    }
+    publicJoinLookupRef.current = { key: lookupKey, lastSentAt: now };
+    let cancelled = false;
+    const lookup = async () => {
+      try {
+        await connectPublicSignal(publicJoinTarget.server);
+        if (cancelled) return;
+        sendPublicSignalMessage({
+          type: 'room:list',
+          query: roomId,
+          clientId: clientIdRef.current,
+        });
+        sendPublicSignalMessage({
+          type: 'room:info',
+          roomId,
+        });
+      } catch (error) {
+        console.error(error);
+      }
+    };
+    void lookup();
+    return () => {
+      cancelled = true;
+    };
+  }, [connectPublicSignal, publicJoinTarget, sendPublicSignalMessage]);
+
   const handleConfirmPublicJoin = useCallback(async () => {
     if (!publicJoinTarget) return;
+    setPublicJoinError(null);
     if (checkCollabVersionMismatch(publicJoinTarget.room.appVersion)) {
       return;
     }
     const cleanedNickname = sanitizeNickname(publicJoinNickname) || localNickname;
     setCollabClientNickname(cleanedNickname);
-    if (publicJoinTarget.room.requiresPassword && !/^\d{6}$/.test(publicJoinPassword.trim())) {
-      openInfoDialog(t('common.error'), t('collab.join.password.invalid'));
+    const trimmedPassword = publicJoinPassword.trim();
+    const hasValidPassword = /^\d{6}$/.test(trimmedPassword);
+    if (publicJoinTarget.room.requiresPassword && !hasValidPassword) {
+      setPublicJoinError(t('collab.join.password.invalid'));
       return;
     }
     try {
       await connectPublicSignal(publicJoinTarget.server);
     } catch (error) {
       console.error(error);
-      openInfoDialog(t('common.error'), t('collab.publicServer.connectFailed'));
+      setPublicJoinError(t('collab.publicServer.connectFailed'));
       return;
     }
     const roomId = publicJoinTarget.room.roomId;
@@ -2322,26 +2568,79 @@ const App = () => {
     setPendingJoinRoomId(roomId);
     pendingJoinRoomIdRef.current = roomId;
     setCollabOwnerNickname(cleanedNickname);
-    sendPublicSignalMessage({
+    const sent = sendPublicSignalMessage({
       type: 'join:request',
       roomId,
       clientId: clientIdRef.current,
       nickname: cleanedNickname,
       avatar: localAvatar,
-      password: publicJoinTarget.room.requiresPassword ? publicJoinPassword.trim() : undefined,
+      password:
+        publicJoinTarget.room.requiresPassword && hasValidPassword ? trimmedPassword : undefined,
       requestId: createCollabId(),
     });
+    if (!sent) {
+      setPublicJoinError(t('collab.publicServer.connectFailed'));
+      return;
+    }
     setPublicJoinTarget(null);
   }, [
     checkCollabVersionMismatch,
     connectPublicSignal,
     localAvatar,
     localNickname,
-    openInfoDialog,
     publicJoinNickname,
     publicJoinPassword,
     publicJoinTarget,
     sendPublicSignalMessage,
+    setPublicJoinError,
+    t,
+  ]);
+
+  const handleSendPublicJoinRequest = useCallback(async () => {
+    if (!publicJoinTarget) return;
+    if (publicJoinRequestCooldown > 0) return;
+    setPublicJoinError(null);
+    if (checkCollabVersionMismatch(publicJoinTarget.room.appVersion)) {
+      return;
+    }
+    const cleanedNickname = sanitizeNickname(publicJoinNickname) || localNickname;
+    setCollabClientNickname(cleanedNickname);
+    try {
+      await connectPublicSignal(publicJoinTarget.server);
+    } catch (error) {
+      console.error(error);
+      setPublicJoinError(t('collab.publicServer.connectFailed'));
+      return;
+    }
+    const roomId = publicJoinTarget.room.roomId;
+    collabSignalKindRef.current = 'public';
+    collabSignalSocketRef.current = publicSignalSocketRef.current;
+    setPendingJoinRoomId(roomId);
+    pendingJoinRoomIdRef.current = roomId;
+    setCollabOwnerNickname(cleanedNickname);
+    const sent = sendPublicSignalMessage({
+      type: 'join:request',
+      roomId,
+      clientId: clientIdRef.current,
+      nickname: cleanedNickname,
+      avatar: localAvatar,
+      requestId: createCollabId(),
+    });
+    if (!sent) {
+      setPublicJoinError(t('collab.publicServer.connectFailed'));
+      return;
+    }
+    setPublicJoinRequestCooldown(30);
+  }, [
+    checkCollabVersionMismatch,
+    connectPublicSignal,
+    localAvatar,
+    localNickname,
+    publicJoinNickname,
+    publicJoinRequestCooldown,
+    publicJoinTarget,
+    sendPublicSignalMessage,
+    setPublicJoinError,
     t,
   ]);
 
@@ -2974,6 +3273,7 @@ const App = () => {
           server,
           includePassword: collabLinkIncludePassword,
           password: collabLinkPassword.trim() || undefined,
+          apiKey: collabLinkApiKey.trim() || undefined,
         };
         sendPublicSignalMessage({
           type: 'room:create',
@@ -3092,6 +3392,37 @@ const App = () => {
     });
   }, []);
 
+  const updateCollabCursor = useCallback(
+    (cursor: CollaborationCursor & { active?: boolean }) => {
+      setCollabCursors((prev) => {
+        const next = prev.filter((item) => item.id !== cursor.id);
+        if (cursor.active === false) {
+          return next;
+        }
+        const normalized: CollaborationCursor = {
+          id: cursor.id,
+          nickname: cursor.nickname,
+          x: cursor.x,
+          y: cursor.y,
+          color: cursor.color,
+          avatar: cursor.avatar,
+          cursorImage: cursor.cursorImage,
+        };
+        return [...next, normalized];
+      });
+    },
+    [],
+  );
+
+  const removeCollabCursor = useCallback((memberId: string) => {
+    setCollabCursors((prev) => prev.filter((cursor) => cursor.id !== memberId));
+  }, []);
+
+  const pruneCollabCursors = useCallback((memberIds: string[]) => {
+    const allowed = new Set(memberIds);
+    setCollabCursors((prev) => prev.filter((cursor) => allowed.has(cursor.id)));
+  }, []);
+
   const buildMembersSnapshot = useCallback(() => {
     const owner: CollaborationMember = {
       id: clientIdRef.current,
@@ -3127,6 +3458,61 @@ const App = () => {
       });
     },
     [collabMode, collabRoomId, sendCollabSignalMessage],
+  );
+
+  const broadcastCollabCursor = useCallback(
+    (cursor: CollaborationCursor & { active?: boolean }) => {
+      const roomId = collabRoomIdRef.current;
+      if (!roomId) return;
+      const payload = { type: 'cursor:update', cursor };
+      if (collabModeRef.current === 'host') {
+        sendCollabSignalMessage({ type: 'room:message', roomId, payload });
+      } else if (collabModeRef.current === 'client') {
+        sendCollabSignalMessage({ type: 'client:message', roomId, payload });
+      }
+    },
+    [sendCollabSignalMessage],
+  );
+
+  const queueCollabCursorUpdate = useCallback(
+    (payload: { x: number; y: number; active: boolean }) => {
+      if (!isCollaborating) return;
+      collabCursorLastKnownRef.current = payload;
+      collabCursorPendingRef.current = payload;
+      if (collabCursorFrameRef.current) return;
+      collabCursorFrameRef.current = window.requestAnimationFrame(() => {
+        collabCursorFrameRef.current = null;
+        const next = collabCursorPendingRef.current;
+        if (!next) return;
+        const now = performance.now();
+        if (now - collabCursorLastSentAtRef.current < COLLAB_CURSOR_SYNC_MS) {
+          queueCollabCursorUpdate(next);
+          return;
+        }
+        collabCursorPendingRef.current = null;
+        collabCursorLastSentAtRef.current = now;
+        collabCursorLastSentRef.current = next;
+        const cursor: CollaborationCursor & { active?: boolean } = {
+          id: clientIdRef.current,
+          nickname: localMemberNickname,
+          avatar: localAvatar,
+          x: next.x,
+          y: next.y,
+          color: '',
+          cursorImage: localCursorDraggingRef.current ? ICON_CURSOR_DRAG : undefined,
+          active: next.active,
+        };
+        updateCollabCursor(cursor);
+        broadcastCollabCursor(cursor);
+      });
+    },
+    [
+      broadcastCollabCursor,
+      isCollaborating,
+      localAvatar,
+      localMemberNickname,
+      updateCollabCursor,
+    ],
   );
 
   const queueClientSavingIndicator = useCallback(() => {
@@ -3179,6 +3565,33 @@ const App = () => {
     },
     [getNextProjectRevision, sendCollabSignalMessage],
   );
+
+  const scheduleCollabDragSync = useCallback(
+    (document: ProjectDocument) => {
+      collabDragPendingDocRef.current = document;
+      if (collabDragSyncTimerRef.current) return;
+      collabDragSyncTimerRef.current = window.setTimeout(() => {
+        collabDragSyncTimerRef.current = null;
+        const pending = collabDragPendingDocRef.current;
+        if (!pending) return;
+        collabDragPendingDocRef.current = null;
+        sendProjectUpdate(pending);
+      }, COLLAB_DRAG_SYNC_MS);
+    },
+    [sendProjectUpdate],
+  );
+
+  const flushCollabDragSync = useCallback(() => {
+    if (collabDragSyncTimerRef.current) {
+      window.clearTimeout(collabDragSyncTimerRef.current);
+      collabDragSyncTimerRef.current = null;
+    }
+    const pending = collabDragPendingDocRef.current;
+    collabDragPendingDocRef.current = null;
+    if (pending) {
+      sendProjectUpdate(pending);
+    }
+  }, [sendProjectUpdate]);
 
   const runWithCollabSyncSuppressed = useCallback((action: () => void) => {
     collabSyncSuppressedRef.current += 1;
@@ -3255,8 +3668,27 @@ const App = () => {
 
   const handleNodeDragStateChange = useCallback(
     (nodeIds: string[], isDragging: boolean) => {
+      if (nodeIds.length) {
+        const draggingNodes = collabDraggingNodesRef.current;
+        if (isDragging) {
+          nodeIds.forEach((nodeId) => draggingNodes.add(nodeId));
+        } else {
+          nodeIds.forEach((nodeId) => draggingNodes.delete(nodeId));
+          if (draggingNodes.size === 0) {
+            flushCollabDragSync();
+          }
+        }
+      }
       const roomId = collabRoomIdRef.current;
       if (!roomId || !nodeIds.length) return;
+      localCursorDraggingRef.current = isDragging;
+      const lastCursor = collabCursorLastKnownRef.current ?? collabCursorLastSentRef.current;
+      if (lastCursor) {
+        queueCollabCursorUpdate({
+          ...lastCursor,
+          active: isDragging ? true : lastCursor.active,
+        });
+      }
       const uniqueIds = Array.from(new Set(nodeIds));
       if (!uniqueIds.length) return;
       const payload = {
@@ -3277,7 +3709,7 @@ const App = () => {
         });
       }
     },
-    [sendCollabSignalMessage],
+    [flushCollabDragSync, queueCollabCursorUpdate, sendCollabSignalMessage],
   );
 
   const performCollabAutoSave = useCallback(() => {
@@ -3415,6 +3847,7 @@ const App = () => {
     if (shareReadOnly || collabMode !== 'host' || !collabRoomId) return;
     const nextMembers = collabMembers.filter((member) => member.id !== memberId);
     removeCollabMember(memberId);
+    removeCollabCursor(memberId);
     pruneLockedNodes([clientIdRef.current, ...nextMembers.map((member) => member.id)]);
     sendRoomMessage({ type: 'session:end', reason: 'removed' }, memberId);
     sendRoomMessage({
@@ -3542,13 +3975,17 @@ const App = () => {
         if (collabPermissionRef.current === 'viewer') return;
         queueClientSavingIndicator();
       }
+      if (collabDraggingNodesRef.current.size > 0) {
+        scheduleCollabDragSync(state.document);
+        return;
+      }
       sendProjectUpdate(state.document);
     });
     return unsubscribe;
-  }, [queueClientSavingIndicator, queueCollabAutoSave, sendProjectUpdate]);
+  }, [queueClientSavingIndicator, queueCollabAutoSave, scheduleCollabDragSync, sendProjectUpdate]);
 
-  useEffect(() => {
-    handleSignalMessageRef.current = (message: SignalMessage) => {
+  const handleSignalMessage = useCallback(
+    (message: SignalMessage) => {
       switch (message.type) {
         case 'share:list': {
           setSignalShares(Array.isArray(message.shares) ? message.shares : []);
@@ -3614,7 +4051,16 @@ const App = () => {
           if (collabAccessMode === 'link') {
             const provided = (message.password ?? '').trim();
             const required = collabLinkPassword.trim();
-            if (!required || provided === required) {
+            if (!required) {
+              approveJoin(message.clientId, cleanedNickname, message.avatar);
+            } else if (!provided) {
+              setCollabRequests((prev) => {
+                if (prev.some((item) => item.clientId === message.clientId)) {
+                  return prev;
+                }
+                return [...prev, request];
+              });
+            } else if (provided === required) {
               approveJoin(message.clientId, cleanedNickname, message.avatar);
             } else {
               sendCollabSignalMessage({
@@ -3709,6 +4155,34 @@ const App = () => {
             sendRoomMessage({ type: 'chat:message', message: chatMessage });
             return;
           }
+          if (payload.type === 'cursor:update') {
+            const cursorPayload = payload.cursor as Partial<CollaborationCursor> & {
+              id?: string;
+              active?: boolean;
+            };
+            const cursorId = cursorPayload.id || message.clientId;
+            if (!cursorId) return;
+            const member = collabMembersRef.current.find((item) => item.id === cursorId);
+            const nickname =
+              member?.nickname ??
+              (typeof cursorPayload.nickname === 'string' ? cursorPayload.nickname : localNickname);
+            const x = Number(cursorPayload.x);
+            const y = Number(cursorPayload.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+            const active = cursorPayload.active !== false;
+            const cursor: CollaborationCursor & { active?: boolean } = {
+              id: cursorId,
+              nickname,
+              avatar: member?.avatar ?? cursorPayload.avatar,
+              x,
+              y,
+              color: typeof cursorPayload.color === 'string' ? cursorPayload.color : '',
+              cursorImage: cursorPayload.cursorImage,
+              active,
+            };
+            updateCollabCursor(cursor);
+            return;
+          }
           if (payload.type === 'presence:update') {
             const activeTabId =
               typeof payload.activeTabId === 'string' && isTabId(payload.activeTabId)
@@ -3727,6 +4201,7 @@ const App = () => {
           if (!collabMembersRef.current.some((member) => member.id === message.clientId)) return;
           const nextMembers = collabMembersRef.current.filter((member) => member.id !== message.clientId);
           removeCollabMember(message.clientId);
+          removeCollabCursor(message.clientId);
           pruneLockedNodes([clientIdRef.current, ...nextMembers.map((member) => member.id)]);
           sendRoomMessage({
             type: 'members:update',
@@ -3799,6 +4274,11 @@ const App = () => {
                 .filter((member) => member && typeof member.id === 'string')
                 .map((member) => member.id),
             );
+            pruneCollabCursors(
+              members
+                .filter((member) => member && typeof member.id === 'string')
+                .map((member) => member.id),
+            );
             return;
           }
           if (payload.type === 'project:update') {
@@ -3830,6 +4310,33 @@ const App = () => {
             });
             return;
           }
+          if (payload.type === 'cursor:update') {
+            const cursorPayload = payload.cursor as Partial<CollaborationCursor> & {
+              id?: string;
+              active?: boolean;
+            };
+            const cursorId = cursorPayload.id;
+            if (!cursorId) return;
+            const member = collabMembersRef.current.find((item) => item.id === cursorId);
+            const nickname =
+              member?.nickname ??
+              (typeof cursorPayload.nickname === 'string' ? cursorPayload.nickname : localNickname);
+            const x = Number(cursorPayload.x);
+            const y = Number(cursorPayload.y);
+            if (!Number.isFinite(x) || !Number.isFinite(y)) return;
+            const active = cursorPayload.active !== false;
+            updateCollabCursor({
+              id: cursorId,
+              nickname,
+              avatar: member?.avatar ?? cursorPayload.avatar,
+              x,
+              y,
+              color: typeof cursorPayload.color === 'string' ? cursorPayload.color : '',
+              cursorImage: cursorPayload.cursorImage,
+              active,
+            });
+            return;
+          }
           if (payload.type === 'session:end') {
             leaveCollaboratorSession('collab.disconnect.owner');
           }
@@ -3842,13 +4349,13 @@ const App = () => {
         default:
           return;
       }
-    };
-  }, [
-    applyRemoteProjectUpdate,
-    applyProjectDocument,
-    approveJoin,
-    buildMembersSnapshot,
-    collabAccessMode,
+    },
+    [
+      applyRemoteProjectUpdate,
+      applyProjectDocument,
+      approveJoin,
+      buildMembersSnapshot,
+      collabAccessMode,
     collabEditorLimit,
     collabLinkPassword,
     collabMembers,
@@ -3860,7 +4367,9 @@ const App = () => {
     openInfoDialog,
     prepareProjectDocument,
     pruneLockedNodes,
+    pruneCollabCursors,
     removeCollabMember,
+    removeCollabCursor,
     runWithCollabSyncSuppressed,
     sendRoomMessage,
     sendCollabSignalMessage,
@@ -3875,15 +4384,59 @@ const App = () => {
     setLockedNodeIds,
     t,
     updateLockedNodes,
+    updateCollabCursor,
     upsertCollabMember,
     pendingJoinRoomId,
-  ]);
+    ],
+  );
+  handleSignalMessageRef.current = handleSignalMessage;
 
-  useEffect(() => {
-    handlePublicSignalMessageRef.current = (message: SignalMessage) => {
+  const handlePublicSignalMessage = useCallback(
+    (message: SignalMessage) => {
       switch (message.type) {
         case 'room:list': {
           setPublicRooms(Array.isArray(message.rooms) ? message.rooms : []);
+          setPublicJoinTarget((prev) => {
+            if (!prev || !Array.isArray(message.rooms)) return prev;
+            const match = message.rooms.find((room) => room.roomId === prev.room.roomId);
+            if (!match) return prev;
+            const mergedRoom = { ...prev.room, ...match };
+            if (arePublicRoomsEqual(prev.room, mergedRoom)) {
+              return prev;
+            }
+            return {
+              ...prev,
+              room: {
+                ...mergedRoom,
+              },
+            };
+          });
+          return;
+        }
+        case 'room:info': {
+          if (message.room === null) {
+            if (publicJoinTarget && publicJoinTarget.room.roomId === message.roomId) {
+              setPublicJoinError(t('collab.join.projectMissing'));
+            }
+            return;
+          }
+          if (!message.room) return;
+          if (publicJoinTarget && publicJoinTarget.room.roomId === message.roomId) {
+            setPublicJoinError(null);
+          }
+          setPublicJoinTarget((prev) => {
+            if (!prev || prev.room.roomId !== message.roomId) return prev;
+            const mergedRoom = { ...prev.room, ...message.room };
+            if (arePublicRoomsEqual(prev.room, mergedRoom)) {
+              return prev;
+            }
+            return {
+              ...prev,
+              room: {
+                ...mergedRoom,
+              },
+            };
+          });
           return;
         }
         case 'room:created': {
@@ -3891,9 +4444,19 @@ const App = () => {
           if (!pending) return;
           const baseUrl = getJoinBaseUrl();
           const params = new URLSearchParams();
-          params.set('server', formatServerParam(pending.server));
+          const socketUrl = publicSignalSocketRef.current?.url;
+          params.set('server', buildJoinServerParam(pending.server, socketUrl));
           params.set('roomId', message.roomId);
           const link = `${baseUrl}/join?${params.toString()}`;
+          const nextDefaults = {
+            server: pending.server.host,
+            port: pending.server.port ?? '',
+            apiKey: pending.apiKey ?? '',
+          };
+          persistPublicShareDefaults(nextDefaults);
+          setCollabLinkServer(nextDefaults.server);
+          setCollabLinkPort(nextDefaults.port);
+          setCollabLinkApiKey(nextDefaults.apiKey);
           collabSignalKindRef.current = 'public';
           collabSignalSocketRef.current = publicSignalSocketRef.current;
           collabRoomIdRef.current = message.roomId;
@@ -3917,16 +4480,23 @@ const App = () => {
           handleSignalMessageRef.current(message);
           return;
       }
-    };
-  }, [
+    },
+    [
+    setCollabLinkApiKey,
     setCollabLinkIncludePassword,
+    setCollabLinkPort,
+    setCollabLinkServer,
     setCollabLinkUrl,
     setCollabMode,
     setCollabRoomId,
+    publicJoinTarget,
+    setPublicJoinError,
     setShareError,
     setPublicRooms,
     t,
-  ]);
+    ],
+  );
+  handlePublicSignalMessageRef.current = handlePublicSignalMessage;
 
   
   const performGilExport = useCallback(
@@ -4699,6 +5269,9 @@ const handleSaveGraphAs = useCallback(() => {
       if (saveToastTimerRef.current) {
         window.clearTimeout(saveToastTimerRef.current);
       }
+      if (shareLinkCopyTimerRef.current) {
+        window.clearTimeout(shareLinkCopyTimerRef.current);
+      }
     };
   }, []);
 
@@ -4919,11 +5492,13 @@ const handleSaveGraphAs = useCallback(() => {
       : t('collab.share.password.label');
     const linkPassword = collabLinkPassword.trim();
     const showLinkPasswordToggle = Boolean(linkPassword) && Boolean(collabLinkUrl);
-    const shareLinkValue = collabLinkUrl
-      ? collabLinkIncludePassword && linkPassword
-        ? `${collabLinkUrl}&pwd=${encodeURIComponent(linkPassword)}`
-        : collabLinkUrl
-      : '';
+    const showLocalPasswordHint =
+      showLocalPasswordField &&
+      !shareReadOnly &&
+      collabPassword.trim().length > 0 &&
+      collabPassword.trim().length < 6;
+    const showLinkPasswordHint =
+      showLinkFields && !shareReadOnly && linkPassword.length > 0 && linkPassword.length < 6;
     return (
       <div className="collab-overlay" role="dialog" aria-modal="true">
         <div className="collab-modal" role="document">
@@ -5026,6 +5601,9 @@ const handleSaveGraphAs = useCallback(() => {
                   inputMode="numeric"
                   autoComplete="off"
                 />
+                {showLocalPasswordHint && (
+                  <p className="collab-hint collab-hint--error">{t('collab.share.password.invalid')}</p>
+                )}
               </div>
             )}
             {showLinkFields && (
@@ -5100,6 +5678,9 @@ const handleSaveGraphAs = useCallback(() => {
                     inputMode="numeric"
                     autoComplete="off"
                   />
+                  {showLinkPasswordHint && (
+                    <p className="collab-hint collab-hint--error">{t('collab.share.password.invalid')}</p>
+                  )}
                 </div>
               </>
             )}
@@ -5108,7 +5689,15 @@ const handleSaveGraphAs = useCallback(() => {
             <div className="collab-section">
               <h3>{t('collab.share.link.title')}</h3>
               <div className="collab-link">
-                <input readOnly value={shareLinkValue} onFocus={(event) => event.target.select()} />
+                <input
+                  readOnly
+                  className="collab-link__input"
+                  value={shareLinkValue}
+                  onClick={handleShareLinkCopy}
+                  aria-label={t('common.copy')}
+                  title={t('common.copy')}
+                />
+                {shareLinkCopied && <span className="collab-link__hint">{t('common.copied')}</span>}
                 {showLinkPasswordToggle && (
                   <label className="collab-checkbox">
                     <input
@@ -5205,16 +5794,26 @@ const handleSaveGraphAs = useCallback(() => {
   const renderPublicJoinModal = () => {
     if (!publicJoinTarget || view !== 'home') return null;
     const requiresPassword = publicJoinTarget.room.requiresPassword;
+    const joinTitle = publicJoinTarget.room.name || publicJoinTarget.room.roomId;
+    const trimmedNickname = sanitizeNickname(publicJoinNickname) || localNickname;
+    const trimmedPassword = publicJoinPassword.trim();
+    const isPasswordValid = /^\d{6}$/.test(trimmedPassword);
+    const showPasswordHint = requiresPassword && trimmedPassword.length > 0 && !isPasswordValid;
+    const canSubmit = Boolean(trimmedNickname);
+    const canJoin = canSubmit && (!requiresPassword || isPasswordValid);
     return (
       <div className="home__join-overlay" role="dialog" aria-modal="true">
         <div className="home__join-modal" role="document">
-          <h3>{t('home.publicServers.join.title', { name: publicJoinTarget.room.name })}</h3>
+          <h3>{t('home.publicServers.join.title', { name: joinTitle })}</h3>
           <div className="home__join-field">
             <label htmlFor="home-public-join-nickname">{t('home.publicServers.join.nickname')}</label>
             <input
               id="home-public-join-nickname"
               value={publicJoinNickname}
-              onChange={(event) => setPublicJoinNickname(sanitizeNickname(event.target.value))}
+              onChange={(event) => {
+                setPublicJoinError(null);
+                setPublicJoinNickname(sanitizeNickname(event.target.value));
+              }}
               placeholder={localNickname}
               maxLength={12}
               autoComplete="off"
@@ -5225,32 +5824,46 @@ const handleSaveGraphAs = useCallback(() => {
               <label htmlFor="home-public-join-password">
                 {t('home.publicServers.join.password')}
               </label>
-              <input
-                id="home-public-join-password"
-                type="password"
-                value={publicJoinPassword}
-                onChange={(event) =>
-                  setPublicJoinPassword(event.target.value.replace(/\\D/g, '').slice(0, 6))
-                }
-                placeholder={t('home.publicServers.join.password.placeholder')}
-                autoComplete="off"
-                inputMode="numeric"
-                maxLength={6}
-              />
+              <div className="home__join-password">
+                <input
+                  id="home-public-join-password"
+                  type="password"
+                  value={publicJoinPassword}
+                  onChange={(event) => {
+                    setPublicJoinError(null);
+                    setPublicJoinPassword(event.target.value.replace(/\\D/g, '').slice(0, 6));
+                  }}
+                  placeholder={t('home.publicServers.join.password.placeholder')}
+                  autoComplete="off"
+                  inputMode="numeric"
+                  maxLength={6}
+                />
+                <button
+                  type="button"
+                  onClick={() => {
+                    void handleSendPublicJoinRequest();
+                  }}
+                  disabled={!canSubmit || publicJoinRequestCooldown > 0}
+                >
+                  {publicJoinRequestCooldown > 0
+                    ? t('home.network.join.requestCooldown', { seconds: publicJoinRequestCooldown })
+                    : t('home.network.join.request')}
+                </button>
+              </div>
+              {showPasswordHint && (
+                <div className="home__join-hint">{t('collab.share.password.invalid')}</div>
+              )}
             </div>
           )}
+          {publicJoinError && <div className="home__join-hint">{publicJoinError}</div>}
           <div className="home__join-actions">
             <button
               type="button"
               onClick={() => {
-                if (!publicJoinNickname.trim()) return;
-                if (requiresPassword && !/^\\d{6}$/.test(publicJoinPassword.trim())) return;
-                handleConfirmPublicJoin();
+                if (!canJoin) return;
+                void handleConfirmPublicJoin();
               }}
-              disabled={
-                !publicJoinNickname.trim() ||
-                (requiresPassword && !/^\\d{6}$/.test(publicJoinPassword.trim()))
-              }
+              disabled={!canJoin}
             >
               {t('home.publicServers.join.action')}
             </button>
@@ -5504,6 +6117,7 @@ const handleSaveGraphAs = useCallback(() => {
               collabCursors={displayedCursors}
               isReadOnly={isViewer}
               onNodeDragStateChange={handleNodeDragStateChange}
+              onCollabCursorMove={isCollaborating ? queueCollabCursorUpdate : undefined}
             />
             <NodeInspector collapsed={inspectorCollapsed} onToggle={toggleInspector} isReadOnly={isViewer} />
           </>
@@ -5888,7 +6502,6 @@ const handleSaveGraphAs = useCallback(() => {
         publicServerStatus={publicSignalStatus}
         defaultPublicPort={COLLAB_PUBLIC_DEFAULT_PORT}
         onSavePublicServer={handleSavePublicServer}
-        onConnectPublicServer={handleConnectPublicServer}
         onSearchPublicRooms={handleSearchPublicRooms}
         onRequestPublicJoin={handleRequestPublicJoin}
       />

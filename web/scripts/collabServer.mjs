@@ -203,12 +203,22 @@ wss.on('connection', (socket, request) => {
         const room = rooms.get(roomId);
         const client = clients.get(socket);
         if (!room || !client) return;
+        const payload = message.payload;
         safeSend(room.hostSocket, {
           type: 'client:message',
           roomId,
           clientId: client.clientId,
-          payload: message.payload,
+          payload,
         });
+        if (payload && payload.type === 'cursor:update') {
+          room.members.forEach((memberId) => {
+            if (memberId === client.clientId) return;
+            const memberSocket = clientsById.get(memberId);
+            if (memberSocket) {
+              safeSend(memberSocket, { type: 'room:message', roomId, payload });
+            }
+          });
+        }
         return;
       }
       case 'room:message': {

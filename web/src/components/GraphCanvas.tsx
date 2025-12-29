@@ -13,7 +13,7 @@ import type {
   TouchEvent as ReactTouchEvent,
 } from 'react';
 import classNames from 'classnames';
-import ReactFlow, { ReactFlowProvider, SelectionMode, useReactFlow } from 'reactflow';
+import ReactFlow, { ReactFlowProvider, SelectionMode, useReactFlow, useStore } from 'reactflow';
 import type {
   Connection,
   Edge,
@@ -64,6 +64,7 @@ interface GraphCanvasProps {
   collabCursors?: CollaborationCursor[];
   isReadOnly?: boolean;
   onNodeDragStateChange?: (nodeIds: string[], isDragging: boolean) => void;
+  onCollabCursorMove?: (payload: { x: number; y: number; active: boolean }) => void;
 }
 
 type CollaborationCursor = {
@@ -351,9 +352,11 @@ const GraphCanvasInner = ({
   collabCursors = [],
   isReadOnly = false,
   onNodeDragStateChange,
+  onCollabCursorMove,
 }: GraphCanvasProps) => {
   const { t } = useI18n();
   const reactFlow = useReactFlow();
+  const [viewportX, viewportY, viewportZoom] = useStore((state) => state.transform);
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
   const environment = useGraphStore((state) => state.environment);
@@ -408,6 +411,8 @@ const GraphCanvasInner = ({
   }, [comments]);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const collabCursorLastPointRef = useRef<ScreenPoint | null>(null);
+  const collabCursorInsideRef = useRef(false);
   const [floatingPanel, setFloatingPanel] = useState<FloatingPanelState>(null);
   const [activeConnection, setActiveConnection] =
     useState<ConnectionPreview | null>(null);
@@ -2054,8 +2059,18 @@ const GraphCanvasInner = ({
           }
         }
       }
+
+      if (onCollabCursorMove) {
+        const point = reactFlow.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+        collabCursorLastPointRef.current = point;
+        collabCursorInsideRef.current = true;
+        onCollabCursorMove({ ...point, active: true });
+      }
     },
-    [activeConnection, connectionCursor, validateConnection]
+    [activeConnection, connectionCursor, onCollabCursorMove, reactFlow, validateConnection]
   );
 
   const handleWrapperMouseUp = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
@@ -2100,7 +2115,50 @@ const GraphCanvasInner = ({
     if (connectionCursor !== null) {
       setConnectionCursor(null);
     }
-  }, [connectionCursor]);
+    if (onCollabCursorMove) {
+      const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+      collabCursorInsideRef.current = false;
+      onCollabCursorMove({ ...lastPoint, active: false });
+    }
+  }, [connectionCursor, onCollabCursorMove]);
+
+  useEffect(() => {
+    if (!onCollabCursorMove) return;
+    const handleWindowMove = (event: MouseEvent) => {
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (inside) {
+        const point = reactFlow.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+        collabCursorLastPointRef.current = point;
+        collabCursorInsideRef.current = true;
+        onCollabCursorMove({ ...point, active: true });
+      } else if (collabCursorInsideRef.current) {
+        collabCursorInsideRef.current = false;
+        const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+        onCollabCursorMove({ ...lastPoint, active: false });
+      }
+    };
+    const handleWindowBlur = () => {
+      if (!collabCursorInsideRef.current) return;
+      collabCursorInsideRef.current = false;
+      const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+      onCollabCursorMove({ ...lastPoint, active: false });
+    };
+    window.addEventListener('mousemove', handleWindowMove, { passive: true });
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMove);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [onCollabCursorMove, reactFlow]);
 
   const handleWrapperTouchStart = useCallback(
     (event: ReactTouchEvent<HTMLDivElement>) => {
@@ -2342,7 +2400,7 @@ const GraphCanvasInner = ({
         'graph-canvas-wrapper--connection-invalid': connectionCursor === 'invalid',
       })}
       onMouseDown={handleWrapperMouseDown}
-      onMouseMove={handleWrapperMouseMove}
+      onMouseMoveCapture={handleWrapperMouseMove}
       onMouseUp={handleWrapperMouseUp}
       onMouseLeave={handleWrapperMouseLeave}
       onClickCapture={handlePaneClickCapture}
@@ -2394,23 +2452,27 @@ const GraphCanvasInner = ({
       />
       {collabCursors.length > 0 && (
         <div className="graph-collab-cursors" aria-hidden="true">
-          {collabCursors.map((cursor) => (
-            <div
-              key={cursor.id}
-              className="graph-collab-cursor"
-              style={{ left: cursor.x, top: cursor.y }}
-            >
-              {cursor.cursorImage && (
-                <img src={cursor.cursorImage} alt="" aria-hidden="true" />
-              )}
-              <span
-                className="graph-collab-cursor__label"
-                style={{ backgroundColor: cursor.color }}
+          {collabCursors.map((cursor) => {
+            const left = cursor.x * viewportZoom + viewportX;
+            const top = cursor.y * viewportZoom + viewportY;
+            return (
+              <div
+                key={cursor.id}
+                className="graph-collab-cursor"
+                style={{ left, top }}
               >
-                {cursor.nickname}
-              </span>
-            </div>
-          ))}
+                {cursor.cursorImage && (
+                  <img src={cursor.cursorImage} alt="" aria-hidden="true" />
+                )}
+                <span
+                  className="graph-collab-cursor__label"
+                  style={{ backgroundColor: cursor.color }}
+                >
+                  {cursor.nickname}
+                </span>
+              </div>
+            );
+          })}
         </div>
       )}
       {clickSelectionPreview && (
@@ -2617,6 +2679,7 @@ const GraphCanvas = ({
   collabCursors,
   isReadOnly,
   onNodeDragStateChange,
+  onCollabCursorMove,
 }: GraphCanvasProps) => (
   <ReactFlowProvider>
     <GraphCanvasInner
@@ -2626,6 +2689,7 @@ const GraphCanvas = ({
       collabCursors={collabCursors}
       isReadOnly={isReadOnly}
       onNodeDragStateChange={onNodeDragStateChange}
+      onCollabCursorMove={onCollabCursorMove}
     />
   </ReactFlowProvider>
 );
