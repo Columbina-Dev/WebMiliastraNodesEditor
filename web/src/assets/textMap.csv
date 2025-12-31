@@ -103,15 +103,15 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.saving,保存中...,儲存中...,Saving...,Saving...,保存中...
 0,collab.share.button,确认,確認,Confirm,Confirm,確認
 0,collab.share.disabled,当前设置无法共享,目前設定無法共享,Sharing is disabled by current settings.,Sharing is disabled by current settings.,現在の設定では共有できません
-0,collab.share.editorLimit.hint,包含自己，0 为不限制，1 为不共享，最多 6 人,包含自己，0＝不限制；1＝不共享；最多 6 人。,Includes host. 0 = unlimited; 1 = not sharing; max 6.,Includes host. 0 = unlimited; 1 = not sharing; max 6.,ホストを含みます。0＝無制限、1＝共有しない、最大 6 人。
+0,collab.share.editorLimit.hint,包含自己，0为不限制，1为不共享，最多 6 人,包含自己，0＝不限制；1＝不共享；最多6人。,Includes host. 0 = unlimited; 1 = not sharing; max 6.,Includes host. 0 = unlimited; 1 = not sharing; max 6.,ホストを含みます。0＝無制限、1＝共有しない、最大 6 人。
 0,collab.share.editorLimit.label,连接人数上限（含自己）,連線人數上限（含自己）,Connection limit (incl. host),Connection limit (incl. host),接続人数の上限（自分含む）
 0,collab.share.label,共享,共享,Share,Share,共有
 0,collab.share.limitReached,已达到连接上限,已達到連線上限,Connection limit reached,Connection limit reached,接続上限に達しました
-0,API キー,API密钥,API金鑰,API Key,API Key,JPN
+0,collab.share.link.apiKey.label,API密钥,API金鑰,API Key,API Key,JPN
 0,collab.share.link.apiKey.placeholder,可选,選填,Optional,Optional,任意
 0,collab.share.link.includePassword,链接中包含密码,連結中包含密碼,Include password in link,Include password in link,リンクにパスワードを含める
 0,collab.share.link.password.label,访问密码（可选）,存取密碼（選填）,Access password (optional),Access password (optional),アクセスパスワード（任意）
-0,collab.share.link.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
+0,collab.share.link.password.placeholder,输入6位数字密码,輸入6位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
 0,collab.share.link.port.label,端口,連接埠,Port,Port,ポート
 0,collab.share.link.port.placeholder,默认 {port},預設 {port},Default {port},Default {port},既定 {port}
 0,collab.share.link.portInvalid,端口格式不正确,連接埠格式不正確,Invalid port.,Invalid port.,ポートが無効です
