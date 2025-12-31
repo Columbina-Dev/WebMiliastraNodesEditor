@@ -412,7 +412,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,home.publicServers.server.label,服务器地址,伺服器位址,Server address,Server address,サーバーアドレス
 0,home.publicServers.server.placeholder,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev
 0,home.publicServers.title,公共服务器,公用伺服器,Public Servers,Public Servers,公開サーバー
-0,home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,Genshin Impact - Miliastra Wonderland Node Graph Simulator,Genshin Impact - Miliastra Wonderland Node Graph Simulator,『原神・千星奇域』ノードグラフシミュレーター
+0,home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,"""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator",『原神・千星奇域』ノードグラフシミュレーター
 0,inspector.comments,注释,註解,Notes,Notes,注釈
 0,inspector.comments.empty,暂无注释,暫無註解,No notes,No notes,注釈はありません
 0,inspector.comments.placeholder,（空注释）,（空註解）,(Empty note),(Empty note),（空の注釈）
