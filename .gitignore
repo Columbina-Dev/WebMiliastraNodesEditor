@@ -27,6 +27,7 @@ Examples/
 desktop.ini
 OL-Fork*
 Agent*
+*.bak
 
 # Official
 Official/

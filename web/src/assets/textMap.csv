@@ -22,7 +22,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,app.giaDecode.downloadGraphJson,下载节点图Json,下載節點圖Json,Download Node Graph Json,Download Node Graph Json,ノードグラフ Json をダウンロード
 0,app.giaDecode.downloadPreviewJson,下载预览Json,下載預覽Json,Download Preview Json,Download Preview Json,プレビュー Json をダウンロード
 0,app.giaDecode.failedTitle,解码失败,解碼失敗,Decode Failed,Decode Failed,デコードに失敗しました
-0,app.giaDecode.importErrorsTitle,未导入项,未匯入項目,Not Imported Items,Not Imported Items,未インポート項目
+0,app.giaDecode.importErrorsTitle,未导入项,未匯入項目,Items Not Imported,Items Not Imported,未インポート項目
 0,app.giaDecode.importUnavailable,此GIA文件无法转换为节点图Json。,此GIA檔案無法轉換為節點圖Json。,This GIA file cannot be converted to Node Graph Json.,This GIA file cannot be converted to Node Graph Json.,この GIA ファイルはノードグラフ Json に変換できません。
 0,app.giaDecode.importWarningsTitle,已忽略项,已忽略項目,Ignored Items,Ignored Items,無視した項目
 0,app.giaDecode.modalTitle,解码GIA文件,解碼GIA檔案,Decode GIA File,Decode GIA File,GIA ファイルをデコード
@@ -98,7 +98,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.nickname.fallback,用户,使用者,User,User,ユーザー
 0,collab.presence.more,以及{count}位编辑者,以及{count}位編輯者,And {count} more,And {count} more,ほか {count} 人
 0,collab.publicServer.connectFailed,连接服务器失败,連線伺服器失敗,Failed to connect to the server.,Failed to connect to the server.,サーバーに接続できませんでした
-0,collab.publicServer.defaultName,Collab Server,Collab Server,Collab Server,Collab Server,Collab Server
+0,collab.publicServer.defaultName,协作服务器,CHT,Collab Server,Collab Server,JPN
 0,collab.publicServer.roomCreateFailed,创建房间失败,建立房間失敗,Failed to create room.,Failed to create room.,ルームの作成に失敗しました
 0,collab.saving,保存中...,儲存中...,Saving...,Saving...,保存中...
 0,collab.share.button,确认,確認,Confirm,Confirm,確認
@@ -107,7 +107,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.editorLimit.label,连接人数上限（含自己）,連線人數上限（含自己）,Connection limit (incl. host),Connection limit (incl. host),接続人数の上限（自分含む）
 0,collab.share.label,共享,共享,Share,Share,共有
 0,collab.share.limitReached,已达到连接上限,已達到連線上限,Connection limit reached,Connection limit reached,接続上限に達しました
-0,collab.share.link.apiKey.label,API Key,API Key,API Key,API Key,API キー
+0,API キー,API密钥,API金鑰,API Key,API Key,JPN
 0,collab.share.link.apiKey.placeholder,可选,選填,Optional,Optional,任意
 0,collab.share.link.includePassword,链接中包含密码,連結中包含密碼,Include password in link,Include password in link,リンクにパスワードを含める
 0,collab.share.link.password.label,访问密码（可选）,存取密碼（選填）,Access password (optional),Access password (optional),アクセスパスワード（任意）
@@ -116,7 +116,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.link.port.placeholder,默认 {port},預設 {port},Default {port},Default {port},既定 {port}
 0,collab.share.link.portInvalid,端口格式不正确,連接埠格式不正確,Invalid port.,Invalid port.,ポートが無効です
 0,collab.share.link.server.label,服务器地址,伺服器位址,Server address,Server address,サーバーアドレス
-0,collab.share.link.server.placeholder,signal.example.com,signal.example.com,signal.example.com,signal.example.com,signal.example.com
+0,collab.share.link.server.placeholder,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev
 0,collab.share.link.serverRequired,请输入服务器地址,請輸入伺服器位址,Server address is required.,Server address is required.,サーバーアドレスを入力してください
 0,collab.share.link.title,共享链接,共享連結,Share link,Share link,共有リンク
 0,collab.share.link.visibility.label,可见性,可見性,Visibility,Visibility,公開範囲
@@ -129,9 +129,9 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.open.sharedAria,查看共享状态,查看共享狀態,View sharing status,View sharing status,共有状態を表示
 0,collab.share.owner.nickname,房主昵称,房主暱稱,Host nickname,Host nickname,ホストのニックネーム
 0,collab.share.password.change,更改密码,變更密碼,Change password,Change password,パスワードを変更
-0,collab.share.password.invalid,请输入 6 位数字密码,請輸入 6 位數字密碼,Enter a 6-digit password.,Enter a 6-digit password.,6 桁の数字パスワードを入力してください
+0,collab.share.password.invalid,请输入6位数字密码,請輸入6位數字密碼,Enter a 6-digit password.,Enter a 6-digit password.,6 桁の数字パスワードを入力してください
 0,collab.share.password.label,设置密码,設定密碼,Set password,Set password,パスワードを設定
-0,collab.share.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
+0,collab.share.password.placeholder,输入6位数字密码,輸入6位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
 0,collab.share.permission.editor,编辑者,編輯者,Editor,Editor,編集者
 0,collab.share.permission.label,权限,權限,Access permission,Access permission,権限
 0,collab.share.permission.viewer,查看者,檢視者,Viewer,Viewer,閲覧者
@@ -143,9 +143,9 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,collab.share.saveRequired,共享前请先保存项目,共享前請先儲存專案,Please save the project before sharing.,Please save the project before sharing.,共有する前にプロジェクトを保存してください
 0,collab.share.scope.label,共享范围,共享範圍,General access,General access,共有範囲
 0,collab.share.scope.link,拥有链接的任何人,擁有連結的任何人,Anyone with the link,Anyone with the link,リンクを知っている全員
-0,collab.share.scope.linkHint,需要公共服务器,需要公用伺服器,Requires public server,Requires public server,公開サーバーが必要
-0,collab.share.scope.localOpen,局域网-开放,區域網路－開放,LAN - Open,LAN - Open,LAN（ローカル）- オープン
-0,collab.share.scope.localPassword,局域网-密码,區域網路－密碼,LAN - Password,LAN - Password,LAN（ローカル）- パスワード
+0,collab.share.scope.linkHint,需要协作服务器,需要協作伺服器,Requires signaling server,Requires signaling server,シグナリングサーバーが必要
+0,collab.share.scope.localOpen,局域网－开放,區域網路－開放,LAN - Open,LAN - Open,LAN（ローカル）- オープン
+0,collab.share.scope.localPassword,局域网－密码,區域網路－密碼,LAN - Password,LAN - Password,LAN（ローカル）- パスワード
 0,collab.share.scope.restricted,受限（不共享）,受限（不共享）,Restricted (Not sharing),Restricted (Not sharing),制限（共有しない）
 0,collab.share.section.access,常规访问,一般存取,General Access,General Access,一般アクセス
 0,collab.share.section.owner,房主设置,房主設定,Host Settings,Host Settings,ホスト設定
@@ -213,6 +213,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,common.uiLanguage.enUk,British English,British English,British English,British English,British English
 0,common.uiLanguage.enUs,American English,American English,American English,American English,American English
 0,common.uiLanguage.jpn,日本語,日本語,日本語,日本語,日本語
+0,common.uiLanguage.tutorial,<Tutorial>,<Tutorial>,<Tutorial>,<Tutorial>,<Tutorial>
 0,common.undo,撤销,撤銷,Undo,Undo,元に戻す
 0,common.uninitialized,未初始化,未初始化,Uninitialized,Uninitialized,未初期化
 0,common.unset,未设置,未設定,Unset,Unset,未設定
@@ -227,7 +228,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,effects.loading,正在加载特效...,正在載入特效...,Loading effects...,Loading effects...,エフェクトを読み込み中...
 0,effects.scale.label,缩放,縮放,Scale,Scale,スケール
 0,effects.search.aria,搜索特效,搜尋特效,Search Effects,Search Effects,エフェクトを検索
-0,effects.search.badge,搜索结果：「{query}」· 共 {count} 项,搜尋結果：「{query}」· 共 {count} 項,Search Result:「{query}」({count} found),Search Result:「{query}」({count} found),検索結果：「{query}」・{count} 件
+0,effects.search.badge,搜索结果：「{query}」· 共 {count} 项,搜尋結果：「{query}」· 共 {count} 項,Search Results:「{query}」({count} found),Search Results:「{query}」({count} found),検索結果：「{query}」・{count} 件
 0,effects.search.placeholder,搜索特效名称或配置ID...,搜尋特效名稱或設定ID...,Enter effect name or configuration ID...,Enter effect name or configuration ID...,エフェクト名または設定 ID を入力...
 0,effects.stats.all,限时特效 · {limited} 个 | 循环特效 · {loop} 个,期間限定特效 · {limited} 個｜循環特效 · {loop} 個,{limited} Timed Effects | {loop} Looping Effects,{limited} Timed Effects | {loop} Looping Effects,期間限定 {limited} 件｜ループ {loop} 件
 0,effects.stats.filtered,当前显示 {count} 个特效,目前顯示 {count} 個特效,Currently displaying {count} effect(s),Currently displaying {count} effect(s),現在 {count} 件を表示中
@@ -248,11 +249,11 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,gia.export.edgeUnknownPort,GIA：连线 {edgeId} 引用了未知端口。,GIA：連線 {edgeId} 引用了未知連接埠。,GIA: Connection {edgeId} references an unknown port.,GIA: Connection {edgeId} references an unknown port.,GIA：接続 {edgeId} が不明なポートを参照しています。
 0,gia.export.edgeUnsupported,GIA：暂不支持从 {sourceType}.{sourcePortId} 到 {targetType}.{targetPortId} 的连线。,GIA：暫不支援從 {sourceType}.{sourcePortId} 到 {targetType}.{targetPortId} 的連線。,GIA: Connections from {sourceType}.{sourcePortId} to {targetType}.{targetPortId} are not supported yet.,GIA: Connections from {sourceType}.{sourcePortId} to {targetType}.{targetPortId} are not supported yet.,GIA：{sourceType}.{sourcePortId} から {targetType}.{targetPortId} への接続は未対応です。
 0,gia.export.flowInIndexMissing,GIA：无法定位 {nodeType}.{portId} 的 flow-in 序号。,GIA：無法定位 {nodeType}.{portId} 的 flow-in 序號。,GIA: Unable to locate the flow-in index of {nodeType}.{portId}.,GIA: Unable to locate the flow-in index of {nodeType}.{portId}.,GIA：{nodeType}.{portId} の flow-in インデックスを特定できません。
-0,gia.export.multipleComments,GIA：节点“{type}”存在多个注释，仅导出第一个。,GIA：節點「{type}」存在多個註解，僅匯出第一個。,"GIA: Node ""{type}"" contains multiple notes; only the first will be exported.","GIA: Node ""{type}"" contains multiple notes; only the first will be exported.",GIA：ノード「{type}」に複数の注釈があるため、最初の 1 つのみエクスポートします。
+0,gia.export.multipleComments,GIA：节点“{type}”存在多个注释，仅导出第一个。,GIA：節點「{type}」存在多個註解，僅匯出第一個。,GIA: Node「{type}」contains multiple notes; only the first will be exported.,GIA: Node「{type}」contains multiple notes; only the first will be exported.,GIA：ノード「{type}」に複数の注釈があるため、最初の 1 つのみエクスポートします。
 0,gia.export.noExportableNodes,导出为GIA文件：未找到可导出的节点。,匯出為GIA檔案：找不到可匯出的節點。,Export as GIA File: No exportable nodes found.,Export as GIA File: No exportable nodes found.,GIA ファイルとしてエクスポート：エクスポート可能なノードが見つかりません。
-0,gia.export.nodeMissingOfficialId,GIA：节点“{type}”缺少官方ID，无法导出。,GIA：節點「{type}」缺少官方ID，無法匯出。,"GIA: Node ""{type}"" is missing an official ID mapping and cannot be exported.","GIA: Node ""{type}"" is missing an official ID mapping and cannot be exported.",GIA：ノード「{type}」に公式 ID の対応付けがないためエクスポートできません。
-0,gia.export.nodeUnimplemented,GIA：当前环境暂未实现对节点“{type}”的导出。,GIA：目前環境尚未實作節點「{type}」的匯出。,"GIA: Exporting node ""{type}"" is not implemented in the current environment.","GIA: Exporting node ""{type}"" is not implemented in the current environment.",GIA：現在の環境ではノード「{type}」のエクスポートは未実装です。
-0,gia.export.nodeUnsupported,GIA：节点“{type}”暂不支持导出，将被忽略。,GIA：節點「{type}」暫不支援匯出，將被忽略。,"GIA: Node ""{type}"" is not supported for export and will be skipped.","GIA: Node ""{type}"" is not supported for export and will be skipped.",GIA：ノード「{type}」はエクスポート未対応のためスキップします。
+0,gia.export.nodeMissingOfficialId,GIA：节点“{type}”缺少官方ID，无法导出。,GIA：節點「{type}」缺少官方ID，無法匯出。,GIA: Node「{type}」is missing an official ID mapping and cannot be exported.,GIA: Node「{type}」is missing an official ID mapping and cannot be exported.,GIA：ノード「{type}」に公式 ID の対応付けがないためエクスポートできません。
+0,gia.export.nodeUnimplemented,GIA：当前环境暂未实现对节点“{type}”的导出。,GIA：目前環境尚未實作節點「{type}」的匯出。,GIA: Exporting node「{type}」is not implemented in the current environment.,GIA: Exporting node「{type}」is not implemented in the current environment.,GIA：現在の環境ではノード「{type}」のエクスポートは未実装です。
+0,gia.export.nodeUnsupported,GIA：节点“{type}”暂不支持导出，将被忽略。,GIA：節點「{type}」暫不支援匯出，將被忽略。,GIA: Node「{type}」is not supported for export and will be skipped.,GIA: Node「{type}」is not supported for export and will be skipped.,GIA：ノード「{type}」はエクスポート未対応のためスキップします。
 0,gia.export.unboundCommentPlacedAtOrigin,"GIA：存在未绑定节点且缺少坐标的注释，已放置在 (0,0)。","GIA：存在未綁定節點且缺少座標的註解，已放置於 (0,0)。","GIA: Unbound note(s) without coordinates were placed at (0,0).","GIA: Unbound note(s) without coordinates were placed at (0,0).","GIA：座標がない未紐付け注釈を (0,0) に配置しました。"
 0,gia.import.edgeMissingNode,GIA：连线包含缺失的节点，已跳过。,GIA：連線包含缺失的節點，已跳過。,GIA: Connection involves missing node(s) and was skipped.,GIA: Connection involves missing node(s) and was skipped.,GIA：接続に欠落ノードが含まれるためスキップしました。
 0,gia.import.graphValuesSkipped,GIA：暂不支持图变量，已跳过。,GIA：暫不支援圖變數，已跳過。,GIA: Graph variables are not supported yet and were skipped.,GIA: Graph variables are not supported yet and were skipped.,GIA：グラフ変数は未対応のためスキップしました。
@@ -397,7 +398,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,home.publicServers.join.action,加入,加入,Join,Join,参加
 0,home.publicServers.join.nickname,你的昵称,你的暱稱,Your nickname,Your nickname,ニックネーム
 0,home.publicServers.join.password,密码,密碼,Password,Password,パスワード
-0,home.publicServers.join.password.placeholder,输入 6 位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
+0,home.publicServers.join.password.placeholder,输入6位数字密码,輸入 6 位數字密碼,Enter 6-digit password,Enter 6-digit password,6 桁の数字パスワードを入力
 0,home.publicServers.join.title,加入「{name}」,加入「{name}」,Join「{name}」,Join「{name}」,「{name}」に参加
 0,home.publicServers.port.label,端口,連接埠,Port,Port,ポート
 0,home.publicServers.port.placeholder,默认 {port},預設 {port},Default {port},Default {port},既定 {port}
@@ -409,7 +410,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,home.publicServers.saveAndConnect,保存并连接,儲存並連線,Save and connect,Save and connect,保存して接続
 0,home.publicServers.search,搜索,搜尋,Search,Search,検索
 0,home.publicServers.server.label,服务器地址,伺服器位址,Server address,Server address,サーバーアドレス
-0,home.publicServers.server.placeholder,signal.example.com,signal.example.com,signal.example.com,signal.example.com,signal.example.com
+0,home.publicServers.server.placeholder,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev,signal.columbina.dev
 0,home.publicServers.title,公共服务器,公用伺服器,Public Servers,Public Servers,公開サーバー
 0,home.title,《原神·千星奇域》节点图模拟器,《原神·千星奇域》節點圖模擬器,Genshin Impact - Miliastra Wonderland Node Graph Simulator,Genshin Impact - Miliastra Wonderland Node Graph Simulator,『原神・千星奇域』ノードグラフシミュレーター
 0,inspector.comments,注释,註解,Notes,Notes,注釈
@@ -511,27 +512,29 @@ official?,key,chs,cht,en-us,en-uk,jpn
 0,resourceExplorer.validation.envMismatch.clientInServer,节点图标记为客户端，但当前位置为服务器节点图目录,節點圖標記為客戶端，但目前位置為伺服器端節點圖目錄,"Node graph is marked as client, but is currently in the server directory","Node graph is marked as client, but is currently in the server directory",ノードグラフはクライアント扱いですが、現在はサーバーディレクトリにあります
 0,resourceExplorer.validation.envMismatch.serverInClient,节点图标记为服务器，但当前位置为客户端节点图目录,节点图标记为伺服器端，但目前位置为用戶端節點圖目錄,"Node graph is marked as server, but is currently in the client directory","Node graph is marked as server, but is currently in the client directory",ノードグラフはサーバー扱いですが、現在はクライアントディレクトリにあります
 0,resourceExplorer.validation.invalidNodeTypes,以下节点类型不属于当前节点库分类：{types},以下節點類型不屬於目前節點庫分類：{types},The following node type(s) do not belong to the current node library category: {types},The following node type(s) do not belong to the current node library category: {types},次のノード種別は現在のノードライブラリカテゴリに属しません：{types}
-0,settings.about.credits.hackermdch.desc, - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件, - 提供 UgcUtil.dll 協助編碼／解碼 .gil 存檔檔案, - Providing UgcUtil.dll to encode/decode GIL saves, - Providing UgcUtil.dll to encode/decode GIL saves, - UgcUtil.dll を提供（.gil 保存ファイルのエンコード／デコード支援）
+0,settings.about.credits.hackermdch.desc,- 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件,- 提供 UgcUtil.dll 協助編碼／解碼 .gil 存檔檔案,- Providing UgcUtil.dll to encode/decode GIL saves,- Providing UgcUtil.dll to encode/decode GIL saves,- UgcUtil.dll を提供（.gil 保存ファイルのエンコード／デコード支援）
 0,settings.about.credits.hackermdch.name,hackermdch,hackermdch,hackermdch,hackermdch,hackermdch
-0,settings.about.credits.title,特别鸣谢（时间顺序）：,特別鳴謝（時間順序）：,Special Thanks (Chronological):,Special Thanks (Chronological):,スペシャルサンクス（時系列）：
-0,settings.about.credits.wuYijun.desc, - 提供 gia.proto及其他工具 帮助编码/解码GIA文件, - 提供 gia.proto 及其他工具，協助編碼／解碼 GIA 檔案, - Providing gia.proto and related tools to encode/decode GIA files, - Providing gia.proto and related tools to encode/decode GIA files, - gia.proto 等のツールを提供（GIA ファイルのエンコード／デコード支援）
+0,settings.about.credits.SpeedyOrc-C.desc,- 提供 TeyvatBlack-Regular.ttf 字体，用于演示截图,- 提供 TeyvatBlack-Regular.ttf 字體，用於示範截圖,- Providing TeyvatBlack-Regular.ttf for demo screenshots,- Providing TeyvatBlack-Regular.ttf for demo screenshots,- デモ用スクリーンショットに使用する TeyvatBlack-Regular.ttf フォントを提供
+0,settings.about.credits.SpeedyOrc-C.name,SpeedyOrc-C,SpeedyOrc-C,SpeedyOrc-C,SpeedyOrc-C,SpeedyOrc-C
+0,settings.about.credits.title,特别鸣谢（字母顺序）：,特別鳴謝（字母順序）：,Special Thanks (Alphabetical order):,Special Thanks (Alphabetical order):,スペシャルサンクス（アルファベット順）：
+0,settings.about.credits.wuYijun.desc,- 提供 gia.proto及其他工具 帮助编码/解码GIA文件,- 提供 gia.proto 及其他工具，協助編碼／解碼 GIA 檔案,- Providing gia.proto and related tools to encode/decode GIA files,- Providing gia.proto and related tools to encode/decode GIA files,- gia.proto 等のツールを提供（GIA ファイルのエンコード／デコード支援）
 0,settings.about.credits.wuYijun.name,Wu-Yijun,Wu-Yijun,Wu-Yijun,Wu-Yijun,Wu-Yijun
-0,settings.about.disclaimer.p1.link,《原神》及《原神·千星奇域》使用条款,《原神》及《原神·千星奇域》使用條款,Genshin Impact and「Genshin Impact - Miliastra Wonderland」Terms of Service,Genshin Impact and「Genshin Impact - Miliastra Wonderland」Terms of Service,『原神』および『原神・千星奇域』利用規約
+0,settings.about.disclaimer.p1.link,《原神》及《原神·千星奇域》使用条款,《原神》及《原神·千星奇域》使用條款," ""Genshin Impact"" and ""Genshin Impact - Miliastra Wonderland"" Terms of Service",Genshin Impact and「Genshin Impact - Miliastra Wonderland」Terms of Service,『原神』および『原神・千星奇域』利用規約
 0,settings.about.disclaimer.p1.prefix,声明：该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。该项目90%以上代码均由AI生成。此项目仅供学习和交流使用，严禁用于商业用途。使用时请务必遵守,聲明：本專案為同人製作，與米哈游無關。所有引用素材之版權歸原作者所有。本專案90%以上程式碼由AI生成。本專案僅供學習與交流，嚴禁用於商業用途。使用時請務必遵守,"Declaration: This project is a fan-made creation and is not affiliated with miHoYo / HoYoverse. All referenced materials belong to their original copyright holders. Over 90% of the code in this project is generated by AI. This project is only intended for learning and communication, and must not be used for any commercial purpose. While using, you are expected to strictly follow the","Declaration: This project is a fan-made creation and is not affiliated with miHoYo / HoYoverse. All referenced materials belong to their original copyright holders. Over 90% of the code in this project is generated by AI. This project is only intended for learning and communication, and must not be used for any commercial purpose. While using, you are expected to strictly follow the",声明：本プロジェクトは同人制作であり、miHoYo / HoYoverse とは無関係です。引用素材の権利は各権利者に帰属します。本プロジェクトのコードの 90% 以上は AI 生成です。本プロジェクトは学習・交流目的のみで、商用利用を禁止します。利用時は必ず次の規約を遵守してください：
-0,settings.about.disclaimer.p1.suffix,，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。,，如因使用本工具違反《原神》條款而導致帳號封禁，本專案概不負責。,. The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of「Genshin Impact」,. The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of「Genshin Impact」,なお、本ツールの使用により『原神』の規約に違反してアカウント停止等が発生した場合、本プロジェクトは一切責任を負いません。
+0,settings.about.disclaimer.p1.suffix,，如因使用此工具时违反《原神》条款造成原神账号封禁，此项目概不负责。,，如因使用本工具違反《原神》條款而導致帳號封禁，本專案概不負責。,". The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of ""Genshin Impact""",. The project is not responsible if your Genshin Impact account is banned for using this tool to bypass limits and violate the Terms of Service of「Genshin Impact」,なお、本ツールの使用により『原神』の規約に違反してアカウント停止等が発生した場合、本プロジェクトは一切責任を負いません。
 0,settings.about.disclaimer.p2,使用此网页应用时即默认表示您已阅读并同意以上声明。,使用本網頁應用即視為您已閱讀並同意以上聲明。,"By using this web app, you are deemed to have read and agreed to the above declaration.","By using this web app, you are deemed to have read and agreed to the above declaration.",本 Web アプリを使用した時点で、上記の声明を読み同意したものとみなします。
-0,settings.about.license.appName,"《原神·千星奇域》节点图模拟器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","《原神·千星奇域》節點圖模擬器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","『原神・千星奇域』ノードグラフシミュレーター（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）"
+0,settings.about.license.appName,"《原神・千星奇域》节点图模拟器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","《原神・千星奇域》節點圖模擬器（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator","『原神・千星奇域』ノードグラフシミュレーター（""Genshin Impact - Miliastra Wonderland"" Node Graph Simulator）"
 0,settings.about.license.copyright,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev,Copyright (C) 2025-2026 Columbina-Dev
 0,settings.about.license.p1,"This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.","This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version."
 0,settings.about.license.p2,"This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details.","This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU General Public License for more details."
 0,settings.about.license.p3.link,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/,https://www.gnu.org/licenses/
-0,settings.about.license.p3.prefix,"You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see","You should have received a copy of the GNU General Public License along with this program. If not, see"
+0,settings.about.license.p3.prefix,"You should have received a copy of the GNU General Public License along with this program. If not, see ","You should have received a copy of the GNU General Public License along with this program. If not, see ","You should have received a copy of the GNU General Public License along with this program. If not, see ","You should have received a copy of the GNU General Public License along with this program. If not, see ","You should have received a copy of the GNU General Public License along with this program. If not, see "
 0,settings.about.license.p3.suffix,.,.,.,.,.
 0,settings.about.project.p1.license,GPL V3,GPL V3,GPL V3,GPL V3,GPL V3
 0,settings.about.project.p1.link,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor,https://github.com/Columbina-Dev/WebMiliastraNodesEditor
-0,settings.about.project.p1.middle,协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：,以本協議發布（見頁面底部），程式碼託管於GitHub，歡迎各位使用者Star並參與貢獻：,"license, the source codes are available on GitHub. Feel free to star the repository and contribute:","license, the source codes are available on GitHub. Feel free to star the repository and contribute:",本プロジェクトは本ライセンスで公開され、ソースコードは GitHub で管理しています。Star や貢献を歓迎します：
+0,settings.about.project.p1.middle,协议发布（见页面底部），代码托管于GitHub，欢迎各位用户添加Star和参与贡献：,以本協議發布（見頁面底部），程式碼託管於GitHub，歡迎各位使用者Star並參與貢獻：,"license, the source codes are available on GitHub. Feel free to star the repository and contribute: ","license, the source codes are available on GitHub. Feel free to star the repository and contribute: ",本プロジェクトは本ライセンスで公開され、ソースコードは GitHub で管理しています。Star や貢献を歓迎します：
 0,settings.about.project.p1.prefix,此项目基于,本專案基於,This project is released based on the,This project is released based on the,本プロジェクトは次のライセンスに基づいて公開されています：
-0,settings.about.project.p2.text,本地化状态：简中、繁中、美英、英英、日语文本已完成。简中与美英为人工编写；繁中与英英由 LLM AI 生成并经人工审查与改进；日语完全由 LLM AI 生成，尚未审查，正在寻求贡献者协助校对。,本地化狀態：簡中、繁中、美英、英英、日語文本已完成。簡中與美英為人工撰寫；繁中與英英由 LLM AI 生成並經人工審查與改進；日語完全由 LLM AI 生成，尚未審查，正尋求貢獻者協助校對。,Localization status: CHS, CHT, EN-US, EN-UK, and JPN text maps are complete. CHS and EN-US are written manually; CHT and EN-UK were generated by LLM AI and reviewed/improved; JPN is fully generated by LLM AI and not yet reviewed, and we are looking for contributors to help review it.,Localization status: CHS, CHT, EN-US, EN-UK, and JPN text maps are complete. CHS and EN-US are written manually; CHT and EN-UK were generated by LLM AI and reviewed/improved; JPN is fully generated by LLM AI and not yet reviewed, and we are looking for contributors to help review it.,ローカライズ状況：CHS、CHT、EN-US、EN-UK、JPN のテキストマップは完成しています。CHS と EN-US は手動作成、CHT と EN-UK は LLM AI 生成後にレビュー・改善済み、JPN は LLM AI による自動生成のみで未レビューのため、校正に協力いただける方を募集しています。
+0,settings.about.project.p2.text,本地化状态：简中、繁中、美英、英英、日语文本已完成。简中与美英为人工编写；繁中与英英由语言模型对照简中及美英生成，并经人工审查与改进；日语完全由语言模型生成，尚未审查，正在寻求贡献者协助校对，如你有兴趣，请在此项目的GitHub仓库中提出Issue。,本地化狀態：簡中、繁中、美英、英英、日語文本已完成。簡中與美英為人工編寫；繁中與英英由語言模型對照簡中及美英生成，並經人工審查與改進；日語完全由語言模型生成，尚未審查，正在尋求貢獻者協助校對。如你有興趣，請在此專案的GitHub倉庫提出Issue。,"Localization status: Simplified Chinese, Traditional Chinese, EN-US, EN-UK, and Japanese are complete. Simplified Chinese and EN-US were written manually. Traditional Chinese and EN-UK were generated by a language model based on Simplified Chinese and EN-US, then reviewed and improved manually. Japanese was generated entirely by a language model and has not been reviewed yet. We're looking for contributors to help proofread; if you're interested, please open an issue in the project's GitHub repository.","Localization status: Simplified Chinese, Traditional Chinese, EN-US, EN-UK, and Japanese are complete. Simplified Chinese and EN-US were written manually. Traditional Chinese and EN-UK were generated by a language model based on Simplified Chinese and EN-US, then reviewed and improved manually. Japanese was generated entirely by a language model and has not been reviewed yet. We're looking for contributors to help proofread; if you're interested, please open an issue in the project's GitHub repository.",ローカライズ状況：簡体中文／繁体中文／EN-US／EN-UK／日本語は完了しています。簡体中文と EN-US は手動で作成しました。繁体中文と EN-UK は言語モデルが簡体中文と EN-US を参照して生成し、手動で審査・改善しています。日本語は言語モデルのみで生成され、未校正です。現在、校正に協力してくれる貢献者を募集しています。興味があれば、本プロジェクトの GitHub リポジトリで Issue を立ててください。
 0,settings.about.title,关于,關於,About,About,概要
 0,settings.backToEditor,返回节点图编辑器,返回節點圖編輯器,Return to Node Graph Editor,Return to Node Graph Editor,ノードグラフエディターに戻る
 0,settings.backToHome,返回主页,返回首頁,Return to Homepage,Return to Homepage,ホームに戻る

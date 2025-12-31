@@ -596,6 +596,12 @@ const SettingsPage = ({
                 {t('settings.about.credits.hackermdch.desc')}
               </p>
               <p>
+                <a href="https://github.com/SpeedyOrc-C" target="_blank" rel="noopener noreferrer">
+                  {t('settings.about.credits.SpeedyOrc-C.name')}
+                </a>
+                {t('settings.about.credits.SpeedyOrc-C.desc')}
+              </p>
+              <p>
                 <a href="https://github.com/Wu-Yijun" target="_blank" rel="noopener noreferrer">
                   {t('settings.about.credits.wuYijun.name')}
                 </a>

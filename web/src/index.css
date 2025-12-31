@@ -1,13 +1,14 @@
 @font-face {
   font-family: 'DreamHanSans';
-  src: url('../assets/DreamHanSans-W17.ttc') format('truetype');
+  src: url('./assets/font/DreamHanSans-W17.ttc') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
 }
 
 :root {
-  font-family: 'DreamHanSans', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  --app-font-family: 'DreamHanSans', 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  font-family: var(--app-font-family);
   line-height: 1.5;
   font-weight: 400;
   color: #f7f7ff;

@@ -11,6 +11,7 @@ const CSV_PATH = path.resolve(SRC_ROOT, 'assets', 'textMap.csv');
 const OUTPUT_PATH = path.resolve(SRC_ROOT, 'utils', 'i18n.ts');
 
 const LANGUAGE_KEYS = ['chs', 'cht', 'en-us', 'en-uk', 'jpn'];
+const TUTORIAL_LANGUAGE = 'tutorial';
 
 const fail = (message) => {
   console.error(`[buildTextMap] ${message}`);
@@ -171,7 +172,9 @@ const generateI18nTs = (map) => {
   lines.push(`// Comment in https://docs.google.com/spreadsheets/d/1Ed6lFZ9gCsbkMXFpX-UNnFm70zo4deoUghjqLibRudU/edit?usp=sharing to suggest changes.`);
   lines.push(`// Textmap generated at: ${toHumanTimestamp(now)} (UTC+8)`);
   lines.push('');
-  lines.push("export type UiLanguage = 'chs' | 'cht' | 'en-us' | 'en-uk' | 'jpn';");
+  lines.push(
+    "export type UiLanguage = 'chs' | 'cht' | 'en-us' | 'en-uk' | 'jpn' | 'tutorial';"
+  );
   lines.push('');
   lines.push('export const UI_LANGUAGE_OPTIONS = [');
   lines.push("  { value: 'chs', labelKey: 'common.uiLanguage.chs' },");
@@ -179,14 +182,17 @@ const generateI18nTs = (map) => {
   lines.push("  { value: 'en-us', labelKey: 'common.uiLanguage.enUs' },");
   lines.push("  { value: 'en-uk', labelKey: 'common.uiLanguage.enUk' },");
   lines.push("  { value: 'jpn', labelKey: 'common.uiLanguage.jpn' },");
+  lines.push("  { value: 'tutorial', labelKey: 'common.uiLanguage.tutorial' },");
   lines.push('] as const;');
   lines.push('');
   lines.push('export const getDefaultSecondaryLanguage = (primary: UiLanguage): UiLanguage =>');
-  lines.push("  primary === 'en-us' || primary === 'en-uk' ? 'chs' : 'en-us';");
+  lines.push(
+    "  primary === 'en-us' || primary === 'en-uk' || primary === 'tutorial' ? 'chs' : 'en-us';"
+  );
   lines.push('');
   lines.push('export const isUiLanguage = (value: unknown): value is UiLanguage =>');
   lines.push(
-    "  value === 'chs' || value === 'cht' || value === 'en-us' || value === 'en-uk' || value === 'jpn';"
+    "  value === 'chs' || value === 'cht' || value === 'en-us' || value === 'en-uk' || value === 'jpn' || value === 'tutorial';"
   );
   lines.push('');
   lines.push('export const detectDefaultUiLanguage = (): UiLanguage => {');
@@ -211,7 +217,9 @@ const generateI18nTs = (map) => {
   lines.push("  return 'en-us';");
   lines.push('};');
   lines.push('');
-  lines.push("type TextMapEntry = { chs?: string; cht?: string; 'en-us'?: string; 'en-uk'?: string; jpn?: string };");
+  lines.push(
+    "type TextMapEntry = { chs?: string; cht?: string; 'en-us'?: string; 'en-uk'?: string; jpn?: string };"
+  );
   lines.push('');
   lines.push('export const TEXT_MAP: Record<string, TextMapEntry> = {');
   for (const key of keys) {
@@ -231,6 +239,10 @@ const generateI18nTs = (map) => {
   lines.push('');
   lines.push('type ReplaceParams = Record<string, string | number>;');
   lines.push('');
+  lines.push('const resolveLanguage = (language: UiLanguage): keyof TextMapEntry => {');
+  lines.push(`  return language === ${escapeTsString(TUTORIAL_LANGUAGE)} ? 'en-us' : language;`);
+  lines.push('};');
+  lines.push('');
   lines.push('const replaceParams = (value: string, params?: ReplaceParams): string => {');
   lines.push('  if (!params) return value;');
   lines.push('  return value.replace(/\\{(\\w+)\\}/g, (match, name) => {');
@@ -247,8 +259,8 @@ const generateI18nTs = (map) => {
   lines.push('): string => {');
   lines.push('  const entry = TEXT_MAP[key];');
   lines.push('  if (!entry) return "";');
-  lines.push('  const primaryRaw = entry[primary] ?? "";');
-  lines.push('  const secondaryRaw = entry[secondary] ?? "";');
+  lines.push('  const primaryRaw = entry[resolveLanguage(primary)] ?? "";');
+  lines.push('  const secondaryRaw = entry[resolveLanguage(secondary)] ?? "";');
   lines.push('  const primaryTrimmed = primaryRaw.trim();');
   lines.push('  const secondaryTrimmed = secondaryRaw.trim();');
   lines.push('  const resolved = primaryTrimmed ? primaryRaw : secondaryTrimmed ? secondaryRaw : "";');

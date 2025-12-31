@@ -14,6 +14,8 @@
   --cursor-text-invalid: url('./assets/cursor/TextInvalid-60.png') 20 20, not-allowed;
   --cursor-jump: url('./assets/cursor/Jump-60.png') 24 18, pointer;
   --app-version-info-height: 32px;
+  --app-font-scale: 1;
+  --app-control-font-size: 13px;
 }
 
 .app--system-pointer {
@@ -41,6 +43,8 @@ body,
 
 button {
   cursor: var(--cursor-pointer);
+  font-family: inherit;
+  font-size: calc(var(--app-font-scale, 1) * var(--app-control-font-size));
 }
 
 input,
@@ -79,6 +83,8 @@ select,
 input,
 textarea {
   color: inherit;
+  font-family: inherit;
+  font-size: calc(var(--app-font-scale, 1) * var(--app-control-font-size));
 }
 
 select {
@@ -101,7 +107,15 @@ option {
 
 @font-face {
   font-family: 'DreamHanSans';
-  src: url('../assets/font/DreamHanSans-W17.ttc') format('truetype-collection');
+  src: url('./assets/font/DreamHanSans-W17.ttc') format('truetype-collection');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'TeyvatBlack';
+  src: url('./assets/font/demo/TeyvatBlack-Regular.ttf') format('truetype');
   font-weight: normal;
   font-style: normal;
   font-display: swap;
@@ -113,9 +127,16 @@ option {
   flex-direction: column;
   background: #08080f;
   color: #f7f7ff;
-  font-family: 'DreamHanSans';
+  font-family: var(--app-font-family);
   overflow: hidden;
   user-select: none;
+}
+
+.app--tutorial-font {
+  --app-font-family: 'TeyvatBlack', 'DreamHanSans', 'Segoe UI', system-ui, -apple-system,
+    BlinkMacSystemFont, 'PingFang SC', 'Hiragino Sans GB', sans-serif;
+  --app-font-scale: 0.6;
+  font-size: calc(100% * var(--app-font-scale));
 }
 
 .app--scrollable {
@@ -205,7 +226,7 @@ option {
   border-radius: 12px;
   color: inherit;
   padding: 6px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   min-width: 200px;
 }
 
@@ -235,7 +256,7 @@ option {
 }
 
 .action_dock__interval-unit {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.8);
 }
 
@@ -265,7 +286,7 @@ option {
   border: none;
   background: transparent;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   padding: 6px;
   border-radius: 8px;
   cursor: var(--cursor-pointer);
@@ -298,7 +319,7 @@ option {
   z-index: 2000;
   width: 100%;
   text-align: center;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   font-weight: 600;
   padding: 6px 0;
   color: rgba(247, 247, 255, 0.85);
@@ -330,7 +351,7 @@ option {
   border: 1px solid rgba(92, 186, 255, 0.4);
   background: rgba(36, 40, 54, 0.96);
   color: #f6f6ff;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.45);
   z-index: 2000;
 }
@@ -348,13 +369,13 @@ option {
 
 .app__not-found h1 {
   margin: 0;
-  font-size: 48px;
+  font-size: calc(var(--app-font-scale, 1) * 48px);
   letter-spacing: 4px;
 }
 
 .app__not-found p {
   margin: 0;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   opacity: 0.8;
 }
 
@@ -407,7 +428,7 @@ option {
 
 .app__editor-bar-saving-stat {
   justify-self: start;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.55);
   margin-left: 6px;
 }
@@ -432,7 +453,7 @@ option {
   background: transparent;
   border: none;
   color: inherit;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   cursor: var(--cursor-pointer);
   border-radius: 6px;
   transition: background 0.2s ease;
@@ -464,7 +485,7 @@ option {
   background: transparent;
   border: none;
   color: rgba(255, 255, 255, 0.9);
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   cursor: var(--cursor-pointer);
   transition: background 0.2s ease;
   text-align: left;
@@ -483,7 +504,7 @@ option {
   position: absolute;
   left: 50%;
   transform: translateX(-50%);
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
   text-align: center;
@@ -561,7 +582,7 @@ option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   font-weight: 600;
   white-space: nowrap;
   cursor: var(--cursor-pointer);
@@ -580,7 +601,7 @@ option {
 }
 
 .app__tabs-action-label {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   font-weight: 600;
 }
 
@@ -591,7 +612,7 @@ option {
   background: #ff4d4d;
   color: #fff;
   border-radius: 999px;
-  font-size: 10px;
+  font-size: calc(var(--app-font-scale, 1) * 10px);
   padding: 2px 5px;
   border: 1px solid rgba(0, 0, 0, 0.35);
   min-width: 18px;
@@ -604,7 +625,7 @@ option {
   border-radius: 6px;
   background: rgba(20, 20, 28, 0.95);
   color: #f6f6ff;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   line-height: 1.4;
   border: 1px solid rgba(255, 255, 255, 0.12);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.35);
@@ -629,6 +650,7 @@ option {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: inherit;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease;
   position: relative;
@@ -654,13 +676,13 @@ option {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 9px;
+  font-size: calc(var(--app-font-scale, 1) * 9px);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.85);
 }
 
 .app__tab-avatar--overflow {
-  font-size: 10px;
+  font-size: calc(var(--app-font-scale, 1) * 10px);
   letter-spacing: -1px;
 }
 
@@ -692,7 +714,7 @@ option {
 }
 
 .app__tab-close {
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   line-height: 1;
   cursor: var(--cursor-pointer);
 }
@@ -703,7 +725,7 @@ option {
 
 .app__shortcut {
   display: block;
-  font-size: 11px;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
   opacity: 0.6;
 }
 
@@ -750,7 +772,7 @@ option {
 
 .app__modal h3 {
   margin: 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
 }
 
 .app__modal-field {
@@ -760,7 +782,7 @@ option {
 }
 
 .app__modal-field label {
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   opacity: 0.8;
 }
 
@@ -772,7 +794,7 @@ option {
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .app__modal-field input:focus,
@@ -785,11 +807,11 @@ option {
   border-radius: 10px;
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .app__modal-path {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   opacity: 0.75;
   padding: 10px 12px;
   border-radius: 10px;
@@ -798,7 +820,7 @@ option {
 }
 
 .app__modal-error {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: #ffb0b0;
 }
 
@@ -861,12 +883,12 @@ option {
 
 .gia-modal__title h3 {
   margin: 0;
-  font-size: 22px;
+  font-size: calc(var(--app-font-scale, 1) * 22px);
 }
 
 .gia-modal__title p {
   margin: 4px 0 0;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.65);
   word-break: break-all;
 }
@@ -887,7 +909,7 @@ option {
 
 .gia-modal__section-title {
   margin: 0 0 8px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   font-weight: 600;
 }
 
@@ -897,7 +919,7 @@ option {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(246, 246, 255, 0.85);
 }
 
@@ -908,7 +930,7 @@ option {
 }
 
 .gia-modal__field label {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   opacity: 0.75;
 }
 
@@ -925,7 +947,7 @@ option {
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .gia-modal__uid input:focus {
@@ -951,8 +973,8 @@ option {
 
 .gia-modal__code {
   margin: 0;
-  font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
-  font-size: 13px;
+  font-family: var(--app-font-family);
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   line-height: 1.5;
   white-space: pre;
   color: #d4d4d4;
@@ -1033,12 +1055,12 @@ option {
 
 .collab-modal__header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
 }
 
 .collab-modal__note {
   margin: 6px 0 0;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.7);
 }
 
@@ -1054,7 +1076,7 @@ option {
 
 .collab-section h3 {
   margin: 0;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
 }
 
 .collab-field {
@@ -1065,7 +1087,7 @@ option {
 }
 
 .collab-field label {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   opacity: 0.8;
 }
 
@@ -1075,7 +1097,7 @@ option {
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 8px 10px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .collab-field input:focus {
@@ -1096,7 +1118,7 @@ option {
   background: rgba(255, 255, 255, 0.04);
   color: inherit;
   padding: 8px 10px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   cursor: var(--cursor-pointer);
 }
 
@@ -1105,7 +1127,7 @@ option {
   align-items: center;
   justify-content: flex-start;
   gap: 8px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.75);
   cursor: var(--cursor-pointer);
 }
@@ -1122,7 +1144,7 @@ option {
   transform: translateY(-100%);
   padding: 4px 8px;
   border-radius: 999px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   background: rgba(0, 0, 0, 0.65);
   color: #f7f7ff;
   border: 1px solid rgba(255, 255, 255, 0.15);
@@ -1158,7 +1180,7 @@ option {
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .collab-option input {
@@ -1167,13 +1189,13 @@ option {
 
 .collab-option__hint {
   margin-left: 8px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.55);
 }
 
 .collab-hint {
   margin: 0;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -1199,7 +1221,7 @@ option {
 }
 
 .collab-row__name {
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .collab-row__actions {
@@ -1245,11 +1267,11 @@ option {
 }
 
 .collab-member__name {
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .collab-member__role {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -1268,7 +1290,7 @@ option {
 }
 
 .collab-empty {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.6);
 }
 
@@ -1278,7 +1300,7 @@ option {
   background: rgba(255, 120, 120, 0.15);
   border: 1px solid rgba(255, 120, 120, 0.4);
   color: #ffd5d5;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
 }
 
 .collab-actions {
@@ -1294,6 +1316,7 @@ option {
   background: rgba(255, 255, 255, 0.08);
   color: inherit;
   cursor: var(--cursor-pointer);
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   transition: background 0.2s ease, border 0.2s ease;
 }
 
@@ -1338,7 +1361,7 @@ option {
   justify-content: space-between;
   padding: 12px 14px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   font-weight: 600;
 }
 
@@ -1346,7 +1369,7 @@ option {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
   cursor: var(--cursor-pointer);
 }
 
@@ -1376,7 +1399,7 @@ option {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: rgba(18, 20, 30, 0.85);
   color: rgba(255, 255, 255, 0.85);
-  font-size: 11px;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
   cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease;
 }
@@ -1411,13 +1434,13 @@ option {
 }
 
 .app__chat-name {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.8);
 }
 
 .app__chat-text {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   margin-top: 4px;
   color: rgba(255, 255, 255, 0.92);
   word-break: break-word;
@@ -1458,7 +1481,7 @@ option {
 
 .app__chat-empty {
   text-align: center;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.6);
   padding: 20px 0;
 }

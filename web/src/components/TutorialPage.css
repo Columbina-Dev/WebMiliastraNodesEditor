@@ -103,13 +103,13 @@ p a:hover {
 }
 
 .tutorial__tab-label {
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   font-weight: 600;
   line-height: 1.2;
 }
 
 .tutorial__tab-desc {
-  font-size: 11px;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
   opacity: 0.75;
   margin-top: 2px;
   line-height: 1.2;
@@ -155,13 +155,13 @@ p a:hover {
 
 .tutorial__catalog-header h2 {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
   font-weight: 600;
 }
 
 .tutorial__catalog-header p {
   margin: 4px 0 12px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   opacity: 0.72;
 }
 
@@ -172,7 +172,7 @@ p a:hover {
   background: rgba(15, 17, 28, 0.75);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   transition: border 0.2s ease, background 0.2s ease;
 }
 
@@ -198,7 +198,7 @@ p a:hover {
 .tutorial__catalog-empty {
   padding: 32px 16px;
   text-align: center;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   opacity: 0.75;
   display: flex;
   flex-direction: column;
@@ -284,7 +284,7 @@ p a:hover {
   border: none;
   background: transparent;
   color: inherit;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   text-align: left;
   cursor: var(--cursor-pointer);
   padding: 8px 12px 8px 4px;
@@ -308,7 +308,7 @@ p a:hover {
   color: #1c1f2b;
   overflow: hidden;
   display: flex;
-  font-family: 'TutorialExtraPUA', 'DreamHanSans', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  font-family: 'TutorialExtraPUA', var(--app-font-family);
 }
 
 .tutorial__content-inner {
@@ -326,7 +326,7 @@ p a:hover {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 12px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(28, 31, 43, 0.6);
 }
 
@@ -349,7 +349,7 @@ p a:hover {
 }
 
 .tutorial__meta {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   opacity: 0.75;
 }
 
@@ -421,7 +421,7 @@ p a:hover {
 }
 
 .tutorial__content-body .list-marker {
-  font-family: 'TutorialExtraPUA', 'DreamHanSans', 'Segoe UI', 'Microsoft YaHei', sans-serif;
+  font-family: 'TutorialExtraPUA', var(--app-font-family);
   color: #596FFE;
   display: inline-flex;
   align-items: center;
@@ -440,7 +440,7 @@ p a:hover {
 
 .tutorial__content-loading {
   text-align: center;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   opacity: 0.75;
 }
 
@@ -459,25 +459,25 @@ p a:hover {
 }
 
 .tutorial-article h1 {
-  font-size: 28px;
+  font-size: calc(var(--app-font-scale, 1) * 28px);
   margin: 0 0 16px;
   font-weight: 700;
   color: #1a1d2a;
 }
 
 .tutorial-article h2 {
-  font-size: 22px;
+  font-size: calc(var(--app-font-scale, 1) * 22px);
   margin: 28px 0 12px;
 }
 
 .tutorial-article h3 {
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
   margin: 24px 0 10px;
 }
 
 .tutorial-article p {
   margin: 12px 0;
-  font-size: 15px;
+  font-size: calc(var(--app-font-scale, 1) * 15px);
 }
 
 .tutorial-article ul,
@@ -488,12 +488,12 @@ p a:hover {
 
 .tutorial-article li {
   margin: 6px 0;
-  font-size: 15px;
+  font-size: calc(var(--app-font-scale, 1) * 15px);
 }
 
 .tutorial-article__meta {
   margin-top: 20px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(26, 29, 42, 0.65);
 }
 
@@ -517,13 +517,13 @@ p a:hover {
 
 .tutorial__landing-title h1 {
   margin: 0;
-  font-size: 36px;
+  font-size: calc(var(--app-font-scale, 1) * 36px);
   font-weight: 700;
 }
 
 .tutorial__landing-title p {
   margin: 0;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   line-height: 1.8;
   opacity: 0.8;
 }
@@ -550,12 +550,12 @@ p a:hover {
 
 .tutorial__landing-card h2 {
   margin: 0;
-  font-size: 22px;
+  font-size: calc(var(--app-font-scale, 1) * 22px);
 }
 
 .tutorial__landing-card p {
   margin: 0;
-  font-size: 15px;
+  font-size: calc(var(--app-font-scale, 1) * 15px);
   opacity: 0.8;
 }
 
@@ -568,7 +568,7 @@ p a:hover {
 .tutorial__landing-cta {
   margin-top: auto;
   font-weight: 600;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -612,7 +612,7 @@ p a:hover {
 
 @media (max-width: 640px) {
   .tutorial__landing-title h1 {
-    font-size: 28px;
+    font-size: calc(var(--app-font-scale, 1) * 28px);
   }
 
   .tutorial__landing-card {
@@ -652,7 +652,7 @@ p a:hover {
 
 .tutorial__content-body a[download]:empty::after {
   content: var(--tutorial-download-prefix, "") attr(download);
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .tutorial__content-body a[download]:empty:hover {
@@ -680,7 +680,7 @@ p a:hover {
 
 .tutorial__content-body a[download]:empty::after {
   content: var(--tutorial-download-prefix, "") attr(download);
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .tutorial__content-body a[download]:empty:hover {
@@ -712,7 +712,7 @@ p a:hover {
   background: rgba(92, 186, 255, 0.18);
   color: inherit;
   cursor: var(--cursor-pointer);
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
 

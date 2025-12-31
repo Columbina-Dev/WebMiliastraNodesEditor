@@ -23,7 +23,7 @@
 
 .home__intro h1 {
   margin: 0;
-  font-size: 36px;
+  font-size: calc(var(--app-font-scale, 1) * 36px);
   font-weight: 700;
   text-align: center;
 }
@@ -41,7 +41,7 @@
   border: 1px solid rgba(92, 186, 255, 0.35);
   background: rgba(92, 186, 255, 0.12);
   color: #f6f6ff;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   cursor: var(--cursor-pointer);
   transition: border 0.2s ease, background 0.2s ease, transform 0.2s ease;
 }
@@ -80,7 +80,7 @@
   border-radius: 18px;
   padding: 32px 20px;
   text-align: center;
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   color: rgba(255, 255, 255, 0.75);
   transition: border 0.2s ease, background 0.2s ease, color 0.2s ease;
   position: relative;
@@ -98,7 +98,7 @@
   align-items: center;
   justify-content: center;
   backdrop-filter: blur(6px);
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
 }
 
 .home__history-header {
@@ -110,7 +110,7 @@
 
 .home__history-header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
 }
 
 .home__history-header button {
@@ -198,17 +198,17 @@
 }
 
 .home__history-name {
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   font-weight: 600;
 }
 
 .home__history-id {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(200, 200, 200, 0.7);
 }
 
 .home__history-time {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   opacity: 0.68;
 }
 
@@ -234,7 +234,7 @@
 
 .home__network-header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
 }
 
 .home__network-reload {
@@ -292,12 +292,12 @@
 }
 
 .home__network-name {
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   font-weight: 600;
 }
 
 .home__network-address {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(200, 200, 200, 0.7);
 }
 
@@ -321,7 +321,7 @@
 
 .home__servers-header h2 {
   margin: 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
 }
 
 .home__servers-add {
@@ -334,7 +334,7 @@
   align-items: center;
   justify-content: center;
   cursor: var(--cursor-pointer);
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
   color: inherit;
   transition: border 0.2s ease, background 0.2s ease;
 }
@@ -405,12 +405,12 @@
 }
 
 .home__server-name {
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   font-weight: 600;
 }
 
 .home__server-address {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(200, 200, 200, 0.7);
 }
 
@@ -451,7 +451,7 @@
 
 .home__server-modal h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
 }
 
 .home__server-field {
@@ -461,7 +461,7 @@
 }
 
 .home__server-field label {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   opacity: 0.8;
 }
 
@@ -471,7 +471,7 @@
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .home__server-search {
@@ -516,7 +516,7 @@
 }
 
 .home__server-hint {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   opacity: 0.7;
 }
 
@@ -552,12 +552,12 @@
 }
 
 .home__server-room-name {
-  font-size: 15px;
+  font-size: calc(var(--app-font-scale, 1) * 15px);
   font-weight: 600;
 }
 
 .home__server-room-meta {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(200, 200, 200, 0.7);
 }
 
@@ -614,13 +614,13 @@
 
 .home__confirm h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
 }
 
 .home__confirm p {
   margin: 0;
   line-height: 1.6;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .home__confirm-actions {
@@ -739,7 +739,7 @@
 
 .home__join-modal h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
 }
 
 .home__join-field {
@@ -749,7 +749,7 @@
 }
 
 .home__join-field label {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   opacity: 0.8;
 }
 
@@ -759,7 +759,7 @@
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .home__join-password {
@@ -769,7 +769,7 @@
 
 .home__join-hint {
   margin-top: 4px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: #ff9b9b;
 }
 

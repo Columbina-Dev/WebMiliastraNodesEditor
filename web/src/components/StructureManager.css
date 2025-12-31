@@ -3,7 +3,7 @@
   height: 100%;
   background: #141925;
   color: #e5e9f0;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .structure-manager__sidebar {
@@ -211,7 +211,7 @@
 
 .struct-editor__config {
   color: #9aa5c4;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
 }
 .struct-editor__config-block {
   display: flex;
@@ -247,7 +247,7 @@
   color: #dfe6fb;
   padding: 4px 8px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   animation: struct-copy-toast 0.25s ease forwards;
 }
@@ -565,7 +565,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
   font-weight: 700;
   color: #0d1320;
 }

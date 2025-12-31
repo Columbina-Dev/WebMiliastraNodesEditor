@@ -55,40 +55,52 @@ npm run dev
   1. Editor version information. Please include this version information when submitting an issue if the webapp has not been modified. If there are significant modifications, kindly resolve the issues yourself.
   2. Create and open a new node graph project
   3. Import and open a zip node graph project file
-  4. Drag and drop a zip node graph project file here to import and open it
-  5. History, showing all node graph projects manually/automatically saved to the browser's local storage
-  6. Project list, click to open
-  7. Compress and export all zip node graph project files saved in the browser's local storage
-  8. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
-  9. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
-  10. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
+  4. Decode GIA file exported from the official editor to a "preview Json", and optionally download the preview Json, convert and download the node graph Json or import to an existing project.
+  5. To convert a node graph exported from this web app to an officially supported GIA file, this function is also available in the node graph canvas pages, if turned on in settings.
+  6. Drag and drop a zip node graph project file here to import and open it, the drop region is the entire homepage area
+  7. History, showing all node graph projects manually/automatically saved to the browser's local storage
+  8. Compress and export all zip node graph project files saved in the browser's local storage
+  9. Project list item, click to open
+  10. List of LAN shared projects discovered on the local network, click to join.
+  11. Refresh the LAN shared project list
+  12. List of collaborative servers, click a server after adding to connect and view rooms available in it
+  13. Add a collaborative server
+  14. <img src="web/src/assets/icons/setting.png" width="20" alt="Settings" /> Open the settings page
+  15. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
+  16. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
+  17. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
 
 
 #### Editor UI - Resource Manager
 
 ![Screenshot-02](/media/tut2.png)  
   1. Window:  
-      - Server Node Graph Resource Manager: Switch to the `Server Node Graph Resource Manager` tab
-      - Client Node Graph Resource Manager: Switch to the `Client Node Graph Resource Manager` tab
+      - Server Node Graph Resource Explorer: Switch to the `Server Node Graph Resource Explorer` tab
+      - Client Node Graph Resource Explorer: Switch to the `Client Node Graph Resource Explorer` tab
+      - Advanced Data Management: Switch to the `Advanced Data Management` tab
       - Return to Homepage: Return to the [Homepage](#homepage)
   2. File:  
       - Save Project: Manually save the currently opened node graph project to the browser's local storage (use `Ctrl+S` outside of node graph tabs)
-      - Edit Project Info: Modify the name of the currently opened node graph project
-      - Export Project: Export the currently opened node graph project as a Zip file for device switching and import
-  3. Node version information, please include this version information when submitting an issue. If modified, please provide the original Genshin version number on which the modification is based.
-  4. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
-  5. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
-  6. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
-  7. `Server Node Graph Resource Manager` tab
-  8. `Client Node Graph Resource Manager` tab
-  9. `Node Graph` tab, hovering for 0.5s will display the path of this node graph file
-  10. Node graph categories
-  11. Node graph folders/tabs
-  12. Return to the last hovered path
-  13. Undo `12-Return to the last hovered path` 
-  14. Path display, click to quickly jump to the path
-  15. Search current path's tabs/node graphs
-  16. Tabs/node graph list  
+      - Edit Project Metadata: Modify the name of the currently opened node graph project
+      - Export as Zip Project: Export the currently opened node graph project as a Zip file for device switching and import
+      - Export as GIL Save: Select a GIL template and replace its node graphs data with the current project's node graphs, then export as a GIL save file for direct loading in the official editor (This function is not yet complete, please use Zip Project export for now. Not enabled by default)
+  3. Node version information, please include this version information when submitting an issue. If modified, please provide the original Genshin version number on which the modification is based
+  4. <img src="web/src/assets/icons/setting.png" width="20" alt="Settings" /> Open the settings page
+  5. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> Go to this GitHub repository page  
+  6. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> Open the [official General Guide](#general-guide-related) page  
+  7. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> Open the [effects previewing](#effects-preview) page  
+  8. `Server Node Graph Resource Explorer` tab
+  9. `Client Node Graph Resource Explorer` tab
+  10. `Node Graph` tab, hovering for 0.5s will display the path of this node graph file
+  11. `Share` button, click to share the current project for collaborative editing, either to LAN or via a public signaling server
+  12. `Chat` button, open the chat panel for collaborative editing
+  13. Node graph categories
+  14. Node graph tabs
+  15. Return to the last hovered path
+  16. Undo `15-Return to the last hovered path` 
+  17. Path display, click to quickly jump to the path
+  18. Search current path's tabs/node graphs
+  19. Tabs/node graph list  
       Tabs：
       - Left click
         - Double-click a tab to open it in the current tab
@@ -124,10 +136,10 @@ npm run dev
   2. Click the `⇤` button to collapse the node library window
   3. Filter nodes in the node library by keywords
   4. Node types, click to expand. Select the desired node and drag it to area 5 (canvas) to add this node
-  5. Canvas area  
+  5. Canvas area, default controls:  
       - Right-click and drag to pan the view
       - Use mouse wheel to zoom the view
-      - Left-click and drag to multi-select nodes (dragging towards top-left/bottom-left for touch selection (green box), dragging towards top-right/bottom-right for box selection (blue box), similar to AutoCAD)
+      - Left-click and drag to multi-select nodes
       - Press Del key to delete all selected nodes
       - Right-click on empty space to create a new node
       - Right-click on a node to copy/delete the node
@@ -148,6 +160,7 @@ npm run dev
   15. Save all edited node graphs to local browser storage (use `Ctrl+S` in any node graph tab)
   16. Save As: Copy this node graph to another path within the current project
   17. Export this node graph as `.server.json` / `.client.json` file
+  18. Export this node graph as GIA node graph file for direct loading in the official editor (Not enabled by default)
 
 #### Collaborative Editing (Experimental)
 

@@ -15,6 +15,7 @@ export const getNodeDefinitionDisplayNameForLanguage = (
       return normalize(definition.displayName);
     case 'en-us':
     case 'en-uk':
+    case 'tutorial':
       return normalize(definition.displayNameEN);
     case 'cht':
       return normalize(definition.displayNameCHT);
@@ -48,6 +49,7 @@ export const getPortLabelForLanguage = (
       return normalize(port.label);
     case 'en-us':
     case 'en-uk':
+    case 'tutorial':
       return normalize(port.labelEN);
     case 'cht':
       return normalize(port.labelCHT);
@@ -80,6 +82,7 @@ export const getPortPlaceholderForLanguage = (
       return normalize(port.ui?.placeholder);
     case 'en-us':
     case 'en-uk':
+    case 'tutorial':
       return normalize(port.ui?.placeholderEN);
     case 'cht':
       return normalize(port.ui?.placeholderCHT);

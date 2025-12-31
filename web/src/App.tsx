@@ -6557,10 +6557,14 @@ const handleSaveGraphAs = useCallback(() => {
   );
 
   const isScrollableView = view === 'home' || view === 'effects' || view === 'settings';
+  const useTutorialFont =
+    editorSettings.uiPrimaryLanguage === 'tutorial' ||
+    editorSettings.uiSecondaryLanguage === 'tutorial';
   const appClassName = [
     'app',
     isScrollableView ? 'app--scrollable' : '',
     editorSettings.pointerStyle === 'system' ? 'app--system-pointer' : '',
+    useTutorialFont ? 'app--tutorial-font' : '',
   ]
     .filter(Boolean)
     .join(' ');
