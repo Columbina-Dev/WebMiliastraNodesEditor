@@ -307,6 +307,7 @@ official?,key,chs,cht,en-us,en-uk,jpn
 1,graphCanvas.nodeCategory.flow,流程控制节点,流程控制節點,Flow Control Nodes,Flow Control Nodes,フロー制御ノード
 1,graphCanvas.nodeCategory.followMover,跟随运动器,跟隨運動器,Follow Motion Device,Follow Motion Device,追従モーションデバイス
 1,graphCanvas.nodeCategory.globalTimer,全局计时器,全局計時器,Global Timer,Global Timer,グローバルタイマー
+0,graphCanvas.nodeCategory.hidden,官方隐藏,官方隱藏,Official Hidden,Official Hidden,公式隠し
 1,graphCanvas.nodeCategory.hiddenClientBuiltin,<隐藏>客户端节点自带,<隱藏>客戶端節點自帶,<Hidden>Client Built-in,<Hidden>Client Built-in,<隠し>クライアント内蔵
 1,graphCanvas.nodeCategory.hitDetection,命中判定,命中判定,Hit Detection,Hit Detection,命中判定
 1,graphCanvas.nodeCategory.item,道具,道具,Items,Items,アイテム

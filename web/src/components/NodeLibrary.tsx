@@ -130,6 +130,7 @@ const NODE_CATEGORY_LABEL_KEYS: Record<string, string> = {
   '扫描': 'graphCanvas.nodeCategory.scan',
   '列表': 'graphCanvas.nodeCategory.list',
   '角色技能': 'graphCanvas.nodeCategory.characterSkill',
+  '官方隐藏': 'graphCanvas.nodeCategory.hidden'
 };
 
 // 弃用：选择值类型过滤器

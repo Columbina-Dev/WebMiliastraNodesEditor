@@ -171,6 +171,16 @@
 790,action.pathBlocking.toggle,激活/关闭寻路阻挡,Enable/Disable Pathfinding Obstacle
 789,action.pathBlocking.funcToggle,激活/关闭寻路阻挡功能,Enable/Disable Pathfinding Obstacle Feature
 798,action.complexConstruct.setPresetState,设置复杂造物的预设状态值,Set the Preset Status Value of the Complex Creation
+262,action.camera.activateEntity,激活实体镜头,Activate Entity Camera
+263,action.camera.disableEntity,停用实体镜头,Disable Entity Camera
+264,action.camera.activateFocus,激活注目镜头,Activate Focus Camera
+265,action.camera.disableFocus,停止注目镜头,Disable Focus Camera
+266,action.camera.activateScreenShake,激活屏幕震动,Activate Screen Shake
+366,action.playerDisturber.toggleActive,激活/关闭角色扰动装置,Activate/Disable Character Disruptor Device
+445,action.customValue.nativeSet,原生设置CustomValue,Native Setting Custom Value
+615,action.nameplate.addEntityActive,添加实体生效铭牌,Add Entity Active Nameplate
+616,action.nameplate.deleteEntityActive,删除实体生效铭牌,Delete Entity Active Nameplate
+678,action.leaderboard.updateScore,更新玩家排行榜分数,Update Player Leaderboard Score
 351,event.graphVariableChanged,节点图变量变化时,When Node Graph Variable Changes
 36,event.customVariableChanged,自定义变量变化时,When Custom Variable Changes
 67,event.presetStateChanged,预设状态变化时,When Preset Status Changes
@@ -229,6 +239,7 @@
 682,event.backpackItemLost,背包道具失去时,When Item Is Lost From Inventory
 620,event.constructReachedPatrolWaypoint,造物抵达巡逻路点时,When Creation Reaches Patrol Waypoint
 799,event.complexConstructPresetStateChanged,复杂造物预设状态变化时,When Complex Creation Preset Status Changes
+428,event.customValue.nativeChanged,原生CustomValue变化时,When Native Custom Value Changes
 3,flow.branch.multi,多分支,Multiple Branches
 2,flow.branch.ifElse,双分支,Double Branch
 766,query.matchModeAndPlayerCount,查询对局游玩方式及人数,Query Game Mode and Player Number
@@ -367,6 +378,7 @@
 773,query.giftBox.count,查询对应礼盒数量,Query Corresponding Gift Box Quantity
 774,query.giftBox.consumeCount,查询对应礼盒消耗数量,Query Corresponding Gift Box Consumption
 797,query.presetState.complexValue,获取复杂造物的预设状态值,Get the Preset Status Value of the Complex Creation
+459,query.customValue.nativeGet,原生查询CustomValue,Native Query Custom Value
 475,math.enumEquals,枚举是否相等,Enumerations Equal
 169,math.list.assemble,拼装列表,Assembly List
 14,math.equals,是否相等,Equal
@@ -427,57 +439,57 @@
 229,math.logic.not,逻辑非运算,Logical NOT Operation
 1088,math.dict.create,建立字典,Create Dictionary
 1788,math.dict.assemble,拼装字典,Assembly Dictionary
-0,math.struct.decompose,拆分结构体,Split Structure
-0,math.struct.assemble,拼装结构体,Assemble Structure
+300003,math.struct.decompose,拆分结构体,Split Structure
+300002,math.struct.assemble,拼装结构体,Assemble Structure
 客户端节点图可用
 200042,event.graphStart,节点图开始,Node Graph Begins
 200126,event.executeByOrderUniquely,按顺序唯一执行,Execute Only by Sequence
 200000,flow.graphEndBoolean,节点图结束（布尔型）,Node Graph End (Boolean)
-0,flow.graphEndInteger,节点图结束（整数）,Node Graph End (Integer)
-0,client.query.list.getValue,获取列表对应值,Get Corresponding Value From List
-0,client.query.list.length,获取列表长度,Get List Length
-0,client.query.list.max,获取列表最大值,Get Maximum Value From List
-0,client.query.list.min,获取列表最小值,Get Minimum Value From List
-0,client.query.raycast.filterList,获取射线筛选类型列表,Get Ray Filter Type List
-0,client.query.entity.typeList,获取实体类型列表,Get Entity Type List
-0,client.query.list.contains,列表是否包含该值,List Includes This Value
-0,client.query.customVariable.get,获取自定义变量,Get Custom Variable
-0,client.query.presetState.get,获取预设状态,Get Preset Status
+200122,flow.graphEndInteger,节点图结束（整数）,Node Graph End (Integer)
+128,client.query.list.getValue,获取列表对应值,Get Corresponding Value From List
+142,client.query.list.length,获取列表长度,Get List Length
+149,client.query.list.max,获取列表最大值,Get Maximum Value From List
+151,client.query.list.min,获取列表最小值,Get Minimum Value From List
+200110,client.query.raycast.filterList,获取射线筛选类型列表,Get Ray Filter Type List
+200050,client.query.entity.typeList,获取实体类型列表,Get Entity Type List
+114,client.query.list.contains,列表是否包含该值,List Includes This Value
+50,client.query.customVariable.get,获取自定义变量,Get Custom Variable
+68,client.query.presetState.get,获取预设状态,Get Preset Status
 200103,client.query.entity.isPresent,查询实体是否在场,Query If Entity Is on the Field
 200035,client.query.entity.getAttackTarget,获取单位攻击目标,Get Unit Attack Target
-0,client.query.entity.getSocketPosition,获取目标挂接点位置,Get Target Attachment Point Location
-0,client.query.entity.getSocketRotation,获取目标挂接点旋转,Get Target Attachment Point Rotation
-0,client.query.getTargetEntity,获取目标实体,Get Target Entity
+200047,client.query.entity.getSocketPosition,获取目标挂接点位置,Get Target Attachment Point Location
+200048,client.query.entity.getSocketRotation,获取目标挂接点旋转,Get Target Attachment Point Rotation
+200034,client.query.getTargetEntity,获取目标实体,Get Target Entity
 0,client.query.getEntityType,获取实体的类型,Get Entity‘s Type
-0,client.query.getEntityPosition,获取实体位置,Get Entity Location
-0,client.query.getEntityRotation,获取实体旋转,Get Entity Rotation
+200030,client.query.getEntityPosition,获取实体位置,Get Entity Location
+200031,client.query.getEntityRotation,获取实体旋转,Get Entity Rotation
 200033,client.query.getSelfEntity,获取自身实体,Get Self Entity
-0,client.query.filterEntitiesInBox,筛选方形范围内的实体列表,Filter Entity List Within Square Range
-0,client.query.filterEntitiesInSphere,筛选球体范围内的实体列表,Filter Entity List Within Spherical Range
-0,client.query.findEntityByGuid,以GUID查询实体,Query Entity by GUID
-0,client.query.getEntityCamp,查询实体阵营,Query Entity Faction
-0,client.query.campsAreHostile,查询阵营是否敌对,Query If Faction Is Hostile
-0,client.query.player.isSelfInCombat,查询自身是否已入战,Query If Self Is in Combat
-0,client.query.player.getCurrentCharacter,获取当前角色,Get Current Character
-0,client.query.character.getOwnerPlayer,获取角色归属的玩家实体,Get Player Entity to Which the Character Belongs
-0,client.query.player.listPresent,获取在场玩家实体列表,Get List of Player Entities on the Field
-0,client.query.player.getCharacter,获取指定玩家的角色实体,Get Character Entity of Specified Player
-0,client.query.entityToGuid,以实体查询GUID,Query GUID by Entity
-0,client.query.getInputDeviceType,获得玩家客户端输入设备类型,Get Player Client Input Device Type
-0,client.query.unitTagEntities,获取单位标签的实体列表,Get Entity List by Unit Tag
-0,client.query.entityUnitTagIndexes,获取实体的单位标签列表,Get Entity's Unit Tag List
-0,client.query.getLocalVariable,获取局部变量,Get Local Variable
-0,client.query.isEntityInCombat,查询指定实体是否入战,Query if Specified Entity is in Combat
-0,client.query.entityHateList,获取指定实体的仇恨列表,Get the Aggro List of the Specified Entity
-0,client.query.entityHateTarget,获取指定实体的仇恨目标,Get the Aggro Target of the Specified Entity
-0,client.query.getEntitiesInCollisionTrigger,获取碰撞触发器内所有实体,Get All Entities Within the Collision Trigger
-0,client.query.getRaycastResult,获取射线检测结果,Get Ray Detection Result
-0,client.query.raycast.getResult,获取射线检测结果,Get Ray Detection Result
-0,client.query.scanAllValidObjects,获取扫描组件可扫描的所有合法对象,Get All Valid Entities That Are Scannable by Scan Component
-0,client.query.scanCurrentHit,获取扫描组件当前扫描到的实体,Get Entity Currently Scanned by Scan Component
-0,client.query.getEntityScanTag,获取实体当前生效的扫描标签,Get Entity's Current Active Scan Tags
-0,client.query.getEntityScanState,获取实体扫描状态,Get Entity's Scan Status
-0,client.math.enumMatch,枚举匹配,Enumeration Match
+200044,client.query.filterEntitiesInBox,筛选方形范围内的实体列表,Filter Entity List Within Square Range
+200043,client.query.filterEntitiesInSphere,筛选球体范围内的实体列表,Filter Entity List Within Spherical Range
+75,client.query.findEntityByGuid,以GUID查询实体,Query Entity by GUID
+249,client.query.getEntityCamp,查询实体阵营,Query Entity Faction
+614,client.query.campsAreHostile,查询阵营是否敌对,Query If Faction Is Hostile
+200037,client.query.player.isSelfInCombat,查询自身是否已入战,Query If Self Is in Combat
+200076,client.query.player.getCurrentCharacter,获取当前角色,Get Current Character
+259,client.query.character.getOwnerPlayer,获取角色归属的玩家实体,Get Player Entity to Which the Character Belongs
+248,client.query.player.listPresent,获取在场玩家实体列表,Get List of Player Entities on the Field
+200024,client.query.player.getCharacter,获取指定玩家的角色实体,Get Character Entity of Specified Player
+76,client.query.entityToGuid,以实体查询GUID,Query GUID by Entity
+768,client.query.getInputDeviceType,获得玩家客户端输入设备类型,Get Player Client Input Device Type
+590,client.query.unitTagEntities,获取单位标签的实体列表,Get Entity List by Unit Tag
+200077,client.query.entityUnitTagIndexes,获取实体的单位标签列表,Get Entity's Unit Tag List
+18,client.query.getLocalVariable,获取局部变量,Get Local Variable
+610,client.query.isEntityInCombat,查询指定实体是否入战,Query if Specified Entity is in Combat
+609,client.query.entityHateList,获取指定实体的仇恨列表,Get the Aggro List of the Specified Entity
+606,client.query.entityHateTarget,获取指定实体的仇恨目标,Get the Aggro Target of the Specified Entity
+669,client.query.getEntitiesInCollisionTrigger,获取碰撞触发器内所有实体,Get All Entities Within the Collision Trigger
+200109,client.query.getRaycastResult,获取射线检测结果,Get Ray Detection Result
+200109,client.query.raycast.getResult,获取射线检测结果,Get Ray Detection Result
+200119,client.query.scanAllValidObjects,获取扫描组件可扫描的所有合法对象,Get All Valid Entities That Are Scannable by Scan Component
+200118,client.query.scanCurrentHit,获取扫描组件当前扫描到的实体,Get Entity Currently Scanned by Scan Component
+200121,client.query.getEntityScanTag,获取实体当前生效的扫描标签,Get Entity's Current Active Scan Tags
+200120,client.query.getEntityScanState,获取实体扫描状态,Get Entity's Scan Status
+200005,client.math.enumMatch,枚举匹配,Enumeration Match
 14,client.math.isEqual,是否相等,Equal
 180,client.math.typeCast,数据类型转换,Data Type Conversion
 9,client.math.vector3.split,拆分三维向量,Split 3D Vector
@@ -492,7 +504,7 @@
 296,client.math.arcTan,反正切函数,Arctangent Function
 294,client.math.arcSin,反正弦函数,Arcsine Function
 519,client.math.directionVectorToRotation,方向向量转旋转,Direction Vector to Rotation
-0,client.math.randomInRange,获取随机数,Get Random Number
+200032,client.math.randomInRange,获取随机数,Get Random Number
 200,client.math.add,加法运算,Addition
 202,client.math.subtract,减法运算,Subtraction
 216,client.math.abs,绝对值运算,Absolute Value Operation
@@ -516,39 +528,39 @@
 293,client.math.tan,正切函数,Tangent Function
 225,client.math.makeVector3,创建三维向量,Create 3D Vector
 169,client.math.assembleList,拼装列表,Assembly List
-0,client.action.iterateEntities,遍历实体列表,Traverse Entity List
-0,client.action.playTimedEffect,播放限时特效,Play Timed Effects
-0,client.action.fireProjectileAtPoint,定点发射投射物,Fixed-Point Projectile Launch
-0,client.action.moveToPoint,定点位移,Fixed-Point Displacement
-0,client.action.restoreHp,恢复生命值,Recover HP
-0,client.action.cameraRaycastData,镜头朝向检测数据,Camera Orientation Detection Data
-0,client.action.forceExitAim,强制退出瞄准状态,Force Exit Aiming State
-0,client.action.setSelfAttackTarget,设置自身攻击目标,Set Own Attack Target
-0,client.action.attackBoxAtPosition,特定位置打攻击盒,Trigger Hitbox at Specific Location
-0,client.action.rectangularAttackBoxAtPosition,特定位置打矩形攻击盒,Trigger Rectangular Hitbox at Specific Location
-0,client.action.sphericalAttackBoxAtPosition,特定位置打球形攻击盒,Trigger Spherical Hitbox at Specific Location
-0,client.action.sectorAttackBoxAtPosition,特定位置打扇形攻击盒,Trigger Sector Hitbox at Specific Location
-0,client.action.addUnitState,添加单位状态,Add Unit Status
-0,client.action.notifyServerGraph,通知服务器节点图,Notify Server Node Graph
-0,client.action.playerTurn,玩家转向,Player Turning
-0,client.action.playerTurnToDirection,玩家转向指定朝向,Player Turns to Face Set Direction
-0,client.action.modifyAttackWeight,修改攻击权重,Modify Attack Weight
-0,client.action.removeUnitState,移除单位状态,Remove Unit Status
-0,client.action.removeCharacterDisturbDevice,移除指定角色扰动装置,Remove Specified Character Disruptor Device
-0,client.action.attackBoxAtSocket,指定挂接点打攻击盒,Trigger Hitbox at Specific Location
+200055,client.action.iterateEntities,遍历实体列表,Traverse Entity List
+93,client.action.playTimedEffect,播放限时特效,Play Timed Effects
+200052,client.action.fireProjectileAtPoint,定点发射投射物,Fixed-Point Projectile Launch
+200053,client.action.moveToPoint,定点位移,Fixed-Point Displacement
+583,client.action.restoreHp,恢复生命值,Recover HP
+200062,client.action.cameraRaycastData,镜头朝向检测数据,Camera Orientation Detection Data
+200108,client.action.forceExitAim,强制退出瞄准状态,Force Exit Aiming State
+200041,client.action.setSelfAttackTarget,设置自身攻击目标,Set Own Attack Target
+200051,client.action.attackBoxAtPosition,特定位置打攻击盒,Trigger Hitbox at Specific Location
+200112,client.action.rectangularAttackBoxAtPosition,特定位置打矩形攻击盒,Trigger Rectangular Hitbox at Specific Location
+200111,client.action.sphericalAttackBoxAtPosition,特定位置打球形攻击盒,Trigger Spherical Hitbox at Specific Location
+200113,client.action.sectorAttackBoxAtPosition,特定位置打扇形攻击盒,Trigger Sector Hitbox at Specific Location
+297,client.action.addUnitState,添加单位状态,Add Unit Status
+200039,client.action.notifyServerGraph,通知服务器节点图,Notify Server Node Graph
+200040,client.action.playerTurn,玩家转向,Player Turning
+200105,client.action.playerTurnToDirection,玩家转向指定朝向,Player Turns to Face Set Direction
+200061,client.action.modifyAttackWeight,修改攻击权重,Modify Attack Weight
+301,client.action.removeUnitState,移除单位状态,Remove Unit Status
+200060,client.action.removeCharacterDisturbDevice,移除指定角色扰动装置,Remove Specified Character Disruptor Device
+200051,client.action.attackBoxAtSocket,指定挂接点打攻击盒,Trigger Hitbox at Specific Location
 0,client.action.rectangularAttackBoxAtSocket,指定挂接点打矩形攻击盒,Trigger Rectangular Hitbox at Specific Attachment Point
 0,client.action.sphericalAttackBoxAtSocket,指定挂接点打球形攻击盒,Trigger Spherical Hitbox at Specific Attachment Point
 0,client.action.sectorAttackBoxAtSocket,指定挂接点扇形打攻击盒,Trigger Sector Hitbox at Specific Attachment Point
-0,client.action.resetSkillTarget,重置技能目标,Reset Skill Target
-0,client.action.setLocalVariable,设置局部变量,Set Local Variable
-0,client.action.breakLoop,跳出循环,Break Loop
-0,client.action.loopFinite,有限循环,Finite Loop
-0,client.action.hate.modifyByRatio,按比例修改指定实体的仇恨值,Modify the Aggro Value of the Specified Entity Proportionally
-0,client.action.hate.transferByRatio,按比例转移指定实体的仇恨值,Transfer the Aggro Value of the Specified Entity Proportionally
-0,client.action.hate.taunt,嘲讽目标,Taunt Target
-0,client.action.hate.removeTargetFromList,将目标实体移除出仇恨列表,Remove Target Entity From Aggro List
-0,client.action.hate.clearTargetList,清空指定实体的仇恨列表,Clear the Aggro List of the Specified Entity
-0,client.action.hate.setValue,设置指定实体的仇恨值,Set the Aggro Value of the Specified Entity
+200106,client.action.resetSkillTarget,重置技能目标,Reset Skill Target
+19,client.action.setLocalVariable,设置局部变量,Set Local Variable
+6,client.action.breakLoop,跳出循环,Break Loop
+5,client.action.loopFinite,有限循环,Finite Loop
+200085,client.action.hate.modifyByRatio,按比例修改指定实体的仇恨值,Modify the Aggro Value of the Specified Entity Proportionally
+200086,client.action.hate.transferByRatio,按比例转移指定实体的仇恨值,Transfer the Aggro Value of the Specified Entity Proportionally
+602,client.action.hate.taunt,嘲讽目标,Taunt Target
+600,client.action.hate.removeTargetFromList,将目标实体移除出仇恨列表,Remove Target Entity From Aggro List
+200087,client.action.hate.clearTargetList,清空指定实体的仇恨列表,Clear the Aggro List of the Specified Entity
+200083,client.action.hate.setValue,设置指定实体的仇恨值,Set the Aggro Value of the Specified Entity
 200084,client.action.hate.addValue,修改指定实体的仇恨值,Modify the Aggro Value of the Specified Entity
-0,client.action.sendSignalToServer,向服务器节点图发送信号,Send Signal to Server Node Graph
-0,client.flow.branch.ifElse,双分支,Double Branch
+200124,client.action.sendSignalToServer,向服务器节点图发送信号,Send Signal to Server Node Graph
+2,client.flow.branch.ifElse,双分支,Double Branch

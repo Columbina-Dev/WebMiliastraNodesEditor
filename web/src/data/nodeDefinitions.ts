@@ -5805,6 +5805,312 @@ displayNameEN: "Modify Inventory Item Quantity",
     ],
   },
 
+  // ───────────────────────────── 50-官方隐藏 ─────────────────────────────
+  // 执行节点/官方隐藏
+  // 未知分类
+
+  {
+    id: "action.camera.activateEntity",
+    displayName: "激活实体镜头",
+    displayNameEN: "Activate Entity Camera",
+    officialID: 262,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerEntityList",
+        label: "玩家实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "action.camera.disableEntity",
+    displayName: "停用实体镜头",
+    displayNameEN: "Disable Entity Camera",
+    officialID: 263,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerEntityList",
+        label: "玩家实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "action.camera.activateFocus",
+    displayName: "激活注目镜头",
+    displayNameEN: "Activate Focus Camera",
+    officialID: 264,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerEntityList",
+        label: "玩家实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+    ],
+  },
+  {
+    id: "action.camera.disableFocus",
+    displayName: "停止注目镜头",
+    displayNameEN: "Disable Focus Camera",
+    officialID: 265,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerEntityList",
+        label: "玩家实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+    ],
+  },
+  {
+    id: "action.camera.activateScreenShake",
+    displayName: "激活屏幕震动",
+    displayNameEN: "Activate Screen Shake",
+    officialID: 266,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerEntityList",
+        label: "玩家实体列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "amplitude",
+        label: "震幅",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "duration",
+        label: "震动时长",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+      {
+        id: "distance",
+        label: "震源距离",
+        kind: "data-in",
+        valueType: "float",
+        ui: { placeholder: "输入浮点数" },
+      },
+    ],
+  },
+  {
+    id: "action.playerDisturber.toggleActive",
+    displayName: "激活/关闭角色扰动装置",
+    displayNameEN: "Activate/Disable Character Disruptor Device",
+    officialID: 366,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "isActive",
+        label: "是否激活",
+        kind: "data-in",
+        valueType: "bool",
+      },
+    ],
+  },
+  {
+    id: "action.customValue.nativeSet",
+    displayName: "原生设置CustomValue",
+    displayNameEN: "Native Setting Custom Value",
+    officialID: 445,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "target",
+        label: "target",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "name",
+        label: "name",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
+      {
+        id: "value",
+        label: "value",
+        kind: "data-in",
+        valueType: "any",
+        defaultValue: null,
+        ui: { accessory: "gear" },
+      },
+      {
+        id: "is_bp_var",
+        label: "is_bp_var",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "canTriggerEvent",
+        label: "canTriggerEvent",
+        kind: "data-in",
+        valueType: "bool",
+        defaultValue: true,
+      },
+    ],
+  },
+  {
+    id: "action.nameplate.addEntityActive",
+    displayName: "添加实体生效铭牌",
+    displayNameEN: "Add Entity Active Nameplate",
+    officialID: 615,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "configId",
+        label: "铭牌配置ID",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
+    ],
+  },
+  {
+    id: "action.nameplate.deleteEntityActive",
+    displayName: "删除实体生效铭牌",
+    displayNameEN: "Delete Entity Active Nameplate",
+    officialID: 616,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "targetEntity",
+        label: "目标实体",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "configId",
+        label: "铭牌配置ID",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
+    ],
+  },
+  {
+    id: "action.leaderboard.updateScore",
+    displayName: "更新玩家排行榜分数",
+    displayNameEN: "Update Player Leaderboard Score",
+    officialID: 678,
+    category: "执行节点/官方隐藏",
+    kind: "action",
+    headerColor: EXECUTION_HEADER,
+    ports: [
+      { id: "flowIn", label: "执行", kind: "flow-in" },
+      { id: "flowOut", label: "完成", kind: "flow-out" },
+
+      {
+        id: "playerIndexList",
+        label: "玩家索引列表",
+        kind: "data-in",
+        valueType: "list",
+      },
+      {
+        id: "score",
+        label: "排行榜分数",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+      {
+        id: "boardIndex",
+        label: "排行榜ID",
+        kind: "data-in",
+        valueType: "int",
+        ui: { placeholder: "输入整数" },
+      },
+    ],
+  },
+
   // ───────────────────────────── 00-自定义变量 ─────────────────────────────
   // 事件节点/自定义变量
   {
@@ -8017,6 +8323,64 @@ displayNameEN: "Modify Inventory Item Quantity",
       },
     ],
   },
+
+  // ───────────────────────────── 27-官方隐藏 ─────────────────────────────
+  // 事件节点/官方隐藏
+  // 未知分类
+
+  {
+    id: "event.customValue.nativeChanged",
+    displayName: "原生CustomValue变化时",
+    displayNameEN: "When Native Custom Value Changes",
+    officialID: 428,
+    category: "事件节点/官方隐藏",
+    kind: "event",
+    headerColor: EVENT_HEADER,
+    ports: [
+      { id: "flowOut", label: "事件", kind: "flow-out" },
+      {
+        id: "owner",
+        label: "owner",
+        kind: "data-out",
+        valueType: "entity",
+      },
+      {
+        id: "ownerGuid",
+        label: "ownerGuid",
+        kind: "data-out",
+        valueType: "guid",
+      },
+      {
+        id: "name",
+        label: "name",
+        kind: "data-out",
+        valueType: "string",
+      },
+      {
+        id: "before_value",
+        label: "before_value",
+        kind: "data-out",
+        valueType: "any",
+        ui: { accessory: "gear" },
+      },
+      {
+        id: "after_value",
+        label: "after_value",
+        kind: "data-out",
+        valueType: "any",
+        ui: { accessory: "gear" },
+      },
+      {
+        id: "is_bp_var",
+        label: "is_bp_var",
+        kind: "data-out",
+        valueType: "bool",
+      },
+    ],
+  },
+
+
+
   // ───────────────────────────── 00-通用 ─────────────────────────────
   // 流程控制节点/通用
   {
@@ -11634,6 +11998,48 @@ displayNameEN: "Modify Inventory Item Quantity",
         label: "预设状态值",
         kind: "data-out",
         valueType: "int",
+      },
+    ],
+  },
+
+  // ───────────────────────────── 34-官方隐藏 ─────────────────────────────
+  // 查询节点/官方隐藏
+  // 未知分类
+
+  {
+    id: "query.customValue.nativeGet",
+    displayName: "原生查询CustomValue",
+    displayNameEN: "Native Query Custom Value",
+    officialID: 459,
+    category: "查询节点/官方隐藏",
+    kind: "query",
+    headerColor: QUERY_HEADER,
+    ports: [
+      {
+        id: "target",
+        label: "target",
+        kind: "data-in",
+        valueType: "entity",
+      },
+      {
+        id: "name",
+        label: "name",
+        kind: "data-in",
+        valueType: "string",
+        ui: { placeholder: "输入字符串" },
+      },
+      {
+        id: "is_bp_var",
+        label: "is_bp_var",
+        kind: "data-in",
+        valueType: "bool",
+      },
+      {
+        id: "value",
+        label: "value",
+        kind: "data-out",
+        valueType: "any",
+        ui: { accessory: "gear" },
       },
     ],
   },
