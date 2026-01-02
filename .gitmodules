@@ -1,3 +1,9 @@
 [submodule "Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack"]
 	path = Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack
 	url = https://github.com/Wu-Yijun/Genshin-Impact-Miliastra-Wonderland-Code-Node-Editor-Pack.git
+[submodule "WebMiliastraNodesEditor-CollabServer"]
+	path = WebMiliastraNodesEditor-CollabServer
+	url = https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer.git
+[submodule "WebMiliastraNodesEditor-MCPServer"]
+	path = WebMiliastraNodesEditor-MCPServer
+	url = https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCPServer.git

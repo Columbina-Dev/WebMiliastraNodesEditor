@@ -15,6 +15,14 @@ import {
   normalizeGraphEnvironment,
   sanitizeExecutionInterval,
 } from './graphEnvironment';
+import {
+  detectDefaultUiLanguage,
+  getDefaultSecondaryLanguage,
+  isUiLanguage,
+  t as translateText,
+  type UiLanguage,
+} from './i18n';
+import { sanitizeNickname } from './collaborationProfile';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
@@ -115,7 +123,14 @@ export type EditorMultiSelectBehavior =
 export type GiaUidMode = 'perExport' | 'perSession' | 'fixed';
 export type PointerStyle = 'sandbox' | 'system';
 
+const DEFAULT_UI_PRIMARY_LANGUAGE: UiLanguage = detectDefaultUiLanguage();
+const DEFAULT_UI_SECONDARY_LANGUAGE: UiLanguage = getDefaultSecondaryLanguage(DEFAULT_UI_PRIMARY_LANGUAGE);
+const DEFAULT_GRAPH_NAME = translateText('graph.defaultName', DEFAULT_UI_PRIMARY_LANGUAGE, DEFAULT_UI_SECONDARY_LANGUAGE);
+
 export interface EditorSettings {
+  uiPrimaryLanguage: UiLanguage;
+  uiSecondaryLanguage: UiLanguage;
+  allowSearchAllLanguageNodeNames: boolean;
   panButton: EditorPanButton;
   zoomControl: EditorZoomControl;
   selectionActivation: EditorSelectionActivation;
@@ -126,9 +141,14 @@ export interface EditorSettings {
   giaUidMode: GiaUidMode;
   giaFixedUid: string;
   pointerStyle: PointerStyle;
+  collabDefaultNickname: string;
+  collabAvatar: string;
 }
 
 export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
+  uiPrimaryLanguage: DEFAULT_UI_PRIMARY_LANGUAGE,
+  uiSecondaryLanguage: DEFAULT_UI_SECONDARY_LANGUAGE,
+  allowSearchAllLanguageNodeNames: false,
   panButton: 'right',
   zoomControl: 'wheel',
   selectionActivation: 'drag',
@@ -139,6 +159,8 @@ export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
   giaUidMode: 'perExport',
   giaFixedUid: '',
   pointerStyle: 'sandbox',
+  collabDefaultNickname: '',
+  collabAvatar: '',
 };
 
 const DEFAULT_LAYOUT: LayoutState = {
@@ -171,7 +193,7 @@ const convertLegacyGraphToProjectDocument = (
   savedAt: string,
   topFolder: ProjectTopFolder = LEGACY_TOP_FOLDER,
 ): ProjectDocument => {
-  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:skill' : 'server';
+  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:role-skill' : 'server';
   const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
   const environment: GraphEnvironment = graph.environment
     ? normalizeGraphEnvironment(graph.environment, { fallbackClientKind: fallbackKind })
@@ -249,7 +271,7 @@ const convertLegacyAutoSaveEntry = (
   }
   const document = convertLegacyGraphToProjectDocument(
     projectId,
-    candidate.document.name ?? '未命名节点图',
+    candidate.document.name ?? DEFAULT_GRAPH_NAME,
     candidate.document,
     candidate.savedAt,
     LEGACY_TOP_FOLDER,
@@ -471,6 +493,10 @@ export const loadEditorSettings = (): EditorSettings => {
   if (!storage) return { ...DEFAULT_EDITOR_SETTINGS };
   const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
   const merged = { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+  const normalizeLegacyUiLanguage = (value: unknown): UiLanguage | null => {
+    if (value === 'eng') return 'en-us';
+    return isUiLanguage(value) ? value : null;
+  };
   // sanitize legacy values
   const legacySelectionActivation = parsed.selectionActivation as
     | EditorSelectionActivation
@@ -489,6 +515,25 @@ export const loadEditorSettings = (): EditorSettings => {
   }
   if (merged.pointerStyle !== 'sandbox' && merged.pointerStyle !== 'system') {
     merged.pointerStyle = DEFAULT_EDITOR_SETTINGS.pointerStyle;
+  }
+  merged.uiPrimaryLanguage =
+    normalizeLegacyUiLanguage(merged.uiPrimaryLanguage) ?? DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
+  const normalizedSecondary = normalizeLegacyUiLanguage(merged.uiSecondaryLanguage);
+  if (!normalizedSecondary || normalizedSecondary === merged.uiPrimaryLanguage) {
+    merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  } else {
+    merged.uiSecondaryLanguage = normalizedSecondary;
+  }
+  if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
+    merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;
+  }
+  if (typeof merged.collabDefaultNickname !== 'string') {
+    merged.collabDefaultNickname = DEFAULT_EDITOR_SETTINGS.collabDefaultNickname;
+  } else {
+    merged.collabDefaultNickname = sanitizeNickname(merged.collabDefaultNickname);
+  }
+  if (typeof merged.collabAvatar !== 'string') {
+    merged.collabAvatar = DEFAULT_EDITOR_SETTINGS.collabAvatar;
   }
   return merged;
 };

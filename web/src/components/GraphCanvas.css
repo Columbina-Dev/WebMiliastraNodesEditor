@@ -25,7 +25,7 @@
   bottom: 24px;
   right: 50px;
   color: rgba(199, 199, 199, 0.30);
-  font-size: 42px;
+  font-size: calc(var(--app-font-scale, 1) * 42px);
   font-weight: 500;
   z-index: 2;
   pointer-events: none;
@@ -103,13 +103,13 @@
 
 .graph-context-menu__label {
   flex: 1;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   line-height: 1.3;
   text-align: left;
 }
 
 .graph-context-menu__shortcut {
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.55);
 }
 
@@ -160,6 +160,44 @@
 .react-flow__edge.graph-edge--data {
   --edge-stroke-width: 1.5px;
   --edge-stroke-color: #8BC1FE;
+}
+
+.react-flow__edge.graph-edge--locked {
+  opacity: 0.3;
+}
+
+.react-flow__node.graph-node--locked {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.graph-collab-cursors {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 80;
+}
+
+.graph-collab-cursor {
+  position: absolute;
+  display: flex;
+  align-items: flex-start;
+}
+
+.graph-collab-cursor img {
+  width: 9px;
+  height: 9px;
+}
+
+.graph-collab-cursor__label {
+  margin-left: -2px;
+  margin-top: 8px;
+  border-radius: 8px;
+  padding: 2px 5px;
+  font-size: calc(var(--app-font-scale, 1) * 10px);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
 }
 
 .react-flow__selection rect {

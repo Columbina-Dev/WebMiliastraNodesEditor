@@ -3,7 +3,7 @@
   height: 100%;
   background: #141925;
   color: #e5e9f0;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .structure-manager__sidebar {
@@ -167,6 +167,19 @@
   flex-direction: column;
   padding: 16px;
   gap: 12px;
+  min-height: 0;
+}
+
+.struct-editor__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
 }
 
 .struct-editor__header {
@@ -198,7 +211,7 @@
 
 .struct-editor__config {
   color: #9aa5c4;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
 }
 .struct-editor__config-block {
   display: flex;
@@ -234,7 +247,7 @@
   color: #dfe6fb;
   padding: 4px 8px;
   border-radius: 8px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
   animation: struct-copy-toast 0.25s ease forwards;
 }
@@ -319,6 +332,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  min-height: 0;
 }
 
 .struct-editor__row {
@@ -506,6 +520,13 @@
   cursor: var(--cursor-pointer);
 }
 
+.struct-editor__list-header button:hover,
+.struct-editor__list-remove:hover,
+.struct-editor__list-add:hover {
+  background: #2b4171;
+  border: 1px solid #0838a8;
+}
+
 .struct-editor__list-body {
   display: flex;
   flex-direction: column;
@@ -544,7 +565,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  font-size: 11px;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
   font-weight: 700;
   color: #0d1320;
 }

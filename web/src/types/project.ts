@@ -10,7 +10,7 @@ export type ProjectTopFolder = 'server' | 'client';
 export interface ProjectCategoryDefinition {
   key: string;
   directory: string;
-  label: string;
+  labelKey: string;
   topFolder: ProjectTopFolder;
 }
 
@@ -71,13 +71,16 @@ export interface ProjectGraphDescriptor {
 }
 
 export const PROJECT_CATEGORY_DEFINITIONS: ProjectCategoryDefinition[] = [
-  { topFolder: 'server', key: 'entity', directory: 'entity', label: '实体节点图' },
-  { topFolder: 'server', key: 'stats', directory: 'stats', label: '状态节点图' },
-  { topFolder: 'server', key: 'profession', directory: 'profession', label: '职业节点图' },
-  { topFolder: 'server', key: 'item', directory: 'item', label: '道具节点图' },
-  { topFolder: 'client', key: 'boolean-filter', directory: 'boolean-filter', label: '布尔过滤器节点图' },
-  { topFolder: 'client', key: 'integer-filter', directory: 'integer-filter', label: '整数过滤器节点图' },
-  { topFolder: 'client', key: 'skill', directory: 'skill', label: '技能节点图' },
+  { topFolder: 'server', key: 'entity', directory: 'entity', labelKey: 'project.category.entity' },
+  { topFolder: 'server', key: 'stats', directory: 'stats', labelKey: 'project.category.stats' },
+  { topFolder: 'server', key: 'profession', directory: 'profession', labelKey: 'project.category.profession' },
+  { topFolder: 'server', key: 'item', directory: 'item', labelKey: 'project.category.item' },
+  { topFolder: 'client', key: 'role-skill', directory: 'role-skill', labelKey: 'project.category.roleSkill' },
+  { topFolder: 'client', key: 'creation-skill', directory: 'creation-skill', labelKey: 'project.category.creationSkill' },
+  { topFolder: 'client', key: 'creation-state', directory: 'creation-state', labelKey: 'project.category.creationState' },
+  { topFolder: 'client', key: 'creation-state-decision', directory: 'creation-state-decision', labelKey: 'project.category.creationStateDecision' },
+  { topFolder: 'client', key: 'boolean-filter', directory: 'boolean-filter', labelKey: 'project.category.booleanFilter' },
+  { topFolder: 'client', key: 'integer-filter', directory: 'integer-filter', labelKey: 'project.category.integerFilter' },
 ];
 
 export const PROJECT_CATEGORIES_BY_TOP: Record<ProjectTopFolder, ProjectCategoryDefinition[]> = {

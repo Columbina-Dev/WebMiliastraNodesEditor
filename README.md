@@ -8,6 +8,9 @@
 > **声明：** 该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。
 
 > [!WARNING]  
+> 默认情况下，此应用不会允许导出为GIA节点图及GIL存档文件。用户将本应用生成的GIA/GIL导入《原神》时违反 COGNOSPHERE PTE. LTD. 的**任何条款**（包括但不限于[奇匠条款](./docs/Craftsperson_Terms_EN.md)、[原神千星奇域创作者中心使用条款](https://act.hoyoverse.com/miliastra_wonderland/agreement?id=157329)和[原神服务条款](https://genshin.hoyoverse.com/en/company/terms)）造成的后果均与项目创建者**无关**。启用这些功能需自行承担风险。
+
+> [!WARNING]  
 > 该项目90%以上代码均由AI生成。
 
 ## 仓库结构
@@ -54,13 +57,20 @@ npm run dev
   1. 编辑器版本信息。如未经修改，提交Issue时请附上此版本信息。如有较大修改，请自行解决。
   2. 新建节点图项目并打开
   3. 导入Zip节点图项目文件并打开
-  4. 拖拽Zip节点图项目文件到此处导入并打开
-  5. 历史记录，展示所有手动/自动保存到浏览器本地储存的节点图项目
-  6. 项目列表，点击即可打开
-  7. 压缩并导出所有保存在浏览器本地储存的Zip节点图项目文件
-  8. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
-  9. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
-  10. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
+  4. 解码GIA文件为"预览Json文件"，并可选下载预览Json、转换为节点图Json并导入至已有的项目或下载
+  5. 转换节点图Json为GIA文件并下载，此功能也可在节点图编辑时使用
+  6. 拖拽Zip节点图项目文件到此处导入并打开
+  7. 历史记录，展示所有手动/自动保存到浏览器本地储存的节点图项目
+  8. 压缩并导出所有保存在浏览器本地储存的Zip节点图项目文件
+  9. 项目列表，点击即可打开
+  10. 局域网共享项目列表，点击可加入
+  11. 刷新局域网共享项目列表
+  12. 协作服务器列表，添加后可点击连接并搜寻服务器内的公开项目
+  13. 添加协作服务器地址
+  14. <img src="web/src/assets/icons/setting.png" width="20" alt="Settings" /> 打开设置页面
+  15. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
+  16. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
+  17. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
 
 
 #### 编辑器界面-资源管理器介绍
@@ -69,26 +79,30 @@ npm run dev
   1. 窗口：  
       - 服务器节点图资源管理器：切换到`服务器节点图资源管理器`标签
       - 客户端节点图资源管理器：切换到`客户端节点图资源管理器`标签
+      - 高级数据管理：切换到`高级数据管理`标签
       - 返回主页：返回到[主页](#主页介绍)
   2. 文件：  
       - 保存项目：手动保存当前打开的节点图项目到浏览器本地储存（在非节点图标签使用`Ctrl+S`）
       - 编辑项目信息：修改当前打开的节点图项目名称
-      - 导出为.zip项目：导出当前打开的节点图项目为Zip文件，可切换设备导入到此**网页应用**
-      - 导出为.gil存档：上传一份从官方编辑器导出的.gil模板存档，使用当前打开的节点图项目覆盖.gil模板存档内的节点图数据，完成后可导入到官方编辑器。
+      - 导出为Zip项目：导出当前打开的节点图项目为Zip文件，可切换设备导入到此**网页应用**
+      - 导出为GIL存档：上传一份从官方编辑器导出的.gil模板存档，使用当前打开的节点图项目覆盖.gil模板存档内的节点图数据，完成后可导入到官方编辑器（此功能未完成，请暂时使用导出为Zip项目。此功能需在设置中启用）
   3. 节点版本信息，提交Issue时请附上此版本信息。如有修改，请提供修改所基于的原神版本号
-  4. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
-  5. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
-  6. <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
-  7. `服务器节点图资源管理器`标签
-  8. `客户端节点图资源管理器`标签
-  9. `节点图`标签，停留0.5s会显示此节点图文件的路径
-  10. 节点图分类
-  11. 节点图文件夹/页签
-  12. 返回上一次停留的路径
-  13. 重置`12-返回上一次停留的路径`的操作
-  14. 路径显示，可通过点击快速跳转路径
-  15. 搜索当前路径的页签/节点图
-  16. 页签/节点图列表  
+  4. <img src="web/src/assets/icons/setting.png" width="20" alt="Settings" /> 打开设置页面
+  5. <img src="web/src/assets/icons/github.svg" width="20" alt="GitHub" /> 前往此GitHub仓库页面  
+  6. <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" /> 打开[官方综合指南](#ugc教程相关)页面  
+  7. <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 打开[特效预览](#特效预览)页面  
+  8. `服务器节点图资源管理器`标签
+  9. `客户端节点图资源管理器`标签
+  10. `节点图`标签，停留0.5s会显示此节点图文件的路径
+  11. `分享`按钮，点击可将当前项目进行局域网或通过协作服务器的协作编辑分享
+  12. `交流`按钮，打开协作编辑的聊天面板
+  13. 节点图分类
+  14. 节点图文件夹/页签
+  15. 返回上一次停留的路径
+  16. 重置`15-返回上一次停留的路径`的操作
+  17. 路径显示，可通过点击快速跳转路径
+  18. 搜索当前路径的页签/节点图
+  19. 页签/节点图列表  
       页签：
       - 左键
         - 双击页签可在当前标签页打开此页签
@@ -126,7 +140,7 @@ npm run dev
   5. 画布区域  
       - 右键拖拽以平移视图
       - 鼠标滚轮缩放视图
-      - 左键拖动可多选节点（向左上/下方向为接触选择（绿框），向右上/下方向为框选选择（蓝框），类似AutoCAD）
+      - 左键拖动可多选节点
       - Del键删除所有选中节点
       - 右键空白处可新建节点
       - 右键节点可复制/删除节点
@@ -147,10 +161,37 @@ npm run dev
   15. 保存此次所有编辑过的节点图到浏览器本地储存（在任何节点图标签使用`Ctrl+S`）
   16. 另存为：复制此节点图到当前项目的其他路径
   17. 导出此节点图为 `.server.json` / `.client.json` 文件
+  18. 导出此节点图为GIA节点图文件以便在官方编辑器中直接加载（需在设置中启用）
 
-## 额外页面
+#### 联机编辑
 
-### UGC教程相关
+**自行使用[CollabServer](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer) websocket服务器 (实验性且不推荐，尽量使用局域网联机编辑)**
+
+1. 使用以下命令:
+    ```bash
+    git clone https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer.git
+    cd WebMiliastraNodesEditor-CollabServer/
+    npm install
+    npm start
+    ```
+
+2. 或者按照 [CollabServer 仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer) 中的Docker指令操作
+
+3. 打开本地管理面板（默认为 `http://localhost:51983`）并配置API密钥和最大房间数量
+4. 将服务器暴露为 `wss://<host>:<port>`（反向代理 / Cloudflared 等）
+5. 在编辑器中选择 `Anyone with the link`，填写服务器地址/端口/API密钥并分享，生成的链接类似于 `https://miliastra.columbina.dev/join?server=wss%3A%2F%2Fsignal.example.com%3A51982&roomId=......&pwd=......`  
+
+此设置适用于已发布的版本（miliastra.columbina.dev 或 beta.miliastra.columbina.dev）或自行搭建的同版本
+
+**Local dev / 局域网 (`npm run dev`)**
+
+1. 运行 `npm install` 一次，然后运行 `npm run dev`，将会默认使用 `--host` 运行
+2. 在需要的设备上打开 `http://<局域网IP>:5173`
+3. 确保运行 `npm run` 的设备允许局域网设备的入站`5173`的TCP端口
+
+### 额外页面
+
+#### UGC教程相关
 ![Screenshot-04](/media/tut4.png)  
 
 此项目也可查看保存在本地的官方综合指南，点击主页底部的 <img src="web/src/assets/icons/tutorial.png" width="20" alt="Tutorial" />  图标，或在节点图编辑页面点击右上角的教程按钮即可打开教程页面。
@@ -161,10 +202,10 @@ npm run dev
 
 提交Issue时请附上顶部的版本号信息，如有修改，请提供修改所基于的[官方千星奇域指南版本号](#查看官方运行的webapp版本号)。
 
-### 特效预览
+#### 特效预览
 ![Screenshot-05](/media/tut5.png)  
 
-此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.svg" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
+此项目包含了一个千星沙盒的特效预览功能，点击主页底部的 <img src="web/src/assets/icons/effects.png" width="20" alt="Effects" /> 图标，或在节点图编辑页面点击右上角的特效预览按钮即可打开特效预览页面。
 
 此特效预览原作者为[B站：Ayaya小王](https://space.bilibili.com/2448140)。修改了部分css以保证网站的整体风格统一。
 
@@ -321,7 +362,7 @@ interface DataPortDefinition {
 - 需将服务器节点图和客户端节点图可使用的所有节点列表分别写入 `web/src/data/nodeDefinitions.server.ts` 和 `web/src/data/nodeDefinitions.client.ts`。
 - 两个文件若暂时为空，两种节点图均可使用 `nodeDefinitions.ts` 中所有已定义的节点。
 
-列表例子：
+列表示例：
 
 ```ts
 export const serverNodeList = [
@@ -330,6 +371,12 @@ export const serverNodeList = [
   // ...
 ] as const;
 ```
+
+## MCP服务器
+此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCP-Server)
+
+## 许可
+本项目采用 **GPL V3** 许可证，详情请见 [LICENSE](LICENSE) 文件  
 
 ## 特别鸣谢
 - [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件

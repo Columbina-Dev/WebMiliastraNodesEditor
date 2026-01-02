@@ -6,17 +6,23 @@ import type {
 import type { ProjectGraphLocation, ProjectTopFolder } from '../types/project';
 
 export const CLIENT_CATEGORY_BY_KIND: Record<ClientGraphType, string> = {
+  'role-skill': 'role-skill',
+  'creation-skill': 'creation-skill',
+  'creation-state': 'creation-state',
+  'creation-state-decision': 'creation-state-decision',
   boolean: 'boolean-filter',
   integer: 'integer-filter',
-  skill: 'skill',
 };
 
 export const GRAPH_ENVIRONMENT_VALUES = [
   'server',
   'client',
+  'client:role-skill',
+  'client:creation-skill',
+  'client:creation-state',
+  'client:creation-state-decision',
   'client:boolean',
   'client:integer',
-  'client:skill',
 ] as const;
 
 export type GraphEnvironmentValue = (typeof GRAPH_ENVIRONMENT_VALUES)[number];
@@ -24,6 +30,9 @@ export type GraphEnvironmentValue = (typeof GRAPH_ENVIRONMENT_VALUES)[number];
 export const isGraphEnvironmentValue = (value: unknown): value is GraphEnvironment =>
   typeof value === 'string' &&
   (GRAPH_ENVIRONMENT_VALUES as readonly string[]).includes(value as GraphEnvironmentValue);
+
+export const normalizeLegacyGraphEnvironmentValue = (value: unknown): unknown =>
+  value === 'client:skill' ? 'client:role-skill' : value;
 
 const CLIENT_KIND_BY_CATEGORY_KEY: Record<string, ClientGraphType> = Object.entries(
   CLIENT_CATEGORY_BY_KIND,
@@ -46,16 +55,29 @@ export const clientKindFromEnvironment = (
 ): ClientGraphType | null => {
   if (!environment) return null;
   if (environment === 'client') {
-    return 'skill';
+    return 'role-skill';
   }
   if (environment.startsWith('client:')) {
     const [, rawKind] = environment.split(':', 2);
-    if (rawKind === 'boolean' || rawKind === 'integer' || rawKind === 'skill') {
+    if (rawKind === 'skill') {
+      return 'role-skill';
+    }
+    if (
+      rawKind === 'role-skill' ||
+      rawKind === 'creation-skill' ||
+      rawKind === 'creation-state' ||
+      rawKind === 'creation-state-decision' ||
+      rawKind === 'boolean' ||
+      rawKind === 'integer'
+    ) {
       return rawKind;
     }
   }
   return null;
 };
+
+export const clientKindFromCategoryKey = (categoryKey: string): ClientGraphType | null =>
+  CLIENT_KIND_BY_CATEGORY_KEY[categoryKey] ?? null;
 
 export const normalizeGraphEnvironment = (
   environment: GraphEnvironment | undefined,
@@ -64,7 +86,7 @@ export const normalizeGraphEnvironment = (
   if (environment === 'server') {
     return 'server';
   }
-  const fallbackKind = options.fallbackClientKind ?? 'skill';
+  const fallbackKind = options.fallbackClientKind ?? 'role-skill';
   const inferredKind = clientKindFromEnvironment(environment);
   if (inferredKind) {
     return toClientEnvironment(inferredKind);
@@ -84,7 +106,7 @@ export const resolveEnvironmentFromLocation = (
   if (location.topFolder === 'server') {
     return 'server';
   }
-  const kind = CLIENT_KIND_BY_CATEGORY_KEY[location.categoryKey] ?? 'skill';
+  const kind = CLIENT_KIND_BY_CATEGORY_KEY[location.categoryKey] ?? 'role-skill';
   return toClientEnvironment(kind);
 };
 

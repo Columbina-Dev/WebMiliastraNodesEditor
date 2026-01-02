@@ -1,5 +1,6 @@
 ﻿import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import classNames from 'classnames';
+import { useI18n } from '../utils/i18nContext';
 import './TutorialPage.css';
 
 export type TutorialKind = 'knowledge' | 'course';
@@ -84,23 +85,28 @@ const filterCatalog = (nodes: CatalogNode[], term: string): CatalogNode[] => {
   return result;
 };
 
-const buildPlaceholder = (title: string, updatedAt?: string) => {
-  const updatedLine = updatedAt ? `<p class="tutorial-article__meta">最近更新：${updatedAt}</p>` : '';
+type Translate = (key: string, params?: Record<string, string | number>) => string;
+
+const buildPlaceholder = (t: Translate, title: string, updatedAt?: string) => {
+  const updatedLine = updatedAt
+    ? `<p class="tutorial-article__meta">${t('tutorial.meta.updatedAt')}${updatedAt}</p>`
+    : '';
   return `
     <article class="tutorial-article tutorial-article--placeholder">
       <h1>${title}</h1>
-      <p>内容建设中，敬请期待。</p>
+      <p>${t('tutorial.placeholder.comingSoon')}</p>
       ${updatedLine}
     </article>
   `;
 };
 
-const TABS: Array<{ key: TutorialKind; label: string; description: string }> = [
-  { key: 'knowledge', label: '说明书', description: '专题文档索引' },
-  { key: 'course', label: '教程', description: '任务式教学课程' },
+const TABS: Array<{ key: TutorialKind; labelKey: string; descriptionKey: string }> = [
+  { key: 'knowledge', labelKey: 'tutorial.tabs.knowledge', descriptionKey: 'tutorial.tabs.knowledge.desc' },
+  { key: 'course', labelKey: 'tutorial.tabs.course', descriptionKey: 'tutorial.tabs.course.desc' },
 ];
 
 const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
+  const { t } = useI18n();
   const [catalogData, setCatalogData] = useState<CatalogNode[]>([]);
   const [isCatalogLoading, setCatalogLoading] = useState(false);
   const [catalogError, setCatalogError] = useState<string | null>(null);
@@ -165,7 +171,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
     fetch(CATALOG_URL[activeKind], { signal: controller.signal })
       .then((response) => {
         if (!response.ok) {
-          throw new Error(`加载目录失败 (${response.status})`);
+          throw new Error(t('tutorial.catalog.loadFailedWithStatus', { status: response.status }));
         }
         return response.json();
       })
@@ -182,7 +188,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
           return;
         }
         setCatalogData([]);
-        setCatalogError((error as Error).message || '目录加载失败');
+        setCatalogError((error as Error).message || t('tutorial.catalog.loadFailed'));
         setCatalogLoading(false);
       });
 
@@ -190,7 +196,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
       isMounted = false;
       controller.abort();
     };
-  }, [activeKind, catalogReloadToken]);
+  }, [activeKind, catalogReloadToken, t]);
 
   useEffect(() => {
     if (!activeKind || catalogData.length === 0) return;
@@ -307,7 +313,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
     fetch(contentUrl(activeKind, activeEntryId), { signal: controller.signal })
       .then((response) => {
         if (!response.ok) {
-          throw new Error('未找到对应内容');
+          throw new Error(t('tutorial.content.notFound'));
         }
         return response.text();
       })
@@ -319,7 +325,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
       .catch(() => {
         if (!isMounted) return;
         const node = nodeIndex.get(activeEntryId);
-        const placeholder = buildPlaceholder(node?.title ?? '文档建设中', node?.updated_at);
+        const placeholder = buildPlaceholder(t, node?.title ?? t('tutorial.placeholder.title'), node?.updated_at);
         cache.set(activeEntryId, { html: placeholder, fallback: true });
         setContentState({ status: 'ready', html: placeholder, fallback: true });
       });
@@ -328,7 +334,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
       isMounted = false;
       controller.abort();
     };
-  }, [activeKind, activeEntryId, nodeIndex]);
+  }, [activeKind, activeEntryId, nodeIndex, t]);
 
   useEffect(() => {
     if (contentState.status !== 'ready') return;
@@ -343,13 +349,13 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
       const fileName =
         anchor.getAttribute('download') ||
         (anchor.href ? anchor.href.split('/').pop() ?? '' : '') ||
-        '资源文件';
+        t('tutorial.download.fallbackName');
 
       if (!anchor.textContent?.trim()) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'tutorial__download-button';
-        button.textContent = `下载 ${fileName}`;
+        button.textContent = t('tutorial.download.button', { name: fileName });
         button.addEventListener('click', () => anchor.click());
 
         const wrapper = document.createElement('div');
@@ -360,7 +366,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
         anchor.classList.add('tutorial__download-anchor');
       }
     });
-  }, [contentState]);
+  }, [contentState, t]);
 
   const handleEntryClick = useCallback(
     (entryId: string) => {
@@ -402,13 +408,16 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
   const activeTab = route.kind === 'landing' ? 'knowledge' : route.kind;
 
   return (
-    <div className="tutorial">
+    <div
+      className="tutorial"
+      style={{ ['--tutorial-download-prefix' as any]: JSON.stringify(t('tutorial.download.prefix')) }}
+    >
       <header className="tutorial__header" style={{ height: '60px' }}>
         <div className="tutorial__header-left">
           <div className="tutorial__logo">
-            <img src={LOGO_URL} alt="原神·千星奇域" />
+            <img src={LOGO_URL} alt={t('tutorial.logoAlt')} />
           </div>
-          <div className="tutorial__title">悠游千星，共筑奇域</div>
+          <div className="tutorial__title">{t('tutorial.slogan')}</div>
         </div>
         <div className="tutorial__header-actions">
           {TABS.map((tab) => (
@@ -418,12 +427,12 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
               className={classNames('tutorial__tab', { 'is-active': activeTab === tab.key })}
               onClick={() => onNavigate(`${tab.key}`)}
             >
-              <span className="tutorial__tab-label">{tab.label}</span>
-              <span className="tutorial__tab-desc">{tab.description}</span>
+              <span className="tutorial__tab-label">{t(tab.labelKey)}</span>
+              <span className="tutorial__tab-desc">{t(tab.descriptionKey)}</span>
             </button>
           ))}
           <button type="button" className="tutorial__close" onClick={onClose}>
-            返回主页
+            {t('common.backHome')}
           </button>
         </div>
       </header>
@@ -431,9 +440,9 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
       {route.kind === 'landing' ? (
         <main className="tutorial__landing">
           <section className="tutorial__landing-title">
-            <h1>综合指南</h1>
+            <h1>{t('tutorial.landing.title')}</h1>
             <p>
-              运行在本地的官方综合指南镜像版，灵感来源于{' '}
+              {t('tutorial.landing.desc.prefix')}{' '}
               <a href="https://milidocs.tiiny.site/" target="_blank" rel="noopener noreferrer">
                 https://milidocs.tiiny.site/
               </a>
@@ -447,9 +456,9 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
                 className="tutorial__landing-card"
                 onClick={() => onNavigate(`${tab.key}`)}
               >
-                <h2>{tab.label}</h2>
-                <p>{tab.description}</p>
-                <span className="tutorial__landing-cta">进入 {tab.label}</span>
+                <h2>{t(tab.labelKey)}</h2>
+                <p>{t(tab.descriptionKey)}</p>
+                <span className="tutorial__landing-cta">{t('tutorial.landing.enter')} {t(tab.labelKey)}</span>
               </button>
             ))}
           </div>
@@ -458,18 +467,22 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
         <div className="tutorial__body">
           <aside className="tutorial__catalog">
             <div className="tutorial__catalog-header">
-              <h2>{activeKind === 'knowledge' ? '知识库目录' : '课程目录'}</h2>
-              <p>共 {nodeIndex.size} 篇条目</p>
+              <h2>
+                {activeKind === 'knowledge'
+                  ? t('tutorial.catalog.title.knowledge')
+                  : t('tutorial.catalog.title.course')}
+              </h2>
+              <p>{t('tutorial.catalog.count', { count: nodeIndex.size })}</p>
               <input
                 className="tutorial__search"
                 type="search"
-                placeholder="搜索文档"
+                placeholder={t('tutorial.search.placeholder')}
                 value={searchTerm}
                 onChange={(event) => setSearchTerm(event.target.value)}
               />
             </div>
             <div className="tutorial__catalog-scroll">
-              {isCatalogLoading && <div className="tutorial__catalog-empty">目录加载中...</div>}
+              {isCatalogLoading && <div className="tutorial__catalog-empty">{t('tutorial.catalog.loading')}</div>}
               {catalogError && (
                 <div className="tutorial__catalog-empty">
                   <p>{catalogError}</p>
@@ -481,15 +494,15 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
                       setCatalogReloadToken((token) => token + 1);
                     }}
                   >
-                    重试
+                    {t('common.retry')}
                   </button>
                 </div>
               )}
               {!isCatalogLoading && !catalogError && filteredCatalog.length === 0 && (
-                <div className="tutorial__catalog-empty">未找到匹配的条目</div>
+                <div className="tutorial__catalog-empty">{t('tutorial.catalog.noMatch')}</div>
               )}
               {!isCatalogLoading && !catalogError && filteredCatalog.length > 0 && (
-                <nav className="tutorial__catalog-list" aria-label="教程目录">
+                <nav className="tutorial__catalog-list" aria-label={t('tutorial.catalog.aria')}>
                   {filteredCatalog.map((node) => (
                     <CatalogItem
                       key={node.real_id}
@@ -500,6 +513,7 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
                       expandedIds={expandedIds}
                       onToggle={handleToggleExpand}
                       onSelect={handleEntryClick}
+                      t={t}
                     />
                   ))}
                 </nav>
@@ -518,11 +532,14 @@ const TutorialPage = ({ route, onNavigate, onClose }: TutorialPageProps) => {
                   ))}
                 </div>
                 {activeEntryId && (
-                  <div className="tutorial__meta">最近更新：{formatUpdatedAt(nodeIndex.get(activeEntryId)?.updated_at)}</div>
+                  <div className="tutorial__meta">
+                    {t('tutorial.meta.updatedAt')}
+                    {formatUpdatedAt(nodeIndex.get(activeEntryId)?.updated_at)}
+                  </div>
                 )}
               </header>
               <div className="tutorial__content-body" ref={contentBodyRef}>
-                {contentState.status === 'loading' && <div className="tutorial__content-loading">内容加载中...</div>}
+                {contentState.status === 'loading' && <div className="tutorial__content-loading">{t('tutorial.content.loading')}</div>}
                 {contentState.status === 'ready' && (
                   <div
                     className={classNames('tutorial__content-html', { 'is-placeholder': contentState.fallback })}
@@ -546,6 +563,7 @@ interface CatalogItemProps {
   expandedIds: Set<string>;
   onToggle: (id: string) => void;
   onSelect: (id: string) => void;
+  t: Translate;
 }
 
 const CatalogItem = ({
@@ -556,6 +574,7 @@ const CatalogItem = ({
   expandedIds,
   onToggle,
   onSelect,
+  t,
 }: CatalogItemProps) => {
   const hasChildren = node.children.length > 0;
   const isExpanded = forcedExpanded || expandedIds.has(node.real_id);
@@ -572,7 +591,7 @@ const CatalogItem = ({
             type="button"
             className={classNames('tutorial__catalog-toggle', { 'is-open': isExpanded })}
             onClick={() => onToggle(node.real_id)}
-            aria-label={isExpanded ? '折叠章节' : '展开章节'}
+            aria-label={isExpanded ? t('tutorial.catalog.collapseSection') : t('tutorial.catalog.expandSection')}
           />
         )}
         <button type="button" className="tutorial__catalog-button" onClick={() => onSelect(node.real_id)}>
@@ -591,6 +610,7 @@ const CatalogItem = ({
               expandedIds={expandedIds}
               onToggle={onToggle}
               onSelect={onSelect}
+              t={t}
             />
           ))}
         </div>
