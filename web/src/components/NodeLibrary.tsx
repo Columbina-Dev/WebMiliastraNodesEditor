@@ -3,6 +3,12 @@ import type { DragEvent, ReactElement, TouchEvent as ReactTouchEvent } from 'rea
 import classNames from 'classnames';
 import type { NodeDefinition, ValueType } from '../types/node';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
+import type { UiLanguage } from '../utils/i18n';
+import { useI18n } from '../utils/i18nContext';
+import {
+  getNodeDefinitionDisplayNameForLanguage,
+  resolveNodeDefinitionDisplayName,
+} from '../utils/nodeText';
 import './NodeLibrary.css';
 
 const ICON_EXECUTE = new URL('../assets/icons/execute.svg', import.meta.url).href;
@@ -43,6 +49,8 @@ interface NodeLibraryProps {
   valueTypeFilter?: ValueTypeFilterProps;
   isTouchEnvironment?: boolean;
   autoFocusSearch?: boolean;
+  allowSearchAllLanguageNodeNames?: boolean;
+  isReadOnly?: boolean;
 }
 
 const GROUP_META: Record<string, { icon: string; color: string }> = {
@@ -51,6 +59,78 @@ const GROUP_META: Record<string, { icon: string; color: string }> = {
   '流程控制节点': { icon: ICON_FLOW, color: '#ff9850' },
   '查询节点': { icon: ICON_QUERY, color: '#5169ff' },
   '运算节点': { icon: ICON_LOGIC, color: '#1976d2' },
+};
+
+const NODE_CATEGORY_LABEL_KEYS: Record<string, string> = {
+  '执行节点': 'graphCanvas.nodeCategory.execution',
+  '事件节点': 'graphCanvas.nodeCategory.event',
+  '流程控制节点': 'graphCanvas.nodeCategory.flow',
+  '查询节点': 'graphCanvas.nodeCategory.query',
+  '运算节点': 'graphCanvas.nodeCategory.logic',
+  '通用': 'graphCanvas.nodeCategory.common',
+  '列表相关': 'graphCanvas.nodeCategory.listRelated',
+  '自定义变量': 'graphCanvas.nodeCategory.customVariable',
+  '预设状态': 'graphCanvas.nodeCategory.presetState',
+  '实体相关': 'graphCanvas.nodeCategory.entity',
+  '关卡相关': 'graphCanvas.nodeCategory.level',
+  '阵营相关': 'graphCanvas.nodeCategory.camp',
+  '玩家与角色相关': 'graphCanvas.nodeCategory.playerCharacter',
+  '碰撞': 'graphCanvas.nodeCategory.collision',
+  '碰撞触发器': 'graphCanvas.nodeCategory.collisionTrigger',
+  '战斗': 'graphCanvas.nodeCategory.combat',
+  '运动器': 'graphCanvas.nodeCategory.mover',
+  '跟随运动器': 'graphCanvas.nodeCategory.followMover',
+  '投射物': 'graphCanvas.nodeCategory.projectile',
+  '特效': 'graphCanvas.nodeCategory.effects',
+  '定时器': 'graphCanvas.nodeCategory.timer',
+  '全局计时器': 'graphCanvas.nodeCategory.globalTimer',
+  '镜头': 'graphCanvas.nodeCategory.camera',
+  '角色扰动装置': 'graphCanvas.nodeCategory.characterDisturbance',
+  '单位状态': 'graphCanvas.nodeCategory.unitState',
+  '选项卡': 'graphCanvas.nodeCategory.tab',
+  '碰撞触发源': 'graphCanvas.nodeCategory.collisionSource',
+  '职业': 'graphCanvas.nodeCategory.profession',
+  '界面控件组': 'graphCanvas.nodeCategory.uiWidgetGroup',
+  '技能': 'graphCanvas.nodeCategory.skill',
+  '音效': 'graphCanvas.nodeCategory.audio',
+  '单位标签': 'graphCanvas.nodeCategory.unitTag',
+  '自定义仇恨': 'graphCanvas.nodeCategory.customAggro',
+  '信号': 'graphCanvas.nodeCategory.signal',
+  '铭牌': 'graphCanvas.nodeCategory.nameplate',
+  '文本气泡': 'graphCanvas.nodeCategory.textBubble',
+  '卡牌选择器': 'graphCanvas.nodeCategory.cardSelector',
+  '关卡结算': 'graphCanvas.nodeCategory.levelSettlement',
+  '光源组件': 'graphCanvas.nodeCategory.lightComponent',
+  '字典': 'graphCanvas.nodeCategory.dict',
+  '结构体': 'graphCanvas.nodeCategory.struct',
+  '商店': 'graphCanvas.nodeCategory.shop',
+  '装备': 'graphCanvas.nodeCategory.equipment',
+  '道具与背包': 'graphCanvas.nodeCategory.itemBag',
+  '小地图标识组件': 'graphCanvas.nodeCategory.minimapMarker',
+  '造物巡逻': 'graphCanvas.nodeCategory.constructPatrol',
+  '排行榜': 'graphCanvas.nodeCategory.leaderboard',
+  '成就': 'graphCanvas.nodeCategory.achievement',
+  '扫描标签': 'graphCanvas.nodeCategory.scanTag',
+  '段位': 'graphCanvas.nodeCategory.rank',
+  '实体布设组': 'graphCanvas.nodeCategory.entityPlacementGroup',
+  '聊天频道': 'graphCanvas.nodeCategory.chatChannel',
+  '奇域礼盒相关': 'graphCanvas.nodeCategory.wonderlandGift',
+  '寻路阻挡': 'graphCanvas.nodeCategory.pathBlocking',
+  '造物预设状态': 'graphCanvas.nodeCategory.constructPresetState',
+  '命中判定': 'graphCanvas.nodeCategory.hitDetection',
+  '造物': 'graphCanvas.nodeCategory.construct',
+  '道具': 'graphCanvas.nodeCategory.item',
+  '数学': 'graphCanvas.nodeCategory.math',
+  '标签': 'graphCanvas.nodeCategory.tag',
+  '路径': 'graphCanvas.nodeCategory.path',
+  '预设点': 'graphCanvas.nodeCategory.presetPoint',
+  '<隐藏>客户端节点自带': 'graphCanvas.nodeCategory.hiddenClientBuiltin',
+  '触发器': 'graphCanvas.nodeCategory.trigger',
+  '射线': 'graphCanvas.nodeCategory.raycast',
+  '扫描': 'graphCanvas.nodeCategory.scan',
+  '列表': 'graphCanvas.nodeCategory.list',
+  '角色技能': 'graphCanvas.nodeCategory.characterSkill',
+  '官方隐藏': 'graphCanvas.nodeCategory.hidden'
 };
 
 // 弃用：选择值类型过滤器
@@ -121,7 +201,7 @@ const buildTree = (definitions: NodeDefinition[]): CategoryNode[] => {
 };
 
 const NodeLibrary = ({
-  title = '节点库',
+  title,
   subtitle,
   definitions,
   onSelect,
@@ -130,7 +210,10 @@ const NodeLibrary = ({
   variant = 'sidebar',
   isTouchEnvironment = false,
   autoFocusSearch = false,
+  allowSearchAllLanguageNodeNames = false,
+  isReadOnly = false,
 }: NodeLibraryProps) => {
+  const { t, primaryLanguage, secondaryLanguage } = useI18n();
   const [search, setSearch] = useState('');
   // start collapsed by default
   const [expanded, setExpanded] = useState<Set<string>>(new Set());
@@ -146,6 +229,14 @@ const NodeLibrary = ({
     dragging: boolean;
   } | null>(null);
 
+  const resolveCategoryLabel = useCallback(
+    (name: string) => {
+      const key = NODE_CATEGORY_LABEL_KEYS[name];
+      return key ? t(key) : name;
+    },
+    [t],
+  );
+
   const dispatchTouchDragEvent = useCallback(
     (detail: NodeLibraryTouchDragDetail) => {
       window.dispatchEvent(
@@ -157,15 +248,67 @@ const NodeLibrary = ({
     []
   );
 
-  const filteredDefinitions = useMemo(() => {
+  const { filteredDefinitions, displayNameById, matchNameById } = useMemo(() => {
     const term = search.trim().toLowerCase();
-    return definitions.filter((definition) => {
+    const displayNameById = new Map<string, string>();
+    const matchNameById = new Map<string, string>();
+    const candidateLanguageOrder: UiLanguage[] = Array.from(
+      new Set<UiLanguage>([
+        primaryLanguage,
+        secondaryLanguage,
+        'en-us',
+        'en-uk',
+        'chs',
+        'cht',
+        'jpn',
+      ])
+    );
+
+    const filteredDefinitions = definitions.filter((definition) => {
       if (filter && !filter(definition)) return false;
+
+      const resolvedName = resolveNodeDefinitionDisplayName(
+        definition,
+        primaryLanguage,
+        secondaryLanguage,
+      );
+      displayNameById.set(definition.id, resolvedName);
+
       if (!term) return true;
-      const haystack = (' ' + definition.displayName + ' ' + definition.category + ' ' + definition.id).toLowerCase();
-      return haystack.includes(term);
+
+      const matches = (value: string | undefined) =>
+        value ? value.toLowerCase().includes(term) : false;
+
+      if (matches(resolvedName) || matches(definition.category) || matches(definition.id)) {
+        return true;
+      }
+
+      if (!allowSearchAllLanguageNodeNames) {
+        return false;
+      }
+
+      for (const language of candidateLanguageOrder) {
+        const candidate = getNodeDefinitionDisplayNameForLanguage(definition, language);
+        if (!candidate) continue;
+        if (!matches(candidate)) continue;
+        if (candidate.toLowerCase() !== resolvedName.toLowerCase()) {
+          matchNameById.set(definition.id, candidate);
+        }
+        return true;
+      }
+
+      return false;
     });
-  }, [definitions, filter, search]);
+
+    return { filteredDefinitions, displayNameById, matchNameById };
+  }, [
+    allowSearchAllLanguageNodeNames,
+    definitions,
+    filter,
+    primaryLanguage,
+    secondaryLanguage,
+    search,
+  ]);
 
   const tree = useMemo(() => buildTree(filteredDefinitions), [filteredDefinitions]);
 
@@ -173,7 +316,7 @@ const NodeLibrary = ({
     event: ReactTouchEvent<HTMLButtonElement>,
     definition: NodeDefinition
   ) => {
-    if (!isTouchEnvironment) return;
+    if (isReadOnly || !isTouchEnvironment) return;
     const touch = event.changedTouches[0];
     if (!touch) return;
     touchDragStateRef.current = {
@@ -188,7 +331,7 @@ const NodeLibrary = ({
   };
 
   useEffect(() => {
-    if (!isTouchEnvironment) {
+    if (isReadOnly || !isTouchEnvironment) {
       touchDragStateRef.current = null;
       return;
     }
@@ -273,7 +416,7 @@ const NodeLibrary = ({
       window.removeEventListener('touchcancel', handleTouchCancel);
       touchDragStateRef.current = null;
     };
-  }, [dispatchTouchDragEvent, isTouchEnvironment]);
+  }, [dispatchTouchDragEvent, isReadOnly, isTouchEnvironment]);
 
 
   useEffect(() => {
@@ -293,6 +436,7 @@ const NodeLibrary = ({
   }, [autoFocusSearch, variant]);
 
   const handleSelect = (definition: NodeDefinition) => {
+    if (isReadOnly) return;
     onSelect(definition);
   };
 
@@ -312,6 +456,7 @@ const NodeLibrary = ({
     event: DragEvent<HTMLButtonElement>,
     definition: NodeDefinition
   ) => {
+    if (isReadOnly) return;
     event.dataTransfer.setData('application/x-node-type', definition.id);
     event.dataTransfer.effectAllowed = 'copy';
     onItemDragStart?.(event, definition);
@@ -324,13 +469,23 @@ const NodeLibrary = ({
           type="button"
           key={definition.id}
           className="node-library__definition"
-          onClick={() => handleSelect(definition)}
-          draggable
-          onTouchStart={(event) => handleDefinitionTouchStart(event, definition)}
-          onDragStart={(event) => handleDragStartInternal(event, definition)}
+          onClick={isReadOnly ? undefined : () => handleSelect(definition)}
+          draggable={!isReadOnly}
+          disabled={isReadOnly}
+          onTouchStart={
+            isReadOnly ? undefined : (event) => handleDefinitionTouchStart(event, definition)
+          }
+          onDragStart={isReadOnly ? undefined : (event) => handleDragStartInternal(event, definition)}
         >
           <span className="node-library__definition-dot" />
-          <span className="node-library__definition-name">{definition.displayName}</span>
+          <span className="node-library__definition-name">
+            {displayNameById.get(definition.id) ?? definition.displayName}
+          </span>
+          {matchNameById.has(definition.id) && (
+            <span className="node-library__definition-match">
+              ({matchNameById.get(definition.id)})
+            </span>
+          )}
         </button>
       ))}
     </div>
@@ -354,7 +509,7 @@ const NodeLibrary = ({
           {groupMeta && (
             <img className="node-library__icon" src={groupMeta.icon} alt="" aria-hidden="true" />
           )}
-          <span className="node-library__name">{node.name}</span>
+          <span className="node-library__name">{resolveCategoryLabel(node.name)}</span>
           <span className="node-library__count">{node.count}</span>
         </button>
         {isExpanded && hasChildren && (
@@ -372,11 +527,13 @@ const NodeLibrary = ({
     variant === 'floating' ? 'node-library--floating' : 'node-library--sidebar'
   );
 
+  const resolvedTitle = title ?? t('nodeLibrary.title');
+
   return (
     <div className={libraryClassName}>
       <div className="node-library__header">
         <div>
-          <div className="node-library__title">{title}</div>
+          <div className="node-library__title">{resolvedTitle}</div>
           {subtitle && <div className="node-library__subtitle">{subtitle}</div>}
         </div>
       </div>
@@ -385,13 +542,13 @@ const NodeLibrary = ({
         <input
           ref={searchInputRef}
           value={search}
-          placeholder="搜索节点或分类"
+          placeholder={t('nodeLibrary.search.placeholder')}
           onChange={(event) => setSearch(event.target.value)}
         />
       </div>
       <div className="node-library__content">
         {tree.length === 0 ? (
-          <div className="node-library__empty">未找到匹配的节点</div>
+          <div className="node-library__empty">{t('nodeLibrary.search.empty')}</div>
         ) : (
           tree.map((category) => renderCategory(category))
         )}
@@ -401,9 +558,6 @@ const NodeLibrary = ({
 };
 
 export default NodeLibrary;
-
-
-
 
 
 

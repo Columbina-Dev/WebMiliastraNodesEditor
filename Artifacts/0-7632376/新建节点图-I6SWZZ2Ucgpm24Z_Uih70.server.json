@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 2,
+  "name": "新建节点图",
+  "nodes": [
+    {
+      "type": "event.graphVariableChanged",
+      "position": {
+        "x": 129.08059611302735,
+        "y": 157.37096815916448
+      },
+      "data": {},
+      "id": "sDGeGECVMav-mZEMTqunT"
+    },
+    {
+      "type": "action.printString",
+      "position": {
+        "x": 528.8146738965427,
+        "y": 161.1893543735776
+      },
+      "data": {},
+      "id": "poPsf9zR_5B2sf1UyiRNN"
+    },
+    {
+      "type": "action.finishLevel",
+      "position": {
+        "x": 890.659904784639,
+        "y": 160.12611792614464
+      },
+      "data": {},
+      "id": "XqskNlLWNEMLEi-d3TOIh"
+    }
+  ],
+  "edges": [
+    {
+      "source": {
+        "nodeId": "sDGeGECVMav-mZEMTqunT",
+        "portId": "flowOut"
+      },
+      "target": {
+        "nodeId": "poPsf9zR_5B2sf1UyiRNN",
+        "portId": "flowIn"
+      },
+      "id": "TA0CvyC4yWpu2Y9s-7ixq"
+    },
+    {
+      "source": {
+        "nodeId": "sDGeGECVMav-mZEMTqunT",
+        "portId": "variableName"
+      },
+      "target": {
+        "nodeId": "poPsf9zR_5B2sf1UyiRNN",
+        "portId": "text"
+      },
+      "id": "ji0sUKikuHigaji6FVnqT"
+    },
+    {
+      "source": {
+        "nodeId": "poPsf9zR_5B2sf1UyiRNN",
+        "portId": "flowOut"
+      },
+      "target": {
+        "nodeId": "XqskNlLWNEMLEi-d3TOIh",
+        "portId": "flowIn"
+      },
+      "id": "UzLM4gtF8y5TGP5iQyZ8y"
+    }
+  ],
+  "comments": [],
+  "environment": "server"
+}

@@ -1,0 +1,444 @@
+syntax = "proto3";
+// @version: 1.3.0
+// package gia;
+
+message Root {
+  NodeUnit graph = 1;          // graph info
+  repeated NodeUnit utils = 2; // data_structure, input/output
+  string filePath = 3;         // {UID}-{TIME}-{LEVEL_ID}-\{FILE_NAME}.gia
+}
+
+message NodeUnit {
+  message Id {
+    enum Type {
+      Unknown1 = 0;
+      Node = 1;            // Such as boolean filter
+      Basic = 5;           // Such as graph node
+      AffiliatedNode = 23; // Assemble/Split for Structure
+    }
+    enum NodeType {
+      Unknown2 = 0;
+      ClientGraph = 3;
+      StructureDefinition = 15;
+    }
+    Type type = 2;              // base type
+    optional NodeType kind = 3; // enable when type is Node
+    int32 id = 4;               // Node Graph Id
+  }
+  enum Type {
+    Unknown = 0;
+    EntityNode = 9;
+    BooleanFilter = 10;
+    Skills = 11;
+    CompositeGraph = 12;
+    StatusNode = 22;
+    ClassNode = 23;
+    StructureDefinition = 29;
+    ItemNode = 46;
+    IntegerFilter = 47;
+  };
+
+  Id id = 1;                  // Self id
+  repeated Id relatedIds = 2; // Some related accompanying units(If exist)
+  string name = 3;            // Node Graph Name
+  Type type = 5;              // Enumeration of Node Graph Type
+
+  oneof graphType {
+    NodeGraphWrapper graph = 13;           // Else
+    CompositeDefWrapper compositeDef = 14; // When type is Composite Graphs
+    StructureDefWrapper structureDef = 22; // When type is Structure Definitions
+  }
+}
+
+message NodeGraphWrapper {
+  message InnerWrapper { NodeGraph graph = 1; }
+  InnerWrapper inner = 1;
+}
+message CompositeDefWrapper {
+  message InnerWrapper { CompositeDef def = 1; }
+  InnerWrapper inner = 1;
+}
+
+message CompositeDef {
+  message Id {
+    NodeGraph.Id genericId = 1;
+    NodeGraph.Id concreteId = 2;
+    NodeGraph.Id graphId = 4;
+  }
+  message ParameterFlow {
+    message Type {
+      message MapType {
+        VarType key = 3;
+        VarType value = 4;
+      }
+      VarBase.Class class = 1;
+      VarType type1 = 3;
+      VarType type2 = 4;
+      oneof type {
+        MapType mapType = 105;
+        // TODO
+      }
+
+      ID valueId = 104;
+      message ID { int64 id = 2; }
+    }
+    string name = 1;
+    bool visible = 2; // Maybe. Always 1
+    NodePin.Index index = 3;
+    Type type = 4;
+    int32 pinIndex = 8;
+  }
+  message ControlFlow {
+    string name = 1;
+    bool visible = 2; // Maybe. Always 1
+    NodePin.Index index = 3;
+    string description = 4;
+    int32 pinIndex = 8;
+  }
+  message Type {
+    enum Kind {
+      Unknown = 0;
+      Composite = 1000;
+      Assemble = 1003;
+      Split = 1004;
+      Modify = 1005;
+    }
+    message Id { int64 id = 1; }
+
+    Kind kind = 1;
+    oneof parent {
+      Id assemble = 104;
+      Id split = 105;
+      Id modify = 106;
+    }
+  }
+
+  Id id = 4;
+
+  repeated ControlFlow inflows = 100;
+  repeated ControlFlow outflows = 101;
+  repeated ParameterFlow inputs = 102;
+  repeated ParameterFlow outputs = 103;
+  Type type = 107;
+
+  string name = 200;
+  string description = 201;
+}
+
+message NodeGraph {
+  message Id {
+    enum Class {
+      Unknown1 = 0;
+      UserDefined = 10000;
+      SystemDefined = 10001;
+    }
+    enum Type {
+      Unknown2 = 0;
+      BasicNode = 20000;
+      BooleanFilter = 20001;
+      Skills = 20002;
+      StatusNode = 20003;
+      ClassNode = 20004;
+      ItemNode = 20005;
+      IntegerFilter = 20006;
+    };
+    enum Kind {
+      Unknown3 = 0;
+      NodeGraph = 21001;      // User-defined
+      CompositeGraph = 21002; // User-defined
+      SysCall = 22000;        // Pre-defined
+      SysGraph = 22001;       // Generated From UserStruct
+    }
+    Class class = 1;
+    Type type = 2;
+    Kind kind = 3;
+    int64 id = 5;
+  }
+  Id id = 1;       // graph id (types, id)
+  string name = 2; // Graph Name
+  repeated GraphNode nodes = 3;
+  repeated CompositePin compositePins = 4;
+  repeated Comments comments = 5;
+  repeated GraphVariable graphValues = 6;
+  repeated GraphAffiliation affiliations = 7;
+}
+
+message Comments {
+  string content = 1;
+  optional float x = 2;
+  optional float y = 3;
+}
+
+message GraphAffiliation {
+  message Info {
+    NodeGraph.Id source = 1;
+    int32 typeXxx = 2;
+    int32 alwaysOneXxxx = 3;
+    oneof extend { VarBase.ItemType.StructItem structId = 100; }
+  }
+  Info info = 1;
+  message Type { int32 type = 1; }
+  Type type = 2;
+  // TODO
+}
+
+message StructureDefWrapper {
+  message StructureDef {
+    Field genericField = 1;
+    Field connectField = 2; // same as 1
+    int32 index = 3;        // Not id, but index of structure(1,2,3...)
+    int32 itemCount = 4;    // item count
+  }
+  message Field {
+    int64 id = 1;
+    repeated VarDef vars = 3;
+
+    string structName = 501;
+    int32 classBase = 502; // always 1
+    int32 index = 503;     // same as StructureDef
+  }
+  message VarDef {
+    message SubType {
+      int32 xxx = 1;
+      int64 xxxx = 2; // What are they?
+      VarType key = 502;
+      VarType value = 503;
+      int64 valueId = 504;
+    }
+    message Id {
+      VarType type = 1;
+      SubType sub = 2;
+    }
+    message Content {
+      VarType type = 1;
+      SubType sub = 2;
+
+      oneof val {
+        IntBaseValue intVal = 13;
+        EnumBaseValue boolVal = 14;
+        StringBaseValue strVal = 16;
+        // TODO: What A mess here! I can't bear anymore!!!!!
+        // He who trust himself could take a try.
+        // ESPECIALLY MAP/STRUCT BASE
+      }
+    }
+    Id id = 1;
+    Content def = 3;
+    string name = 5;
+    string name2 = 501;
+    VarType type = 502;
+    int32 index = 503; // variable index
+  }
+  StructureDef def = 1;
+}
+
+// ========== Begin of Variable Defs ========== //
+enum VarType {
+  UnknownVar = 0;
+  Entity = 1;
+  GUID = 2;
+  Integer = 3;
+  Boolean = 4;
+  Float = 5;
+  String = 6;
+  GUIDList = 7;
+  IntegerList = 8;
+  BooleanList = 9;
+  FloatList = 10;
+  StringList = 11;
+  Vector = 12;
+  EntityList = 13;
+  EnumItem = 14;
+  VectorList = 15;
+  LocalVariable = 16;
+  Faction = 17;
+
+  Configuration = 20;
+  Prefab = 21;
+  ConfigurationList = 22;
+  PrefabList = 23;
+  FactionList = 24;
+  Struct = 25;
+  StructList = 26;
+  Dictionary = 27;
+  VariableSnapshot = 28;
+}
+message GraphVariable {
+  string name = 2;
+  VarType type = 3;
+  VarBase values = 4;
+  bool exposed = 5;      // Expose vars out of node graph?
+  int64 structId = 6;    // Only in struct, otherwise 0
+  VarType keyType = 7;   // ? Simple type also have this filed (=6)
+  VarType valueType = 8; // ? (=6)
+}
+message VarBase {
+  enum Class {
+    Unknown = 0;
+    IdBase = 1;
+    IntBase = 2;
+    FloatBase = 4;
+    StringBase = 5;
+    EnumBase = 6;
+    VectorBase = 7;
+
+    ConcreteBase = 10000; // reflective pins
+    StructBase = 10001;
+    ArrayBase = 10002;
+    MapBase = 10003;
+
+    MapPair = 10007;
+  }
+  message ItemType {
+    message StructItem { int64 structId = 1; }
+    message PairItems {
+      VarType key = 1;
+      VarType value = 2;
+      optional int64 structId = 3; // only when value is struct
+    }
+    message Inner {
+      enum Kind {
+        Normal = 0;
+        Struct = 1;
+        Pair = 2;
+      }
+
+      VarType type = 1;
+      Kind kind = 2;
+      oneof id {
+        StructItem item = 100;
+        PairItems items = 101;
+      }
+    }
+    int32 classBase = 1; // Always 1
+    Inner itemType = 100;
+  }
+  message StructInfo {
+    // TODO: What is this
+    message Inner { int32 xxx = 1; }
+    int32 xxx = 1;
+    Inner inner = 100;
+  }
+
+  Class class = 1;
+  bool alreadySetVal = 2;
+  optional ItemType itemType = 4;
+  // Only Struct contains this field
+  optional StructInfo structInfo = 5;
+
+  // decided by class, id = class + 100, except Struct/Array/Map
+  oneof baseValues {
+    IdBaseValue bId = 101;
+    IntBaseValue bInt = 102;
+    FloatBaseValue bFloat = 104;
+    StringBaseValue bString = 105;
+    EnumBaseValue bEnum = 106;
+    VectorBaseValue bVector = 107;
+    StructBaseValue bStruct = 108;
+    ArrayBaseValue bArray = 109;
+    ConcreteBaseValue bConcreteValue = 110;
+    MapPairBaseValue bMapPair = 111;
+    MapBaseValue bMap = 112;
+  }
+}
+message IdBaseValue { int32 val = 1; }
+message IntBaseValue { int32 val = 1; }
+message FloatBaseValue { float val = 1; }
+message StringBaseValue { string val = 1; }
+message EnumBaseValue { int32 val = 1; } // enum.ts/EnumNode_Value
+message VectorBaseValue {
+  message Vec {
+    float x = 1;
+    float y = 2;
+    float z = 3;
+  }
+  Vec val = 1;
+}
+message StructBaseValue { repeated VarBase items = 1; }
+message ArrayBaseValue { repeated VarBase entries = 1; }
+message MapBaseValue {
+  // map pairs should be of Class MapPair
+  repeated VarBase mapPairs = 1;
+}
+message MapPairBaseValue {
+  VarBase key = 1;
+  VarBase value = 2;
+}
+message ConcreteBaseValue {
+  // index of concrete node types
+  // e.g. EnumNode.EnumEqualList
+  int32 indexOfConcrete = 1;
+  VarBase value = 2;
+  // TODO: What is this
+  optional ComplexValueStruct structs = 5;
+}
+message ComplexValueStruct { // Map KV, Array Item, Struct Item
+  message Base { Wrapper wrapper = 1; }
+  message Wrapper {
+    VarBase.Class class = 1;
+    oneof type {
+      VarBase.ItemType.StructItem item = 100;
+      VarBase.ItemType.PairItems mapPair = 102;
+    }
+  }
+  int32 class = 4;
+  Base inner = 100;
+}
+// ========== End of Variable Defs ========== //
+
+message GraphNode {
+  int32 nodeIndex = 1;            // 1
+  NodeProperty genericId = 2;     // Node's Template's Id
+  NodeProperty concreteId = 3;    // Node's own Id(Null for generic nodes)
+  repeated NodePin pins = 4;      // connect to other nodes
+  float x = 5;                    // xpos
+  float y = 6;                    // ypos
+  optional Comments comments = 7; // comments
+
+  repeated GraphAffiliation.Info usingStruct = 10;
+}
+
+message NodeProperty {
+  enum Type {
+    Unknown = 0;
+    Server = 20000;
+    Client = 20002;
+  }
+
+  NodeGraph.Id.Class class = 1; // 10001
+  Type type = 2;                // 20000 / 20002
+  NodeGraph.Id.Kind kind = 3;   // 22000
+  int32 nodeId = 5;             // enum.ts/NodeId
+}
+
+message NodePin {
+  message Index {
+    enum Kind {
+      Unknown = 0;
+      InFlow = 1;
+      OutFlow = 2;
+      InParam = 3;
+      OutParam = 4;
+    }
+    Kind kind = 1;
+    int32 index = 2; // index of the kind
+  }
+  Index i1 = 1;
+  Index i2 = 2;
+  VarBase value = 3;
+  VarType type = 4;
+  repeated NodeConnection connects = 5; // OutFlow or InParam
+}
+
+message NodeConnection {
+  int32 id = 1;
+  NodePin.Index connect = 2;
+  NodePin.Index connect2 = 3;
+}
+
+message CompositePin {
+  NodePin.Index outerPin = 1;
+  int32 innerNodeId = 2;
+  NodePin.Index innerPin = 3;
+  NodePin.Index innerPin2 = 4;
+}

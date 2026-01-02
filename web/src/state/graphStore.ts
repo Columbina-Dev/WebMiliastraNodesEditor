@@ -4,6 +4,7 @@ import {
   CLIENT_BOOLEAN_RESULT_NODE_ID,
   CLIENT_GRAPH_START_NODE_ID,
   CLIENT_INTEGER_RESULT_NODE_ID,
+  CLIENT_SEQUENCE_START_NODE_ID,
   GRAPH_SCHEMA_VERSION,
   GRAPH_SYSTEM_NODE_IDS,
 } from '../types/node';
@@ -20,6 +21,20 @@ import {
   normalizeGraphEnvironment,
   sanitizeExecutionInterval,
 } from '../utils/graphEnvironment';
+import {
+  BRANCH_FLOW_OUT_PREFIX,
+  MAX_BRANCH_FLOW_OUTS,
+  MAX_SEQUENCE_FLOW_OUTS,
+  MULTI_BRANCH_NODE_ID,
+  SEQUENCE_FLOW_OUT_PREFIX,
+  SEQUENCE_NODE_ID,
+  getBranchFlowOutLabels,
+  getSequenceFlowOutCount,
+  parseBranchFlowOutIndex,
+  parseSequenceFlowOutIndex,
+} from '../utils/dynamicFlowOuts';
+import { t as translateText } from '../utils/i18n';
+import { loadEditorSettings } from '../utils/storage';
 
 const HISTORY_LIMIT = 50;
 const CLIENT_SYSTEM_NODE_DEFAULT_POSITION = { x: -240, y: -120 };
@@ -30,8 +45,51 @@ type SystemNodeType = (typeof GRAPH_SYSTEM_NODE_IDS)[number];
 
 const GRAPH_SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS);
 
-const isClientStartNode = (node: { type: string }) => node.type === CLIENT_GRAPH_START_NODE_ID;
+const isClientStartNode = (node: { type: string }) =>
+  node.type === CLIENT_GRAPH_START_NODE_ID || node.type === CLIENT_SEQUENCE_START_NODE_ID;
 const isSystemNode = (node: { type: string }) => GRAPH_SYSTEM_NODE_ID_SET.has(node.type);
+
+type IndexedPortChange =
+  | { type: 'insert'; index: number; mode: 'above' | 'below' }
+  | { type: 'remove'; index: number };
+
+const buildSequenceFlowOutId = (index: number) => `${SEQUENCE_FLOW_OUT_PREFIX}${index}`;
+const buildBranchFlowOutId = (index: number) => `${BRANCH_FLOW_OUT_PREFIX}${index}`;
+
+const updateEdgesForIndexedPortChange = (
+  edges: GraphEdge[],
+  nodeId: string,
+  parseIndex: (portId: string) => number | null,
+  makePortId: (index: number) => string,
+  change: IndexedPortChange,
+) =>
+  edges.flatMap((edge) => {
+    let removeEdge = false;
+    const updateEndpoint = (endpoint: GraphEdge['source']) => {
+      if (endpoint.nodeId !== nodeId) return endpoint;
+      const portIndex = parseIndex(endpoint.portId);
+      if (portIndex == null) return endpoint;
+      if (change.type === 'remove') {
+        if (portIndex === change.index) {
+          removeEdge = true;
+          return endpoint;
+        }
+        if (portIndex > change.index) {
+          return { ...endpoint, portId: makePortId(portIndex - 1) };
+        }
+        return endpoint;
+      }
+      const shouldShift =
+        change.mode === 'above' ? portIndex >= change.index : portIndex > change.index;
+      if (!shouldShift) return endpoint;
+      return { ...endpoint, portId: makePortId(portIndex + 1) };
+    };
+    const nextSource = updateEndpoint(edge.source);
+    const nextTarget = updateEndpoint(edge.target);
+    if (removeEdge) return [];
+    if (nextSource === edge.source && nextTarget === edge.target) return [edge];
+    return [{ ...edge, source: nextSource, target: nextTarget }];
+  });
 
 const computeClientStartNodePosition = (nodes: GraphNode[]) => {
   const candidates = nodes.filter((node) => !isClientStartNode(node));
@@ -76,15 +134,17 @@ const computeResultNodePosition = (nodes: GraphNode[]) => {
 const getRequiredSystemNodeTypes = (environment: GraphEnvironment): SystemNodeType[] => {
   const kind = clientKindFromEnvironment(environment);
   if (!kind) return [];
-  if (kind === 'skill') return [CLIENT_GRAPH_START_NODE_ID];
   if (kind === 'boolean') return [CLIENT_BOOLEAN_RESULT_NODE_ID];
   if (kind === 'integer') return [CLIENT_INTEGER_RESULT_NODE_ID];
-  return [];
+  if (kind === 'creation-state' || kind === 'creation-state-decision') {
+    return [CLIENT_SEQUENCE_START_NODE_ID];
+  }
+  return [CLIENT_GRAPH_START_NODE_ID];
 };
 
 const createSystemNode = (type: SystemNodeType, nodes: GraphNode[]): GraphNode => {
   const position =
-    type === CLIENT_GRAPH_START_NODE_ID
+    type === CLIENT_GRAPH_START_NODE_ID || type === CLIENT_SEQUENCE_START_NODE_ID
       ? computeClientStartNodePosition(nodes)
       : computeResultNodePosition(nodes);
   return {
@@ -190,6 +250,13 @@ interface GraphState {
   setNodeData: (nodeId: string, data: GraphNodeData) => void;
   setPortOverride: (nodeId: string, portId: string, value: unknown) => void;
   clearPortOverride: (nodeId: string, portId: string) => void;
+  addSequenceFlowOut: (nodeId: string) => void;
+  insertSequenceFlowOut: (nodeId: string, index: number, mode: 'above' | 'below') => void;
+  removeSequenceFlowOut: (nodeId: string, index: number) => void;
+  addBranchFlowOut: (nodeId: string) => void;
+  insertBranchFlowOut: (nodeId: string, index: number, mode: 'above' | 'below') => void;
+  removeBranchFlowOut: (nodeId: string, index: number) => void;
+  setBranchFlowOutLabel: (nodeId: string, index: number, label: string) => void;
   upsertEdge: (edge: Omit<GraphEdge, 'id'> & { id?: string }, replace?: boolean) => void;
   removeEdge: (edgeId: string, options?: { recordHistory?: boolean }) => void;
   removeEdges: (edgeIds: string[], options?: { recordHistory?: boolean }) => void;
@@ -237,6 +304,10 @@ const cloneNode = (node: GraphNode): GraphNode => {
     ? {
         overrides: node.data.overrides ? { ...node.data.overrides } : undefined,
         controls: node.data.controls ? { ...node.data.controls } : undefined,
+        sequenceFlowOutCount: node.data.sequenceFlowOutCount,
+        branchFlowOutLabels: Array.isArray(node.data.branchFlowOutLabels)
+          ? [...node.data.branchFlowOutLabels]
+          : undefined,
       }
     : undefined;
 
@@ -257,6 +328,11 @@ const cloneEdge = (edge: GraphEdge): GraphEdge => ({
 const cloneNodes = (nodes: GraphNode[]) => nodes.map(cloneNode);
 const cloneEdges = (edges: GraphEdge[]) => edges.map(cloneEdge);
 const cloneComments = (comments: GraphCommentState[]) => comments.map((comment) => ({ ...comment }));
+
+const getDefaultGraphName = () => {
+  const settings = loadEditorSettings();
+  return translateText('graph.defaultName', settings.uiPrimaryLanguage, settings.uiSecondaryLanguage);
+};
 
 const createSnapshot = (state: GraphState): GraphSnapshot => ({
   graphId: state.graphId,
@@ -285,7 +361,7 @@ const applySnapshot = (snapshot: GraphSnapshot) => ({
 const createDefaultState = (graphId?: string) => {
   const id = graphId ?? nanoid();
   return {
-    name: '新建节点图',
+    name: getDefaultGraphName(),
     nodes: [],
     edges: [],
     comments: [],
@@ -488,14 +564,177 @@ export const useGraphStore = create<GraphState>((set, get) => {
           delete overrides[portId];
           const hasOverrides = Object.keys(overrides).length > 0;
           const controls = node.data?.controls;
-          const data: GraphNodeData | undefined = hasOverrides || controls
+          const sequenceFlowOutCount = node.data?.sequenceFlowOutCount;
+          const branchFlowOutLabels = Array.isArray(node.data?.branchFlowOutLabels)
+            ? [...node.data.branchFlowOutLabels]
+            : undefined;
+          const data: GraphNodeData | undefined =
+            hasOverrides ||
+            controls ||
+            sequenceFlowOutCount !== undefined ||
+            branchFlowOutLabels !== undefined
             ? {
                 overrides: hasOverrides ? overrides : undefined,
                 controls,
+                sequenceFlowOutCount,
+                branchFlowOutLabels,
               }
             : undefined;
           return { ...node, data };
         }),
+      }));
+    },
+    addSequenceFlowOut: (nodeId) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== SEQUENCE_NODE_ID) return;
+      const count = getSequenceFlowOutCount(target.data);
+      if (count >= MAX_SEQUENCE_FLOW_OUTS) return;
+      const nextCount = count + 1;
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: { ...(node.data ?? {}), sequenceFlowOutCount: nextCount },
+              }
+            : node
+        ),
+      }));
+    },
+    insertSequenceFlowOut: (nodeId, index, mode) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== SEQUENCE_NODE_ID) return;
+      const count = getSequenceFlowOutCount(target.data);
+      if (count >= MAX_SEQUENCE_FLOW_OUTS || index < 1 || index > count) return;
+      const nextCount = count + 1;
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: { ...(node.data ?? {}), sequenceFlowOutCount: nextCount },
+              }
+            : node
+        ),
+        edges: updateEdgesForIndexedPortChange(
+          state.edges,
+          nodeId,
+          parseSequenceFlowOutIndex,
+          buildSequenceFlowOutId,
+          { type: 'insert', index, mode },
+        ),
+      }));
+    },
+    removeSequenceFlowOut: (nodeId, index) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== SEQUENCE_NODE_ID) return;
+      const count = getSequenceFlowOutCount(target.data);
+      if (count <= 1 || index < 1 || index > count) return;
+      const nextCount = count - 1;
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? {
+                ...node,
+                data: { ...(node.data ?? {}), sequenceFlowOutCount: nextCount },
+              }
+            : node
+        ),
+        edges: updateEdgesForIndexedPortChange(
+          state.edges,
+          nodeId,
+          parseSequenceFlowOutIndex,
+          buildSequenceFlowOutId,
+          { type: 'remove', index },
+        ),
+      }));
+    },
+    addBranchFlowOut: (nodeId) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== MULTI_BRANCH_NODE_ID) return;
+      const labels = getBranchFlowOutLabels(target.data);
+      if (labels.length >= MAX_BRANCH_FLOW_OUTS) return;
+      const nextLabels = [...labels, ''];
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...(node.data ?? {}), branchFlowOutLabels: nextLabels } }
+            : node
+        ),
+      }));
+    },
+    insertBranchFlowOut: (nodeId, index, mode) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== MULTI_BRANCH_NODE_ID) return;
+      const labels = getBranchFlowOutLabels(target.data);
+      if (labels.length >= MAX_BRANCH_FLOW_OUTS || index < 1 || index > labels.length) return;
+      const insertIndex = mode === 'above' ? index - 1 : index;
+      const nextLabels = [...labels];
+      nextLabels.splice(insertIndex, 0, '');
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...(node.data ?? {}), branchFlowOutLabels: nextLabels } }
+            : node
+        ),
+        edges: updateEdgesForIndexedPortChange(
+          state.edges,
+          nodeId,
+          parseBranchFlowOutIndex,
+          buildBranchFlowOutId,
+          { type: 'insert', index, mode },
+        ),
+      }));
+    },
+    removeBranchFlowOut: (nodeId, index) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== MULTI_BRANCH_NODE_ID) return;
+      const labels = getBranchFlowOutLabels(target.data);
+      if (index < 1 || index > labels.length) return;
+      const nextLabels = [...labels];
+      nextLabels.splice(index - 1, 1);
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...(node.data ?? {}), branchFlowOutLabels: nextLabels } }
+            : node
+        ),
+        edges: updateEdgesForIndexedPortChange(
+          state.edges,
+          nodeId,
+          parseBranchFlowOutIndex,
+          buildBranchFlowOutId,
+          { type: 'remove', index },
+        ),
+      }));
+    },
+    setBranchFlowOutLabel: (nodeId, index, label) => {
+      const state = get();
+      const target = state.nodes.find((node) => node.id === nodeId);
+      if (!target || target.type !== MULTI_BRANCH_NODE_ID) return;
+      const labels = getBranchFlowOutLabels(target.data);
+      if (index < 1 || index > labels.length) return;
+      const nextLabels = [...labels];
+      nextLabels[index - 1] = label;
+      captureSnapshot();
+      set((state) => ({
+        nodes: state.nodes.map((node) =>
+          node.id === nodeId
+            ? { ...node, data: { ...(node.data ?? {}), branchFlowOutLabels: nextLabels } }
+            : node
+        ),
       }));
     },
     upsertEdge: (edge, replace = true) => {

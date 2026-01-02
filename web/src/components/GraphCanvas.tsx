@@ -5,6 +5,7 @@
   useMemo,
   useRef,
   useState,
+  type DependencyList,
 } from 'react';
 import type {
   DragEvent as ReactDragEvent,
@@ -12,7 +13,7 @@ import type {
   TouchEvent as ReactTouchEvent,
 } from 'react';
 import classNames from 'classnames';
-import ReactFlow, { ReactFlowProvider, SelectionMode, useReactFlow } from 'reactflow';
+import ReactFlow, { ReactFlowProvider, SelectionMode, useReactFlow, useStore } from 'reactflow';
 import type {
   Connection,
   Edge,
@@ -43,19 +44,38 @@ import {
   isDataPort,
   isFlowPort,
 } from '../utils/graph';
+import { getDynamicFlowOutInfo, resolveNodePorts } from '../utils/dynamicFlowOuts';
 import { getEnvironmentTopFolder } from '../utils/graphEnvironment';
 import {
   getNodeDefinitionsForEnvironment,
   isNodeAllowedInEnvironment,
 } from '../utils/nodeAvailability';
 import { NODE_LIBRARY_TOUCH_DRAG_EVENT, type NodeLibraryTouchDragDetail } from '../utils/touchDrag';
+import type { EditorSettings } from '../utils/storage';
+import { useI18n } from '../utils/i18nContext';
 import './GraphCanvas.css';
 
 const nodeTypes = { miliastra: MiliastraNode } as const;
 
 interface GraphCanvasProps {
   isMobileMode?: boolean;
+  settings: EditorSettings;
+  lockedNodeIds?: string[];
+  collabCursors?: CollaborationCursor[];
+  isReadOnly?: boolean;
+  onNodeDragStateChange?: (nodeIds: string[], isDragging: boolean) => void;
+  onCollabCursorMove?: (payload: { x: number; y: number; active: boolean }) => void;
 }
+
+type CollaborationCursor = {
+  id: string;
+  nickname: string;
+  x: number;
+  y: number;
+  color: string;
+  avatar?: string;
+  cursorImage?: string;
+};
 
 type ScreenPoint = { x: number; y: number };
 
@@ -76,6 +96,14 @@ type ScreenRect = {
   top: number;
   right: number;
   bottom: number;
+};
+
+type ClickSelectionPreview = {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+  mode: SelectionMode;
 };
 
 type PositionedEdge = Edge & {
@@ -203,6 +231,12 @@ type FloatingPanelState =
       screen: ScreenPoint;
     }
   | {
+      type: 'port';
+      nodeId: string;
+      portId: string;
+      screen: ScreenPoint;
+    }
+  | {
       type: 'canvas';
       screen: ScreenPoint;
       flowPosition: ScreenPoint;
@@ -222,10 +256,29 @@ type FloatingPanelState =
 
 const useViewportAdjustedPosition = (
   anchor: ScreenPoint | null,
-  deps: unknown[]
+  deps: DependencyList
 ) => {
   const ref = useRef<HTMLDivElement | null>(null);
   const [position, setPosition] = useState<ScreenPoint | null>(anchor);
+  const previousDepsRef = useRef<DependencyList>(deps);
+  const [depsVersion, setDepsVersion] = useState(0);
+
+  useEffect(() => {
+    const previous = previousDepsRef.current;
+    let changed = previous.length !== deps.length;
+    if (!changed) {
+      for (let i = 0; i < deps.length; i += 1) {
+        if (previous[i] !== deps[i]) {
+          changed = true;
+          break;
+        }
+      }
+    }
+    if (changed) {
+      previousDepsRef.current = deps;
+      setDepsVersion((value) => value + 1);
+    }
+  }, [deps]);
 
   useLayoutEffect(() => {
     if (!anchor) {
@@ -248,7 +301,7 @@ const useViewportAdjustedPosition = (
       top = Math.max(padding, window.innerHeight - offsetHeight - padding);
     }
     setPosition({ x: left, y: top });
-  }, [anchor, ...deps]);
+  }, [anchor, depsVersion]);
 
   return { ref, position } as const;
 };
@@ -256,7 +309,7 @@ const useViewportAdjustedPosition = (
 const FloatingPanel: React.FC<{
   anchor: ScreenPoint | null;
   className?: string;
-  deps?: unknown[];
+  deps?: DependencyList;
   children: React.ReactNode;
 }> = ({ anchor, className, children, deps = [] }) => {
   const { ref, position } = useViewportAdjustedPosition(anchor, deps);
@@ -292,8 +345,18 @@ const extractEventPosition = (event: MouseEvent | TouchEvent): ScreenPoint => {
 
 const SYSTEM_NODE_ID_SET = new Set<string>(GRAPH_SYSTEM_NODE_IDS as readonly string[]);
 
-const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
+const GraphCanvasInner = ({
+  isMobileMode = false,
+  settings,
+  lockedNodeIds = [],
+  collabCursors = [],
+  isReadOnly = false,
+  onNodeDragStateChange,
+  onCollabCursorMove,
+}: GraphCanvasProps) => {
+  const { t } = useI18n();
   const reactFlow = useReactFlow();
+  const [viewportX, viewportY, viewportZoom] = useStore((state) => state.transform);
   const nodes = useGraphStore((state) => state.nodes);
   const edges = useGraphStore((state) => state.edges);
   const environment = useGraphStore((state) => state.environment);
@@ -321,6 +384,10 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const setSelectedNode = useGraphStore((state) => state.setSelectedNode);
   const upsertEdge = useGraphStore((state) => state.upsertEdge);
   const clearOverride = useGraphStore((state) => state.clearPortOverride);
+  const insertSequenceFlowOut = useGraphStore((state) => state.insertSequenceFlowOut);
+  const removeSequenceFlowOut = useGraphStore((state) => state.removeSequenceFlowOut);
+  const insertBranchFlowOut = useGraphStore((state) => state.insertBranchFlowOut);
+  const removeBranchFlowOut = useGraphStore((state) => state.removeBranchFlowOut);
   const setZoomLevel = useGraphStore((state) => state.setZoomLevel);
   const requestedZoom = useGraphStore((state) => state.requestedZoom);
   const setRequestedZoom = useGraphStore((state) => state.setRequestedZoom);
@@ -344,6 +411,8 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   }, [comments]);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
+  const collabCursorLastPointRef = useRef<ScreenPoint | null>(null);
+  const collabCursorInsideRef = useRef(false);
   const [floatingPanel, setFloatingPanel] = useState<FloatingPanelState>(null);
   const [activeConnection, setActiveConnection] =
     useState<ConnectionPreview | null>(null);
@@ -351,6 +420,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     useState<string>('all');
   const connectionSuccessRef = useRef(false);
   const skipGlobalClickCloseRef = useRef(false);
+  const skipPaneClickRef = useRef(false);
   const [currentSelectionMode, setCurrentSelectionMode] = useState<SelectionMode>(SelectionMode.Full);
   const [isCrossSelection, setIsCrossSelection] = useState(false);
   const [connectionCursor, setConnectionCursor] = useState<'valid' | 'invalid' | null>(null);
@@ -362,15 +432,19 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   const selectionModeRef = useRef<SelectionMode>(SelectionMode.Full);
   const crossSelectionRef = useRef(false);
   const skipEdgeHistoryRef = useRef(false);
-  const rightButtonStateRef = useRef({
+  const panButtonStateRef = useRef({
     active: false,
     moved: false,
     origin: { x: 0, y: 0 },
   });
   const previousSelectedIdsRef = useRef<string[]>([]);
   const libraryTouchDragRef = useRef<{ definitionId: string; screen: ScreenPoint } | null>(null);
+  const clickSelectionStartRef = useRef<ScreenPoint | null>(null);
+  const [clickSelectionPreview, setClickSelectionPreview] = useState<ClickSelectionPreview | null>(null);
   const watermarkText =
-    getEnvironmentTopFolder(environment) === 'client' ? '客户端节点图编辑' : '服务器节点图编辑';
+    getEnvironmentTopFolder(environment) === 'client'
+      ? t('graphCanvas.watermark.client')
+      : t('graphCanvas.watermark.server');
   const selectionHasProtectedNode =
     floatingPanel?.type === 'selection'
       ? floatingPanel.nodeIds.some((nodeId) => protectedNodeIds.has(nodeId))
@@ -385,7 +459,55 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     startTime: number;
   } | null>(null);
 
-  const [isRightPanning, setIsRightPanning] = useState(false);
+  const [isMousePanning, setIsMousePanning] = useState(false);
+  const [isClickSelectionActive, setIsClickSelectionActive] = useState(false);
+  const panMouseButton = isMobileMode ? 0 : settings.panButton === 'middle' ? 1 : 2;
+  const dragSelectionEnabled = !isMobileMode && settings.selectionActivation === 'drag';
+  const clickSelectionEnabled = !isMobileMode && settings.selectionActivation === 'click';
+  const multiSelectBehavior = isMobileMode ? 'leftTouchRightBox' : settings.multiSelectBehavior;
+  const zoomWithWheel =
+    settings.zoomControl === 'wheel' || settings.zoomControl === 'both';
+  const zoomWithKeys =
+    settings.zoomControl === 'keys' || settings.zoomControl === 'both';
+
+  const determineSelectionMode = useCallback(
+    (deltaX: number) => {
+      if (multiSelectBehavior === 'touch') {
+        return SelectionMode.Partial;
+      }
+      if (multiSelectBehavior === 'box') {
+        return SelectionMode.Full;
+      }
+      if (multiSelectBehavior === 'leftTouchRightBox') {
+        return deltaX < 0 ? SelectionMode.Partial : SelectionMode.Full;
+      }
+      if (multiSelectBehavior === 'leftBoxRightTouch') {
+        return deltaX < 0 ? SelectionMode.Full : SelectionMode.Partial;
+      }
+      return SelectionMode.Partial;
+    },
+    [multiSelectBehavior],
+  );
+
+  const updateClickSelectionPreview = useCallback(
+    (start: ScreenPoint, current: ScreenPoint) => {
+      const wrapperRect = wrapperRef.current?.getBoundingClientRect();
+      if (!wrapperRect) return;
+      const left = Math.min(start.x, current.x) - wrapperRect.left;
+      const top = Math.min(start.y, current.y) - wrapperRect.top;
+      const width = Math.abs(current.x - start.x);
+      const height = Math.abs(current.y - start.y);
+      const mode = determineSelectionMode(current.x - start.x);
+      setClickSelectionPreview({
+        left,
+        top,
+        width,
+        height,
+        mode,
+      });
+    },
+    [determineSelectionMode],
+  );
 
   useEffect(() => {
     const handleGlobalClick = () => {
@@ -400,6 +522,9 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setActiveConnection(null);
       setConnectionCursor(null);
+      clickSelectionStartRef.current = null;
+      setClickSelectionPreview(null);
+      setIsClickSelectionActive(false);
       const state = useGraphStore.getState();
       if (state.commentMode === 'selecting') {
         setCommentMode('inactive');
@@ -427,6 +552,10 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   useEffect(() => {
     if (!isMobileMode) {
+      libraryTouchDragRef.current = null;
+      return;
+    }
+    if (isReadOnly) {
       libraryTouchDragRef.current = null;
       return;
     }
@@ -490,11 +619,40 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       );
       libraryTouchDragRef.current = null;
     };
-  }, [isMobileMode, reactFlow, setFloatingPanel]);
+  }, [isMobileMode, isReadOnly, reactFlow, setFloatingPanel]);
 
   useEffect(() => {
     setZoomLevel(reactFlow.getZoom());
   }, [reactFlow, setZoomLevel]);
+  useEffect(() => {
+    if (!zoomWithKeys) return;
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = event.key;
+      if (key !== '+' && key !== '=' && key !== '-') return;
+      event.preventDefault();
+      const direction = key === '-' ? -1 : 1;
+      const currentZoom = reactFlow.getZoom();
+      const nextZoom = Math.min(1.5, Math.max(0.25, Number((currentZoom + direction * 0.1).toFixed(2))));
+      reactFlow.zoomTo(nextZoom);
+      setZoomLevel(nextZoom);
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [reactFlow, setZoomLevel, zoomWithKeys]);
+
+  useEffect(() => {
+    if (zoomWithKeys) return;
+    const preventPageZoom = (event: KeyboardEvent) => {
+      if (!(event.ctrlKey || event.metaKey)) return;
+      const key = event.key;
+      if (key !== '+' && key !== '=' && key !== '-') return;
+      event.preventDefault();
+    };
+    window.addEventListener('keydown', preventPageZoom);
+    return () => window.removeEventListener('keydown', preventPageZoom);
+  }, [zoomWithKeys]);
+
 
   useEffect(() => {
     if (requestedZoom == null) return;
@@ -532,6 +690,9 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     selectionBoxRef.current = null;
     selectionModeRef.current = SelectionMode.Full;
     setCurrentSelectionMode(SelectionMode.Full);
+    clickSelectionStartRef.current = null;
+    setClickSelectionPreview(null);
+    setIsClickSelectionActive(false);
     const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
     if (selectedNodes.length) {
       reactFlow.setNodes((nodes) =>
@@ -545,6 +706,21 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       );
     }
   }, [reactFlow, setSelectedNode]);
+
+  const applyManualSelection = useCallback(
+    (selectedIds: string[]) => {
+      previousSelectedIdsRef.current = selectedIds;
+      if (selectedIds.length) {
+        const anchorId = selectedIds[selectedIds.length - 1];
+        setSelectedNode(anchorId);
+        collapseUnpinnedComments(anchorId);
+      } else {
+        setSelectedNode(undefined);
+        collapseUnpinnedComments(undefined);
+      }
+    },
+    [collapseUnpinnedComments, setSelectedNode],
+  );
 
   const getSelectionBounds = useCallback(() => {
     const wrapperRect = wrapperRef.current?.getBoundingClientRect();
@@ -585,7 +761,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   useEffect(() => {
     const handlePointerMove = (event: PointerEvent) => {
       if (!selectionActiveRef.current || !selectionStartRef.current) return;
-      if ((event.buttons & 1) === 0) return;
+      if ((event.buttons & 1) === 0 && !isClickSelectionActive) return;
       const start = selectionStartRef.current;
       const current = { x: event.clientX, y: event.clientY };
       selectionBoxRef.current = { start, current };
@@ -593,11 +769,11 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       const dy = current.y - start.y;
       const distance = Math.hypot(dx, dy);
       if (distance < MIN_SELECTION_DISTANCE) return;
-      const usePartialMode = dx < 0;
-      if (usePartialMode !== crossSelectionRef.current) {
-        setIsCrossSelection(usePartialMode);
+      const nextMode = determineSelectionMode(dx);
+      const shouldCrossSelect = nextMode === SelectionMode.Partial;
+      if (shouldCrossSelect !== crossSelectionRef.current) {
+        setIsCrossSelection(shouldCrossSelect);
       }
-      const nextMode = usePartialMode ? SelectionMode.Partial : SelectionMode.Full;
       if (nextMode !== selectionModeRef.current) {
         setCurrentSelectionMode(nextMode);
       }
@@ -605,7 +781,24 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
     window.addEventListener('pointermove', handlePointerMove);
     return () => window.removeEventListener('pointermove', handlePointerMove);
-  }, []);
+  }, [determineSelectionMode, isClickSelectionActive]);
+
+  useEffect(() => {
+    if (!clickSelectionEnabled) {
+      clickSelectionStartRef.current = null;
+      setClickSelectionPreview(null);
+      setIsClickSelectionActive(false);
+      return;
+    }
+    const handleMove = (event: PointerEvent) => {
+      const start = clickSelectionStartRef.current;
+      if (!start) return;
+      updateClickSelectionPreview(start, { x: event.clientX, y: event.clientY });
+    };
+    window.addEventListener('pointermove', handleMove);
+    return () => window.removeEventListener('pointermove', handleMove);
+  }, [clickSelectionEnabled, updateClickSelectionPreview]);
+
 
   useEffect(() => {
     if (floatingPanel?.type === 'connection') {
@@ -619,32 +812,59 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     }
   }, [floatingPanel]);
 
+  const openPortMenu = useCallback(
+    (event: ReactMouseEvent, nodeId: string, portId: string) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedNode(nodeId);
+      setFloatingPanel({
+        type: 'port',
+        nodeId,
+        portId,
+        screen: { x: event.clientX, y: event.clientY },
+      });
+    },
+    [setFloatingPanel, setSelectedNode],
+  );
+
+  const lockedNodeIdSet = useMemo(() => new Set(lockedNodeIds), [lockedNodeIds]);
+
   const rfNodes: Node[] = useMemo(() => {
     return nodes.flatMap((node) => {
       const definition = nodeDefinitionsById[node.type];
       if (!definition) return [];
+      const ports = resolveNodePorts(node, definition);
+      const isLocked = lockedNodeIdSet.has(node.id);
       const rfNode: Node = {
         id: node.id,
         type: 'miliastra',
         position: node.position,
+        draggable: !isLocked,
+        selectable: !isLocked,
+        className: isLocked ? 'graph-node--locked' : undefined,
         data: {
           nodeId: node.id,
           definition,
+          ports,
           label: node.label,
           overrides: node.data?.overrides,
           controls: node.data?.controls,
+          sequenceFlowOutCount: node.data?.sequenceFlowOutCount,
+          branchFlowOutLabels: node.data?.branchFlowOutLabels,
           connectionPreview: activeConnection,
+          onPortContextMenu: (event: ReactMouseEvent, portId: string) =>
+            openPortMenu(event, node.id, portId),
         },
       };
       return [rfNode];
     });
-  }, [nodes, activeConnection]);
+  }, [nodes, activeConnection, lockedNodeIdSet, openPortMenu]);
   const portKindMap = useMemo(() => {
     const map = new Map<string, PortDefinition['kind']>();
     nodes.forEach((node) => {
       const definition = nodeDefinitionsById[node.type];
       if (!definition) return;
-      definition.ports.forEach((port) => {
+      resolveNodePorts(node, definition).forEach((port) => {
         map.set(`${node.id}:${port.id}`, port.kind);
       });
     });
@@ -660,25 +880,36 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         const targetKind = portKindMap.get(targetKey);
         const isDataEdge =
           sourceKind?.startsWith('data') && targetKind?.startsWith('data');
+        const isLockedEdge =
+          lockedNodeIdSet.has(edge.source.nodeId) || lockedNodeIdSet.has(edge.target.nodeId);
+        const className = [
+          isDataEdge ? 'graph-edge--data' : '',
+          isLockedEdge ? 'graph-edge--locked' : '',
+        ]
+          .filter(Boolean)
+          .join(' ');
         return {
           id: edge.id,
           source: edge.source.nodeId,
           sourceHandle: edge.source.portId,
           target: edge.target.nodeId,
           targetHandle: edge.target.portId,
-          className: isDataEdge ? 'graph-edge--data' : undefined,
+          className: className || undefined,
         };
       }),
-    [edges, portKindMap]
+    [edges, lockedNodeIdSet, portKindMap]
   );
 
   const draggingNodesRef = useRef(new Set<string>());
 
   const handleNodesChange: OnNodesChange = useCallback(
     (changes: NodeChange[]) => {
+      if (isReadOnly) return;
       const removals: string[] = [];
+      const startedDragging: string[] = [];
+      const stoppedDragging: string[] = [];
       changes.forEach((change) => {
-        if (change.type === 'position' && change.position) {
+        if (change.type === 'position') {
           const isDragging = change.dragging === true;
           const draggingNodes = draggingNodesRef.current;
           let recordHistory = true;
@@ -688,25 +919,36 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
             } else {
               draggingNodes.add(change.id);
               recordHistory = true;
+              startedDragging.push(change.id);
             }
           } else {
-            draggingNodes.delete(change.id);
+            if (draggingNodes.delete(change.id)) {
+              stoppedDragging.push(change.id);
+            }
             recordHistory = true;
           }
-
-          updateNode(
-            change.id,
-            (node) => ({
-              ...node,
-              position: change.position ?? node.position,
-            }),
-            { recordHistory }
-          );
+          if (change.position) {
+            updateNode(
+              change.id,
+              (node) => ({
+                ...node,
+                position: change.position ?? node.position,
+              }),
+              { recordHistory }
+            );
+          }
         }
         if (change.type === 'remove') {
           removals.push(change.id);
         }
       });
+
+      if (startedDragging.length) {
+        onNodeDragStateChange?.(startedDragging, true);
+      }
+      if (stoppedDragging.length) {
+        onNodeDragStateChange?.(stoppedDragging, false);
+      }
 
       if (removals.length) {
         skipEdgeHistoryRef.current = true;
@@ -714,11 +956,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         skipEdgeHistoryRef.current = false;
       }
     },
-    [removeNodesBatch, updateNode]
+    [isReadOnly, onNodeDragStateChange, removeNodesBatch, updateNode]
   );
 
   const handleEdgesChange: OnEdgesChange = useCallback(
     (changes: EdgeChange[]) => {
+      if (isReadOnly) return;
       const removals: string[] = [];
       changes.forEach((change) => {
         if (change.type === 'remove') {
@@ -729,7 +972,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         removeEdgesBatch(removals, { recordHistory: !skipEdgeHistoryRef.current });
       }
     },
-    [removeEdgesBatch]
+    [isReadOnly, removeEdgesBatch]
   );
 
   const validateConnection = useCallback(
@@ -741,10 +984,10 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       const sourceDefinition = nodeDefinitionsById[sourceNode.type];
       const targetDefinition = nodeDefinitionsById[targetNode.type];
       if (!sourceDefinition || !targetDefinition) return false;
-      const sourcePort = sourceDefinition.ports.find(
+      const sourcePort = resolveNodePorts(sourceNode, sourceDefinition).find(
         (port) => port.id === connection.sourceHandle
       );
-      const targetPort = targetDefinition.ports.find(
+      const targetPort = resolveNodePorts(targetNode, targetDefinition).find(
         (port) => port.id === connection.targetHandle
       );
       if (!sourcePort || !targetPort) return false;
@@ -762,6 +1005,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   const handleConnect: (connection: Connection) => void = useCallback(
     (connection) => {
+      if (isReadOnly) return;
       setFloatingPanel(null);
       setActiveConnection(null);
       if (!validateConnection(connection)) return;
@@ -779,9 +1023,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       const targetDefinition = targetNode
         ? nodeDefinitionsById[targetNode.type]
         : undefined;
-      const targetPort = targetDefinition?.ports.find(
-        (port) => port.id === connection.targetHandle
-      );
+      const targetPort =
+        targetDefinition && targetNode
+          ? resolveNodePorts(targetNode, targetDefinition).find(
+              (port) => port.id === connection.targetHandle
+            )
+          : undefined;
 
       if (targetPort && isDataPort(targetPort) && targetPort.kind === 'data-in') {
         if (!targetPort.allowMultipleConnections) {
@@ -806,11 +1053,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       }
       setConnectionCursor(null);
     },
-    [clearOverride, upsertEdge, validateConnection]
+    [clearOverride, isReadOnly, upsertEdge, validateConnection]
   );
 
   const handleConnectStart: OnConnectStart = useCallback(
     (_event, params) => {
+      if (isReadOnly) return;
       connectionSuccessRef.current = false;
       setFloatingPanel(null);
       setConnectionCursor('invalid');
@@ -820,7 +1068,10 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       }
       const node = nodes.find((item) => item.id === params.nodeId);
       const definition = node ? nodeDefinitionsById[node.type] : undefined;
-      const port = definition?.ports.find((item) => item.id === params.handleId);
+      const port =
+        definition && node
+          ? resolveNodePorts(node, definition).find((item) => item.id === params.handleId)
+          : undefined;
       if (!port) {
         setActiveConnection(null);
         return;
@@ -831,15 +1082,17 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         port,
       });
     },
-    [nodes]
+    [isReadOnly, nodes]
   );
 
   const handleConnectEnd: OnConnectEnd = useCallback(
     (event) => {
+      if (isReadOnly) return;
       if (!activeConnection) return;
       const targetPosition = extractEventPosition(event);
       if (!connectionSuccessRef.current) {
         skipGlobalClickCloseRef.current = true;
+        skipPaneClickRef.current = true;
         setFloatingPanel({
           type: 'connection',
           screen: targetPosition,
@@ -851,7 +1104,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       connectionSuccessRef.current = false;
       setConnectionCursor(null);
     },
-    [activeConnection, reactFlow]
+    [activeConnection, isReadOnly, reactFlow]
   );
 
   const clearNodeLongPress = useCallback(() => {
@@ -878,6 +1131,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   const openNodeMenuAtScreen = useCallback(
     (nodeId: string, screen: ScreenPoint) => {
+      if (isReadOnly) return;
       const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
       if (selectedNodes.length > 1 && selectedNodes.some((item) => item.id === nodeId)) {
         setFloatingPanel({
@@ -894,23 +1148,25 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         screen,
       });
     },
-    [reactFlow, setSelectedNode]
+    [isReadOnly, reactFlow, setSelectedNode]
   );
 
 
   const handleNodeDragStart = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
       }
       scheduleNodeLongPress(node.id, { x: event.clientX, y: event.clientY });
     },
-    [clearNodeLongPress, isMobileMode, scheduleNodeLongPress],
+    [clearNodeLongPress, isMobileMode, isReadOnly, scheduleNodeLongPress],
   );
 
   const finalizeNodeLongPress = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
@@ -928,34 +1184,41 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         openNodeMenuAtScreen(node.id, screen);
       }
     },
-    [clearNodeLongPress, isMobileMode, openNodeMenuAtScreen, skipGlobalClickCloseRef],
+    [clearNodeLongPress, isMobileMode, isReadOnly, openNodeMenuAtScreen, skipGlobalClickCloseRef],
   );
 
   const handleNodeDragMove = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) return;
       const state = nodeLongPressRef.current;
       if (state && state.nodeId === node.id) {
         state.screen = { x: event.clientX, y: event.clientY };
       }
     },
-    [isMobileMode],
+    [isMobileMode, isReadOnly],
   );
 
   const handleNodeDragStop = useCallback(
     (event: ReactMouseEvent, node: Node) => {
+      if (isReadOnly) return;
       if (!isMobileMode) {
         clearNodeLongPress();
         return;
       }
       finalizeNodeLongPress(event, node);
     },
-    [clearNodeLongPress, finalizeNodeLongPress, isMobileMode],
+    [clearNodeLongPress, finalizeNodeLongPress, isMobileMode, isReadOnly],
   );
 
   const handleNodeClick = useCallback(
     (event: ReactMouseEvent, node: Node) => {
       if (commentMode === 'selecting') {
+        if (isReadOnly) {
+          setSelectedNode(node.id);
+          setHasPartialSelection(false);
+          return;
+        }
         setSelectedNode(node.id);
         setHasPartialSelection(false);
         const commentId = addComment(node.id);
@@ -1008,6 +1271,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       addComment,
       collapseUnpinnedComments,
       commentMode,
+      isReadOnly,
       previousSelectedIdsRef,
       reactFlow,
       setHasPartialSelection,
@@ -1016,8 +1280,165 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     ]
   );
 
+  const performClickSelection = useCallback(
+    (startPoint: ScreenPoint, endPoint: ScreenPoint, additive: boolean) => {
+      setIsClickSelectionActive(false);
+      setClickSelectionPreview(null);
+      const deltaX = endPoint.x - startPoint.x;
+      const deltaY = endPoint.y - startPoint.y;
+      const travelDistance = Math.hypot(deltaX, deltaY);
+
+      requestAnimationFrame(() => {
+        if (travelDistance < MIN_SELECTION_DISTANCE) {
+          const flowPoint = reactFlow.screenToFlowPosition(startPoint);
+          const nodes = reactFlow.getNodes();
+          let targetNodeId: string | null = null;
+          for (const node of nodes) {
+            const width = node.width ?? 0;
+            const height = node.height ?? 0;
+            const position = node.positionAbsolute ?? node.position;
+            if (
+              flowPoint.x >= position.x &&
+              flowPoint.x <= position.x + width &&
+              flowPoint.y >= position.y &&
+              flowPoint.y <= position.y + height
+            ) {
+              targetNodeId = node.id;
+              break;
+            }
+          }
+        if (targetNodeId) {
+          reactFlow.setNodes((prev) =>
+            prev.map((node) => {
+              const shouldSelect = additive
+                ? node.selected || node.id === targetNodeId
+                : node.id === targetNodeId;
+              return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
+            }),
+          );
+          const finalIds = additive
+            ? Array.from(new Set([...previousSelectedIdsRef.current, targetNodeId]))
+            : [targetNodeId];
+          applyManualSelection(finalIds);
+        }
+        setHasPartialSelection(false);
+        return;
+      }
+
+        const nextMode = determineSelectionMode(deltaX);
+        const isPartial = nextMode === SelectionMode.Partial;
+        selectionModeRef.current = nextMode;
+        crossSelectionRef.current = isPartial;
+        setCurrentSelectionMode(nextMode);
+        setIsCrossSelection(isPartial);
+        const selectionScreenRect: ScreenRect = {
+          left: Math.min(startPoint.x, endPoint.x),
+          right: Math.max(startPoint.x, endPoint.x),
+          top: Math.min(startPoint.y, endPoint.y),
+          bottom: Math.max(startPoint.y, endPoint.y),
+        };
+        const startFlow = reactFlow.screenToFlowPosition(startPoint);
+        const endFlow = reactFlow.screenToFlowPosition(endPoint);
+        const selectionRect = buildFlowRect(startFlow, endFlow);
+        const selectedNodeIds = new Set<string>();
+        reactFlow.getNodes().forEach((node) => {
+          const width = node.width ?? 0;
+          const height = node.height ?? 0;
+          const position = node.positionAbsolute ?? node.position;
+          const nodeRect: FlowRect = {
+            minX: position.x,
+            minY: position.y,
+            maxX: position.x + width,
+            maxY: position.y + height,
+          };
+          const intersects =
+            nodeRect.minX <= selectionRect.maxX &&
+            nodeRect.maxX >= selectionRect.minX &&
+            nodeRect.minY <= selectionRect.maxY &&
+            nodeRect.maxY >= selectionRect.minY;
+          const contains =
+            selectionRect.minX <= nodeRect.minX &&
+            selectionRect.maxX >= nodeRect.maxX &&
+            selectionRect.minY <= nodeRect.minY &&
+            selectionRect.maxY >= nodeRect.maxY;
+          const shouldSelect = isPartial ? intersects : contains;
+          if (shouldSelect) {
+            selectedNodeIds.add(node.id);
+          }
+        });
+        reactFlow.setNodes((prev) =>
+          prev.map((node) => {
+            const baseSelected = additive ? node.selected : false;
+            const shouldSelect = baseSelected || selectedNodeIds.has(node.id);
+            return node.selected === shouldSelect ? node : { ...node, selected: shouldSelect };
+          }),
+        );
+        const edges = reactFlow.getEdges();
+        const finalSelectedEdges = new Set<string>(
+          additive ? edges.filter((edge) => edge.selected).map((edge) => edge.id) : [],
+        );
+        if (isPartial) {
+          edges.forEach((edge) => {
+            const positioned = edge as PositionedEdge;
+            const { sourceX, sourceY, targetX, targetY } = positioned;
+            if (sourceX == null || sourceY == null || targetX == null || targetY == null) {
+              return;
+            }
+            const edgeStart = { x: sourceX, y: sourceY };
+            const edgeEnd = { x: targetX, y: targetY };
+            if (lineIntersectsRect(edgeStart, edgeEnd, selectionRect)) {
+              finalSelectedEdges.add(edge.id);
+            }
+          });
+        }
+        reactFlow.setEdges((prev) =>
+          prev.map((edge) => {
+            const shouldSelect = finalSelectedEdges.has(edge.id);
+            return edge.selected === shouldSelect ? edge : { ...edge, selected: shouldSelect };
+          }),
+        );
+        const finalIds = additive
+          ? Array.from(new Set([...previousSelectedIdsRef.current, ...selectedNodeIds]))
+          : Array.from(selectedNodeIds);
+        applyManualSelection(finalIds);
+        setHasPartialSelection(isPartial && (finalIds.length > 0 || finalSelectedEdges.size > 0));
+        const bubbleElements = document.querySelectorAll<HTMLDivElement>(
+          '.graph-comment-bubble[data-comment-id][data-floating="true"]',
+        );
+        let selectedFloatingCommentId: string | undefined;
+        bubbleElements.forEach((element) => {
+          const rect = element.getBoundingClientRect();
+          const bubbleRect: ScreenRect = { left: rect.left, right: rect.right, top: rect.top, bottom: rect.bottom };
+          if (!selectedFloatingCommentId && rectanglesIntersect(selectionScreenRect, bubbleRect)) {
+            selectedFloatingCommentId = element.dataset.commentId ?? undefined;
+          }
+        });
+        const state = useGraphStore.getState();
+        const currentCommentId = state.selectedCommentId;
+        const currentComment = currentCommentId
+          ? state.comments.find((comment) => comment.id === currentCommentId)
+          : undefined;
+        const currentIsFloating = currentComment ? !currentComment.nodeId : false;
+        if (selectedFloatingCommentId) {
+          if (selectedFloatingCommentId !== currentCommentId) {
+            setSelectedComment(selectedFloatingCommentId);
+          }
+        } else if (currentIsFloating && currentCommentId) {
+          setSelectedComment(undefined);
+        }
+      });
+    }, [applyManualSelection, determineSelectionMode, reactFlow, setClickSelectionPreview, setHasPartialSelection, setIsClickSelectionActive, setSelectedComment]);
+
   const handlePaneClick = useCallback(
     (event?: ReactMouseEvent<Element>) => {
+      if (skipPaneClickRef.current) {
+        skipPaneClickRef.current = false;
+        return;
+      }
+      if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+      }
       if (commentMode === 'selecting') {
         if (event) {
           const flowPoint = reactFlow.screenToFlowPosition({
@@ -1029,6 +1450,28 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         }
         setCommentMode('inactive');
         collapseUnpinnedComments(undefined);
+        return;
+      }
+      if (clickSelectionEnabled && event && event.button === 0) {
+        const point = { x: event.clientX, y: event.clientY };
+        if (!clickSelectionStartRef.current) {
+          if (!event.shiftKey) {
+            clearSelectionState();
+          }
+          setSelectedComment(undefined);
+          collapseUnpinnedComments(undefined);
+          clickSelectionStartRef.current = point;
+          updateClickSelectionPreview(point, point);
+          setIsClickSelectionActive(true);
+          return;
+        }
+        const startPoint = clickSelectionStartRef.current;
+        clickSelectionStartRef.current = null;
+        setClickSelectionPreview(null);
+        setIsClickSelectionActive(false);
+        if (startPoint) {
+          performClickSelection(startPoint, point, event.shiftKey);
+        }
         return;
       }
       if (event) {
@@ -1044,17 +1487,39 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     [
       addFloatingComment,
       clearSelectionState,
+      clickSelectionEnabled,
       collapseUnpinnedComments,
       commentMode,
       isPointInsideSelection,
+      performClickSelection,
       reactFlow,
       setCommentMode,
       setSelectedComment,
+      setIsClickSelectionActive,
+      updateClickSelectionPreview,
     ],
+  );
+
+  const handlePaneClickCapture = useCallback(
+    (event: ReactMouseEvent<HTMLDivElement>) => {
+      const target = event.target as HTMLElement | null;
+      if (!target) return;
+      const paneElement = target.closest('.react-flow__pane') as HTMLElement | null;
+      if (!paneElement || target !== paneElement) return;
+      // Prevent React Flow's pane handler from clearing selections before our logic runs.
+      event.stopPropagation();
+      event.preventDefault();
+      if (event.nativeEvent && typeof event.nativeEvent.stopImmediatePropagation === 'function') {
+        event.nativeEvent.stopImmediatePropagation();
+      }
+      handlePaneClick(event);
+    },
+    [handlePaneClick],
   );
 
   const handleDrop = useCallback(
     (event: ReactDragEvent<HTMLDivElement>) => {
+      if (isReadOnly) return;
       event.preventDefault();
       const type = event.dataTransfer.getData('application/x-node-type');
       if (!type) return;
@@ -1071,13 +1536,14 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         data: {},
       });
     },
-    [environment, reactFlow]
+    [environment, isReadOnly, reactFlow]
   );
 
   const handleDragOver = useCallback((event: ReactDragEvent<HTMLDivElement>) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.dataTransfer.dropEffect = 'copy';
-  }, []);
+  }, [isReadOnly]);
 
   const handleSelectionStart = useCallback((event: ReactMouseEvent<Element>) => {
     const start = { x: event.clientX, y: event.clientY };
@@ -1106,7 +1572,6 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       selectionModeRef.current = SelectionMode.Full;
       setCurrentSelectionMode(SelectionMode.Full);
 
-      const wasCrossSelection = crossSelectionRef.current;
       crossSelectionRef.current = false;
       setIsCrossSelection(false);
 
@@ -1127,6 +1592,13 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         return;
       }
 
+      const nextMode = determineSelectionMode(deltaX);
+      const isPartialSelection = nextMode === SelectionMode.Partial;
+      selectionModeRef.current = nextMode;
+      crossSelectionRef.current = isPartialSelection;
+      setCurrentSelectionMode(nextMode);
+      setIsCrossSelection(isPartialSelection);
+
       const selectionScreenRect: ScreenRect = {
         left: Math.min(startPoint.x, finalPoint.x),
         right: Math.max(startPoint.x, finalPoint.x),
@@ -1146,7 +1618,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         );
         const finalSelectedEdges = new Set(initiallySelectedEdges);
 
-        if (wasCrossSelection) {
+        if (isPartialSelection) {
           allEdges.forEach((edge) => {
             const positioned = edge as PositionedEdge;
             const { sourceX, sourceY, targetX, targetY } = positioned;
@@ -1182,7 +1654,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         const anySelected =
           allNodes.some((node) => node.selected) ||
           allEdges.some((edge) => edge.selected);
-        setHasPartialSelection(wasCrossSelection && anySelected);
+        setHasPartialSelection(isPartialSelection && anySelected);
 
         const bubbleElements = document.querySelectorAll<HTMLDivElement>(
           '.graph-comment-bubble[data-comment-id][data-floating="true"]'
@@ -1217,19 +1689,21 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         }
       });
     },
-    [reactFlow, setHasPartialSelection, setSelectedComment]
+    [determineSelectionMode, reactFlow, setHasPartialSelection, setSelectedComment]
   );
 
   const openNodeMenu = useCallback(
     (event: ReactMouseEvent, nodeId: string) => {
+      if (isReadOnly) return;
       event.preventDefault();
       event.stopPropagation();
       openNodeMenuAtScreen(nodeId, { x: event.clientX, y: event.clientY });
     },
-    [openNodeMenuAtScreen]
+    [isReadOnly, openNodeMenuAtScreen]
   );
 
   const openEdgeMenu = useCallback((event: ReactMouseEvent, edgeId: string) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.stopPropagation();
     setFloatingPanel({
@@ -1237,10 +1711,11 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       edgeId,
       screen: { x: event.clientX, y: event.clientY },
     });
-  }, []);
+  }, [isReadOnly]);
 
   const openCanvasMenuAtScreen = useCallback(
     (screen: ScreenPoint) => {
+      if (isReadOnly) return;
       const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
       const selectedEdges = reactFlow.getEdges().filter((edge) => edge.selected);
       const hasSelection = selectedNodes.length > 0 || selectedEdges.length > 0;
@@ -1284,15 +1759,15 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         flowPosition: reactFlow.screenToFlowPosition(screen),
       });
     },
-    [clearSelectionState, isPointInsideSelection, reactFlow, setSelectedNode]
+    [clearSelectionState, isPointInsideSelection, isReadOnly, reactFlow, setSelectedNode]
   );
 
   const openCanvasMenu = useCallback(
     (event: ReactMouseEvent<Element> | MouseEvent) => {
       event.preventDefault();
-      if (rightButtonStateRef.current.moved) {
-        rightButtonStateRef.current.moved = false;
-        rightButtonStateRef.current.active = false;
+      if (panButtonStateRef.current.moved) {
+        panButtonStateRef.current.moved = false;
+        panButtonStateRef.current.active = false;
         return;
       }
       const clientX = 'clientX' in event ? event.clientX : 0;
@@ -1304,6 +1779,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   const handleDeleteNode = useCallback(
     (nodeId: string) => {
+      if (isReadOnly) return;
       if (protectedNodeIds.has(nodeId)) {
         setFloatingPanel(null);
         setHasPartialSelection(false);
@@ -1313,11 +1789,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [protectedNodeIds, removeNode, setFloatingPanel, setHasPartialSelection]
+    [isReadOnly, protectedNodeIds, removeNode, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDuplicateNode = useCallback(
     (nodeId: string) => {
+      if (isReadOnly) return;
       if (protectedNodeIds.has(nodeId)) {
         setFloatingPanel(null);
         setHasPartialSelection(false);
@@ -1327,20 +1804,22 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [duplicateNode, protectedNodeIds, setFloatingPanel, setHasPartialSelection]
+    [duplicateNode, isReadOnly, protectedNodeIds, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDeleteEdge = useCallback(
     (edgeId: string) => {
+      if (isReadOnly) return;
       removeEdge(edgeId);
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [removeEdge]
+    [isReadOnly, removeEdge]
   );
 
   const handleCreateNode = useCallback(
     (definitionId: string, position: ScreenPoint) => {
+      if (isReadOnly) return;
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
       if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
@@ -1353,11 +1832,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [environment, setFloatingPanel, setHasPartialSelection, setSelectedNode]
+    [environment, isReadOnly, setFloatingPanel, setHasPartialSelection, setSelectedNode]
   );
 
   const handleInsertNodeForConnection = useCallback(
     (definitionId: string, panel: Extract<FloatingPanelState, { type: 'connection' }>) => {
+      if (isReadOnly) return;
       const definition = nodeDefinitionsById[definitionId];
       if (!definition) return;
       if (!isNodeAllowedInEnvironment(definition.id, environment)) return;
@@ -1369,7 +1849,11 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       });
 
       const connection = panel.connection;
-      const sourcePortCandidates = definition.ports.filter((port) => {
+      const newNode = store.nodes.find((node) => node.id === newNodeId);
+      const portCandidates = newNode
+        ? resolveNodePorts(newNode, definition)
+        : definition.ports;
+      const sourcePortCandidates = portCandidates.filter((port) => {
         if (connection.handleType === 'source') {
           return canConnectPorts(connection.port, port);
         }
@@ -1407,7 +1891,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setSelectedNode(newNodeId);
       setFloatingPanel(null);
     },
-    [environment, setFloatingPanel, setSelectedNode]
+    [connectionValueTypeFilter, environment, isReadOnly, setFloatingPanel, setSelectedNode]
   );
 
   const canvasAnchor =
@@ -1422,17 +1906,62 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       ? floatingPanel.screen
       : null;
 
+  const portAnchor =
+    floatingPanel && floatingPanel.type === 'port'
+      ? floatingPanel.screen
+      : null;
+
   const selectionAnchor =
     floatingPanel && floatingPanel.type === 'selection'
       ? floatingPanel.screen
       : null;
+
+  const portMenuInfo = useMemo(() => {
+    if (floatingPanel?.type !== 'port') return null;
+    const node = nodes.find((candidate) => candidate.id === floatingPanel.nodeId);
+    if (!node) return null;
+    const info = getDynamicFlowOutInfo(node, floatingPanel.portId);
+    if (!info) return null;
+    return { nodeId: node.id, info };
+  }, [floatingPanel, nodes]);
+
+  const handlePortInsert = useCallback(
+    (mode: 'above' | 'below') => {
+      if (isReadOnly) return;
+      if (!portMenuInfo) return;
+      const { nodeId, info } = portMenuInfo;
+      if (info.kind === 'sequence') {
+        insertSequenceFlowOut(nodeId, info.index, mode);
+      } else {
+        insertBranchFlowOut(nodeId, info.index, mode);
+      }
+      setFloatingPanel(null);
+    },
+    [insertBranchFlowOut, insertSequenceFlowOut, isReadOnly, portMenuInfo, setFloatingPanel],
+  );
+
+  const handlePortDelete = useCallback(() => {
+    if (isReadOnly) return;
+    if (!portMenuInfo) return;
+    const { nodeId, info } = portMenuInfo;
+    if (info.kind === 'sequence') {
+      removeSequenceFlowOut(nodeId, info.index);
+    } else {
+      removeBranchFlowOut(nodeId, info.index);
+    }
+    setFloatingPanel(null);
+  }, [isReadOnly, portMenuInfo, removeBranchFlowOut, removeSequenceFlowOut, setFloatingPanel]);
 
   const connectionFilter = useMemo(() => {
     if (floatingPanel?.type !== 'connection') return undefined;
     const connection = floatingPanel.connection;
 
     return (definition: (typeof nodeDefinitions)[number]) => {
-      const matches = definition.ports.some((port) => {
+      const ports = resolveNodePorts(
+        { id: 'candidate', type: definition.id, position: { x: 0, y: 0 }, data: {} },
+        definition,
+      );
+      const matches = ports.some((port) => {
         const compatible =
           connection.handleType === 'source'
             ? canConnectPorts(connection.port, port)
@@ -1466,24 +1995,24 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     const { connection } = floatingPanel;
     const targetLabel = connection.port.label ?? connection.port.id;
     return connection.handleType === 'source'
-      ? `筛选 · 可连接从「${targetLabel}」输出的节点`
-      : `筛选 · 可输入到「${targetLabel}」的节点`;
-  }, [floatingPanel]);
+      ? t('graphCanvas.nodeLibrary.filter.source', { label: targetLabel })
+      : t('graphCanvas.nodeLibrary.filter.target', { label: targetLabel });
+  }, [floatingPanel, t]);
 
   const handleWrapperMouseDown = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.button === 2) {
-      rightButtonStateRef.current = {
+    if (!isMobileMode && event.button === panMouseButton) {
+      panButtonStateRef.current = {
         active: true,
         moved: false,
         origin: { x: event.clientX, y: event.clientY },
       };
-      setIsRightPanning(true);
+      setIsMousePanning(true);
     }
-  }, []);
+  }, [isMobileMode, panMouseButton]);
 
   const handleWrapperMouseMove = useCallback(
     (event: ReactMouseEvent<HTMLDivElement>) => {
-      const state = rightButtonStateRef.current;
+      const state = panButtonStateRef.current;
       if (state.active && !state.moved) {
         const dx = event.clientX - state.origin.x;
         const dy = event.clientY - state.origin.y;
@@ -1530,13 +2059,23 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
           }
         }
       }
+
+      if (onCollabCursorMove) {
+        const point = reactFlow.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+        collabCursorLastPointRef.current = point;
+        collabCursorInsideRef.current = true;
+        onCollabCursorMove({ ...point, active: true });
+      }
     },
-    [activeConnection, connectionCursor, validateConnection]
+    [activeConnection, connectionCursor, onCollabCursorMove, reactFlow, validateConnection]
   );
 
   const handleWrapperMouseUp = useCallback((event: ReactMouseEvent<HTMLDivElement>) => {
-    if (event.button === 2) {
-      const state = rightButtonStateRef.current;
+    if (!isMobileMode && event.button === panMouseButton) {
+      const state = panButtonStateRef.current;
       if (!state.moved) {
         const selectedNodes = reactFlow.getNodes().filter((node) => node.selected);
         const selectedEdges = reactFlow.getEdges().filter((edge) => edge.selected);
@@ -1563,20 +2102,63 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
           clearSelectionState();
         }
       }
-      rightButtonStateRef.current.active = false;
-      rightButtonStateRef.current.moved = false;
-      setIsRightPanning(false);
+      panButtonStateRef.current.active = false;
+      panButtonStateRef.current.moved = false;
+      setIsMousePanning(false);
     }
-  }, [clearSelectionState, isPointInsideSelection, reactFlow, setSelectedNode]);
+  }, [clearSelectionState, isMobileMode, isPointInsideSelection, panMouseButton, reactFlow, setSelectedNode]);
 
   const handleWrapperMouseLeave = useCallback(() => {
-    rightButtonStateRef.current.active = false;
-    rightButtonStateRef.current.moved = false;
-    setIsRightPanning(false);
+    panButtonStateRef.current.active = false;
+    panButtonStateRef.current.moved = false;
+    setIsMousePanning(false);
     if (connectionCursor !== null) {
       setConnectionCursor(null);
     }
-  }, [connectionCursor]);
+    if (onCollabCursorMove) {
+      const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+      collabCursorInsideRef.current = false;
+      onCollabCursorMove({ ...lastPoint, active: false });
+    }
+  }, [connectionCursor, onCollabCursorMove]);
+
+  useEffect(() => {
+    if (!onCollabCursorMove) return;
+    const handleWindowMove = (event: MouseEvent) => {
+      const rect = wrapperRef.current?.getBoundingClientRect();
+      if (!rect) return;
+      const inside =
+        event.clientX >= rect.left &&
+        event.clientX <= rect.right &&
+        event.clientY >= rect.top &&
+        event.clientY <= rect.bottom;
+      if (inside) {
+        const point = reactFlow.screenToFlowPosition({
+          x: event.clientX,
+          y: event.clientY,
+        });
+        collabCursorLastPointRef.current = point;
+        collabCursorInsideRef.current = true;
+        onCollabCursorMove({ ...point, active: true });
+      } else if (collabCursorInsideRef.current) {
+        collabCursorInsideRef.current = false;
+        const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+        onCollabCursorMove({ ...lastPoint, active: false });
+      }
+    };
+    const handleWindowBlur = () => {
+      if (!collabCursorInsideRef.current) return;
+      collabCursorInsideRef.current = false;
+      const lastPoint = collabCursorLastPointRef.current ?? { x: 0, y: 0 };
+      onCollabCursorMove({ ...lastPoint, active: false });
+    };
+    window.addEventListener('mousemove', handleWindowMove, { passive: true });
+    window.addEventListener('blur', handleWindowBlur);
+    return () => {
+      window.removeEventListener('mousemove', handleWindowMove);
+      window.removeEventListener('blur', handleWindowBlur);
+    };
+  }, [onCollabCursorMove, reactFlow]);
 
   const handleWrapperTouchStart = useCallback(
     (event: ReactTouchEvent<HTMLDivElement>) => {
@@ -1673,6 +2255,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
 
   const duplicateSelection = useCallback(
     (explicitIds?: string[]) => {
+      if (isReadOnly) return;
       const ids = explicitIds && explicitIds.length
         ? explicitIds
         : reactFlow
@@ -1694,19 +2277,21 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         );
       });
     },
-    [duplicateNodesBatch, protectedNodeIds, reactFlow]
+    [duplicateNodesBatch, isReadOnly, protectedNodeIds, reactFlow]
   );
 
   const handleDuplicateSelection = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       duplicateSelection(nodeIds);
       setFloatingPanel(null);
     },
-    [duplicateSelection]
+    [duplicateSelection, isReadOnly]
   );
 
   const handleDeleteSelection = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const allowedIds = nodeIds.filter((id) => !protectedNodeIds.has(id));
       if (!allowedIds.length) {
@@ -1729,11 +2314,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         );
       });
     },
-    [protectedNodeIds, reactFlow, removeNodesBatch, setFloatingPanel, setHasPartialSelection]
+    [isReadOnly, protectedNodeIds, reactFlow, removeNodesBatch, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleDisconnectNodes = useCallback(
     (nodeIds: string[]) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const nodeSet = new Set(nodeIds);
       const edgeIds = edges
@@ -1747,11 +2333,12 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       setFloatingPanel(null);
       setHasPartialSelection(false);
     },
-    [edges, removeEdgesBatch, setFloatingPanel, setHasPartialSelection]
+    [edges, isReadOnly, removeEdgesBatch, setFloatingPanel, setHasPartialSelection]
   );
 
   const handleAddCommentForNodes = useCallback(
     (nodeIds: string[], screen: ScreenPoint) => {
+      if (isReadOnly) return;
       if (!nodeIds.length) return;
       const eligibleNodeIds = nodeIds.filter((nodeId) => !commentByNodeId.has(nodeId));
       if (!eligibleNodeIds.length) {
@@ -1781,10 +2368,11 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
       collapseUnpinnedComments(targetId);
       setFloatingPanel(null);
     },
-    [addComment, collapseUnpinnedComments, commentByNodeId, reactFlow, setFloatingPanel, setSelectedComment]
+    [addComment, collapseUnpinnedComments, commentByNodeId, isReadOnly, reactFlow, setFloatingPanel, setSelectedComment]
   );
 
   useEffect(() => {
+    if (isReadOnly) return;
     const handleKeyDown = (event: KeyboardEvent) => {
       const meta = event.metaKey || event.ctrlKey;
       if (meta && event.key.toLowerCase() === 'c') {
@@ -1797,7 +2385,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [duplicateSelection, reactFlow]);
+  }, [duplicateSelection, isReadOnly, reactFlow]);
 
   return (
     <div
@@ -1806,15 +2394,16 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         'graph-canvas-wrapper--cross-select': isCrossSelection,
         'graph-canvas-wrapper--partial-active': hasPartialSelection,
         'graph-canvas-wrapper--comment-mode': commentMode === 'selecting',
-        'graph-canvas-wrapper--panning': isRightPanning,
+        'graph-canvas-wrapper--panning': isMousePanning,
         'graph-canvas-wrapper--connecting': connectionCursor !== null,
         'graph-canvas-wrapper--connection-valid': connectionCursor === 'valid',
         'graph-canvas-wrapper--connection-invalid': connectionCursor === 'invalid',
       })}
       onMouseDown={handleWrapperMouseDown}
-      onMouseMove={handleWrapperMouseMove}
+      onMouseMoveCapture={handleWrapperMouseMove}
       onMouseUp={handleWrapperMouseUp}
       onMouseLeave={handleWrapperMouseLeave}
+      onClickCapture={handlePaneClickCapture}
       onContextMenu={(event) => event.preventDefault()}
       onTouchStart={isMobileMode ? handleWrapperTouchStart : undefined}
       onTouchMove={isMobileMode ? handleWrapperTouchMove : undefined}
@@ -1831,11 +2420,15 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         edges={rfEdges}
         minZoom={0.25}
         maxZoom={1.5}
-        selectionOnDrag={!isMobileMode}
+        selectionOnDrag={dragSelectionEnabled}
         selectionMode={currentSelectionMode}
-        panOnDrag={isMobileMode ? [1, 2] : [2]}
-        zoomOnDoubleClick={!isMobileMode}
-        deleteKeyCode={['Delete']}
+        nodesDraggable={!isReadOnly}
+        nodesConnectable={!isReadOnly}
+        panOnDrag={isMobileMode ? [1, 2] : [panMouseButton]}
+        zoomOnScroll={zoomWithWheel}
+        zoomOnPinch={zoomWithWheel}
+        zoomOnDoubleClick={isMobileMode}
+        deleteKeyCode={isReadOnly ? [] : ['Delete']}
         onNodesChange={handleNodesChange}
         onEdgesChange={handleEdgesChange}
         onConnect={handleConnect}
@@ -1849,7 +2442,6 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         onNodeDrag={handleNodeDragMove}
         onNodeDragStop={handleNodeDragStop}
         onEdgeContextMenu={(event, edge) => openEdgeMenu(event, edge.id)}
-        onPaneClick={handlePaneClick}
         onPaneContextMenu={openCanvasMenu}
         nodeTypes={memoizedNodeTypes}
         proOptions={{ hideAttribution: true }}
@@ -1858,7 +2450,46 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
         onMoveEnd={(_, viewport) => setZoomLevel(viewport.zoom)}
         fitView
       />
-      <GraphCommentsOverlay selectionLocked={isSelectionActive} />
+      {collabCursors.length > 0 && (
+        <div className="graph-collab-cursors" aria-hidden="true">
+          {collabCursors.map((cursor) => {
+            const left = cursor.x * viewportZoom + viewportX;
+            const top = cursor.y * viewportZoom + viewportY;
+            return (
+              <div
+                key={cursor.id}
+                className="graph-collab-cursor"
+                style={{ left, top }}
+              >
+                {cursor.cursorImage && (
+                  <img src={cursor.cursorImage} alt="" aria-hidden="true" />
+                )}
+                <span
+                  className="graph-collab-cursor__label"
+                  style={{ backgroundColor: cursor.color }}
+                >
+                  {cursor.nickname}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      )}
+      {clickSelectionPreview && (
+        <div
+          className={classNames('graph-click-selection', {
+            'graph-click-selection--partial':
+              clickSelectionPreview.mode === SelectionMode.Partial,
+          })}
+          style={{
+            left: clickSelectionPreview.left,
+            top: clickSelectionPreview.top,
+            width: clickSelectionPreview.width,
+            height: clickSelectionPreview.height,
+          }}
+        />
+      )}
+      <GraphCommentsOverlay selectionLocked={isSelectionActive} isReadOnly={isReadOnly} />
 
       {(floatingPanel?.type === 'canvas' || floatingPanel?.type === 'connection') && (
         <FloatingPanel
@@ -1866,17 +2497,19 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
           className="graph-node-browser"
           deps={[floatingPanel, connectionValueTypeFilter]}
         >
-          <NodeLibrary
-            title="节点库"
-            subtitle={connectionSubtitle}
-            definitions={availableDefinitions}
-            filter={connectionFilter}
-            variant="floating"
-            isTouchEnvironment={isMobileMode}
-            autoFocusSearch
-            onSelect={(definition) => {
-              if (floatingPanel.type === 'canvas') {
-                handleCreateNode(definition.id, floatingPanel.flowPosition);
+            <NodeLibrary
+              title={t('nodeLibrary.title')}
+              subtitle={connectionSubtitle}
+              definitions={availableDefinitions}
+              filter={connectionFilter}
+              variant="floating"
+              isTouchEnvironment={isMobileMode}
+              autoFocusSearch={settings.enterInputOnNodeInsert}
+              allowSearchAllLanguageNodeNames={settings.allowSearchAllLanguageNodeNames}
+              isReadOnly={isReadOnly}
+              onSelect={(definition) => {
+                if (floatingPanel.type === 'canvas') {
+                  handleCreateNode(definition.id, floatingPanel.flowPosition);
               } else {
                 handleInsertNodeForConnection(definition.id, floatingPanel);
               }
@@ -1904,7 +2537,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               disabled={selectionHasProtectedNode}
               onClick={() => handleDeleteSelection(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">删除</span>
+              <span className="graph-context-menu__label">{t('common.delete')}</span>
               <span className="graph-context-menu__shortcut">Delete</span>
             </button>
             <button
@@ -1913,7 +2546,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               disabled={selectionHasProtectedNode}
               onClick={() => handleDuplicateSelection(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">复制</span>
+              <span className="graph-context-menu__label">{t('common.copy')}</span>
               <span className="graph-context-menu__shortcut">Ctrl+C</span>
             </button>
             <button
@@ -1921,7 +2554,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               className="graph-context-menu__item"
               onClick={() => handleDisconnectNodes(floatingPanel.nodeIds)}
             >
-              <span className="graph-context-menu__label">断开节点连线</span>
+              <span className="graph-context-menu__label">{t('graphCanvas.disconnectNodes')}</span>
             </button>
             <div className="graph-context-menu__divider" />
             <button
@@ -1930,7 +2563,53 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
               disabled={!floatingPanel.nodeIds.some((nodeId) => !commentByNodeId.has(nodeId))}
               onClick={() => handleAddCommentForNodes(floatingPanel.nodeIds, floatingPanel.screen)}
             >
-              <span className="graph-context-menu__label">注释</span>
+              <span className="graph-context-menu__label">{t('common.comment')}</span>
+            </button>
+          </div>
+        </FloatingPanel>
+      )}
+
+      {floatingPanel?.type === 'port' && portMenuInfo && (
+        <FloatingPanel
+          anchor={portAnchor}
+          className="graph-context-menu"
+          deps={[floatingPanel, portMenuInfo]}
+        >
+          <div className="graph-context-menu__section">
+            <button
+              type="button"
+              className={classNames('graph-context-menu__item', 'is-danger')}
+              disabled={
+                portMenuInfo.info.kind === 'sequence'
+                  ? portMenuInfo.info.count <= 1
+                  : portMenuInfo.info.count <= 0
+              }
+              onClick={handlePortDelete}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutDelete')}
+              </span>
+            </button>
+            <div className="graph-context-menu__divider" />
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              disabled={portMenuInfo.info.count >= portMenuInfo.info.max}
+              onClick={() => handlePortInsert('above')}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutInsertAbove')}
+              </span>
+            </button>
+            <button
+              type="button"
+              className="graph-context-menu__item"
+              disabled={portMenuInfo.info.count >= portMenuInfo.info.max}
+              onClick={() => handlePortInsert('below')}
+            >
+              <span className="graph-context-menu__label">
+                {t('graphCanvas.flowOutInsertBelow')}
+              </span>
             </button>
           </div>
         </FloatingPanel>
@@ -1946,7 +2625,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
                 disabled={singleNodeIsProtected}
               onClick={() => handleDeleteNode(floatingPanel.nodeId)}
               >
-                <span className="graph-context-menu__label">删除</span>
+                <span className="graph-context-menu__label">{t('common.delete')}</span>
                 <span className="graph-context-menu__shortcut">Delete</span>
               </button>
               <button
@@ -1955,7 +2634,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
                 disabled={singleNodeIsProtected}
               onClick={() => handleDuplicateNode(floatingPanel.nodeId)}
               >
-                <span className="graph-context-menu__label">复制</span>
+                <span className="graph-context-menu__label">{t('common.copy')}</span>
                 <span className="graph-context-menu__shortcut">Ctrl+C</span>
               </button>
               <button
@@ -1963,7 +2642,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
                 className="graph-context-menu__item"
                 onClick={() => handleDisconnectNodes([floatingPanel.nodeId])}
               >
-                <span className="graph-context-menu__label">断开节点连线</span>
+                <span className="graph-context-menu__label">{t('graphCanvas.disconnectNodes')}</span>
               </button>
               <div className="graph-context-menu__divider" />
               <button
@@ -1972,7 +2651,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
                 disabled={commentByNodeId.has(floatingPanel.nodeId)}
                 onClick={() => handleAddCommentForNodes([floatingPanel.nodeId], floatingPanel.screen)}
               >
-                <span className="graph-context-menu__label">注释</span>
+                <span className="graph-context-menu__label">{t('common.comment')}</span>
               </button>
             </div>
           )}
@@ -1983,7 +2662,7 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
                 className="is-danger"
                 onClick={() => handleDeleteEdge(floatingPanel.edgeId)}
               >
-                删除连线
+                {t('graphCanvas.deleteEdge')}
               </button>
             </div>
           )}
@@ -1993,20 +2672,29 @@ const GraphCanvasInner = ({ isMobileMode = false }: GraphCanvasProps) => {
   );
 };
 
-const GraphCanvas = ({ isMobileMode = false }: GraphCanvasProps) => (
+const GraphCanvas = ({
+  isMobileMode = false,
+  settings,
+  lockedNodeIds,
+  collabCursors,
+  isReadOnly,
+  onNodeDragStateChange,
+  onCollabCursorMove,
+}: GraphCanvasProps) => (
   <ReactFlowProvider>
-    <GraphCanvasInner isMobileMode={isMobileMode} />
+    <GraphCanvasInner
+      isMobileMode={isMobileMode}
+      settings={settings}
+      lockedNodeIds={lockedNodeIds}
+      collabCursors={collabCursors}
+      isReadOnly={isReadOnly}
+      onNodeDragStateChange={onNodeDragStateChange}
+      onCollabCursorMove={onCollabCursorMove}
+    />
   </ReactFlowProvider>
 );
 
 export default GraphCanvas;
-
-
-
-
-
-
-
 
 
 

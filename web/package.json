@@ -1,10 +1,15 @@
 {
+  "$schema": "./package.schema.json",
   "name": "web",
   "private": true,
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "build:TextMap": "node ./src/scripts/buildTextMap.mjs",
+    "predev": "npm run build:TextMap",
+    "prebuild": "npm run build:TextMap",
+    "collab:server": "node ./scripts/collabServer.mjs",
+    "dev": "node ./scripts/dev.mjs",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -13,9 +18,11 @@
     "classnames": "^2.5.1",
     "jszip": "^3.10.1",
     "nanoid": "^5.1.6",
+    "protobufjs": "^7.2.6",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "reactflow": "^11.11.4",
+    "ws": "^8.18.3",
     "zod": "^4.1.11",
     "zustand": "^5.0.8"
   },
@@ -24,6 +31,7 @@
     "@types/react": "^19.1.13",
     "@types/react-dom": "^19.1.9",
     "@vitejs/plugin-react": "^5.0.3",
+    "baseline-browser-mapping": "^2.8.32",
     "eslint": "^9.36.0",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",

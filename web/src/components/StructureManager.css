@@ -1,0 +1,679 @@
+.structure-manager {
+  display: flex;
+  height: 100%;
+  background: #141925;
+  color: #e5e9f0;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
+}
+
+.structure-manager__sidebar {
+  width: 320px;
+  background: #1c2232;
+  border-right: 1px solid #252b3a;
+  display: flex;
+  flex-direction: column;
+  padding: 12px;
+  gap: 12px;
+}
+
+.structure-manager__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+
+.structure-manager__tab {
+  background: #242c3f;
+  border: 1px solid #2f374c;
+  color: #d6def8;
+  border-radius: 12px;
+  padding: 10px 12px;
+  cursor: var(--cursor-pointer);
+  transition: background 0.2s, color 0.2s, border-color 0.2s;
+}
+
+.structure-manager__tab.is-active {
+  background: linear-gradient(90deg, #4c7dff 0%, #6990ff 100%);
+  color: #fff;
+  border-color: #4c7dff;
+}
+
+.structure-manager__search {
+  position: relative;
+}
+
+.structure-manager__search img {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 16px;
+  opacity: 0.7;
+}
+
+.structure-manager__search input {
+  width: 100%;
+  padding: 10px 10px 10px 34px;
+  background: #242c3f;
+  border: 1px solid #2f374c;
+  border-radius: 10px;
+  color: #dfe6fb;
+}
+
+.structure-manager__tree {
+  flex: 1;
+  background: #1a2030;
+  border: 1px solid #2a3244;
+  border-radius: 10px;
+  padding: 8px;
+  overflow: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.structure-manager__tree-group {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.structure-manager__group {
+  width: 100%;
+  text-align: left;
+  padding: 10px 12px;
+  background: #20283b;
+  border: 1px solid #2a3244;
+  border-radius: 8px;
+  color: #dce3f9;
+  cursor: var(--cursor-pointer);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.structure-manager__group.is-active {
+  border-color: #4c7dff;
+}
+
+.structure-manager__group-arrow {
+  width: 16px;
+  display: inline-block;
+  text-align: center;
+  color: #9aa5c4;
+}
+
+.structure-manager__tree-list {
+  padding: 6px 6px 6px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.structure-manager__list-item {
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  background: #1f2738;
+  cursor: var(--cursor-pointer);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.structure-manager__list-item.is-active {
+  border-color: #4c7dff;
+  background: #27304a;
+}
+
+.structure-manager__dirty {
+  color: #ffb347;
+  margin-left: 8px;
+}
+
+.structure-manager__empty {
+  color: #7b84a7;
+  padding: 12px;
+  text-align: center;
+}
+
+.structure-manager__footer {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.structure-manager__action {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid #2f374c;
+  background: #242c3f;
+  color: #dfe6fb;
+  cursor: var(--cursor-pointer);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+}
+
+.structure-manager__action img {
+  width: 16px;
+  height: 16px;
+}
+
+.structure-manager__editor {
+  flex: 1;
+  background: #101524;
+  display: flex;
+  flex-direction: column;
+  padding: 16px;
+  gap: 12px;
+  min-height: 0;
+}
+
+.struct-editor__fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 0;
+}
+
+.struct-editor__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #1c2232;
+  border: 1px solid #242c3f;
+  border-radius: 12px;
+  padding: 12px 14px;
+}
+
+.struct-editor__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  position: relative;
+  flex-wrap: wrap;
+}
+
+.struct-editor__title input {
+  background: #0f1422;
+  border: 1px solid #24304a;
+  color: #fff;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: #0d1320;
+}
+
+.struct-editor__config {
+  color: #9aa5c4;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
+}
+.struct-editor__config-block {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  position: relative;
+}
+.struct-editor__copy-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  background: #0f1422;
+  border: 1px solid #2f3b56;
+  border-radius: 8px;
+  cursor: var(--cursor-pointer);
+  padding: 4px;
+}
+.struct-editor__copy {
+  width: 16px;
+  height: 16px;
+  opacity: 0.85;
+}
+.struct-editor__copy:hover {
+  opacity: 1;
+}
+.struct-editor__copy-toast {
+  position: absolute;
+  right: 0;
+  top: -24px;
+  background: #1f2738;
+  color: #dfe6fb;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+  animation: struct-copy-toast 0.25s ease forwards;
+}
+@keyframes struct-copy-toast {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.struct-editor__actions {
+  position: relative;
+}
+.struct-editor__actions-toggle {
+  background: #24304a;
+  border: 1px solid #2f3b56;
+  border-radius: 10px;
+  padding: 6px;
+  width: 36px;
+  height: 36px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: var(--cursor-pointer);
+}
+.struct-editor__actions-icon {
+  width: 14px;
+  height: 14px;
+}
+.struct-editor__actions-menu {
+  position: absolute;
+  right: 0;
+  top: 44px;
+  background: #0f1422;
+  border: 1px solid #2f3b56;
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  width: max-content;
+  min-width: 140px;
+  max-width: 220px;
+  z-index: 40;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+.struct-editor__actions-menu button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #dfe6fb;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: var(--cursor-pointer);
+}
+.struct-editor__actions-menu button:hover {
+  background: #1c2232;
+}
+.struct-editor__actions-menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-editor__actions-menu button:disabled:hover {
+  background: transparent;
+}
+.struct-editor__actions-menu .is-danger {
+  color: #ff7b7b;
+}
+
+.struct-editor__body {
+  flex: 1;
+  overflow: auto;
+  background: #161b2b;
+  border: 1px solid #242c3f;
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-height: 0;
+}
+
+.struct-editor__row {
+  display: grid;
+  grid-template-columns: 60px 1.2fr 1fr 2fr;
+  gap: 10px;
+  align-items: center;
+  background: #1c2232;
+  border: 1px solid #2a3244;
+  border-radius: 10px;
+  padding: 10px;
+}
+
+.struct-editor__index {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid #2a3244;
+  background: #0f1422;
+  overflow: visible;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.struct-editor__more {
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  padding: 4px;
+  cursor: var(--cursor-pointer);
+  opacity: 0;
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s ease;
+}
+
+.struct-editor__index:hover .struct-editor__more,
+.struct-editor__row-menu.is-open + .struct-editor__more {
+  opacity: 1;
+}
+
+.struct-editor__index span {
+  z-index: 1;
+  transition: opacity 0.15s ease;
+}
+
+.struct-editor__index:hover span {
+  opacity: 0.25;
+}
+
+.struct-editor__more img {
+  width: 14px;
+  height: 14px;
+}
+
+.struct-editor__row-menu {
+  display: none;
+  position: absolute;
+  top: 38px;
+  left: 0;
+  background: #111728;
+  border: 1px solid #2f3b56;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 60;
+  width: max-content;
+  min-width: 120px;
+  max-width: 200px;
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.32);
+}
+
+.struct-editor__row-menu.is-open {
+  display: block;
+}
+
+.struct-editor__row-menu button {
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: none;
+  color: #dfe6fb;
+  padding: 6px;
+  border-radius: 6px;
+  cursor: var(--cursor-pointer);
+}
+
+.struct-editor__row-menu button:hover {
+  background: #1f2638;
+}
+.struct-editor__row-menu .is-danger {
+  color: #ff7b7b;
+}
+.struct-editor__row-menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-editor__row-menu button:disabled:hover {
+  background: transparent;
+}
+
+.struct-editor__name,
+.struct-editor__type select,
+.struct-editor__value input,
+.struct-editor__value select {
+  width: 100%;
+}
+
+.struct-editor__name,
+.struct-editor__type,
+.struct-editor__value {
+  display: flex;
+  align-items: center;
+}
+
+.struct-editor__name input,
+.struct-editor__name,
+.struct-editor__type select,
+.struct-editor__value input,
+.struct-editor__value select,
+.struct-editor__dict input,
+.struct-editor__dict select {
+  background: #0f1422;
+  border: 1px solid #2a3244;
+  color: #e5e9f0;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+.struct-editor__dict {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.struct-editor__dict-row {
+  display: grid;
+  grid-template-columns: auto 1fr auto 1fr;
+  gap: 6px;
+  align-items: center;
+}
+
+.struct-editor__dict-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.struct-editor__dict-item {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 6px;
+  align-items: center;
+}
+
+.struct-editor__list {
+  width: 100%;
+  background: #101728;
+  border: 1px solid #2a3244;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+.struct-editor__list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.struct-editor__list-header button,
+.struct-editor__list-remove,
+.struct-editor__list-add {
+  background: #24304a;
+  border: 1px solid #2f3b56;
+  color: #dfe6fb;
+  border-radius: 6px;
+  padding: 6px 10px;
+  cursor: var(--cursor-pointer);
+}
+
+.struct-editor__list-header button:hover,
+.struct-editor__list-remove:hover,
+.struct-editor__list-add:hover {
+  background: #2b4171;
+  border: 1px solid #0838a8;
+}
+
+.struct-editor__list-body {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.struct-editor__list-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  align-items: center;
+}
+.struct-editor__vector {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.struct-editor__vector-cell {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #0f1422;
+  border: 1px solid #2a3244;
+  border-radius: 8px;
+  padding: 6px 8px;
+  flex: 1 1 calc((100% - 12px) / 3);
+  min-width: 70px;
+}
+.struct-editor__vector--list .struct-editor__vector-cell {
+  flex: 1 1 calc((100% - 12px) / 3);
+}
+.struct-editor__vector-tag {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--app-font-scale, 1) * 11px);
+  font-weight: 700;
+  color: #0d1320;
+}
+.struct-editor__vector-cell--x .struct-editor__vector-tag {
+  background: #ffb3b3;
+}
+.struct-editor__vector-cell--y .struct-editor__vector-tag {
+  background: #b6ffba;
+}
+.struct-editor__vector-cell--z .struct-editor__vector-tag {
+  background: #a5c7ff;
+}
+.struct-editor__vector-cell input {
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  padding: 4px 6px;
+  min-width: 70px;
+  width: 100%;
+  flex: 1 1 auto;
+}
+.struct-editor__vector-cell input:focus {
+  outline: 1px solid #4c7dff;
+}
+
+.struct-editor__add-row {
+  padding: 10px;
+  text-align: right;
+}
+
+.struct-editor__add-row button {
+  background: #24304a;
+  border: 1px solid #2f3b56;
+  color: #dfe6fb;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: var(--cursor-pointer);
+}
+
+.struct-editor__empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #7b84a7;
+  border: 1px dashed #2a3244;
+  border-radius: 12px;
+}
+
+.struct-manager__menu {
+  position: fixed;
+  background: #0f1422;
+  border: 1px solid #2f3b56;
+  border-radius: 8px;
+  padding: 6px;
+  z-index: 20;
+  width: max-content;
+  min-width: 140px;
+  max-width: 240px;
+}
+
+.struct-manager__menu button {
+  width: 100%;
+  background: transparent;
+  border: none;
+  color: #dfe6fb;
+  padding: 6px 8px;
+  text-align: left;
+  border-radius: 6px;
+  cursor: var(--cursor-pointer);
+}
+
+.struct-manager__menu button:hover {
+  background: #1d2436;
+}
+
+.struct-manager__menu .is-danger {
+  color: #ff9b9b;
+}
+.struct-manager__menu button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.struct-manager__menu button:disabled:hover {
+  background: transparent;
+}
+
+.struct-move__list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.struct-move__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  background: #1c2232;
+  border: 1px solid #2f3b56;
+  border-radius: 8px;
+}
+
+.home__confirm-message input {
+  background: #0f1422;
+  border: 1px solid #2a3244;
+  color: #dfe6fb;
+  padding: 10px 12px;
+  border-radius: 10px;
+}

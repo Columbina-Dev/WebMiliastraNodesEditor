@@ -1,4 +1,5 @@
 import type { ProjectDocument } from '../../types/project';
+import { LocalizedError } from '../../utils/localizedText';
 
 export interface GilExportOptions {
   templateGil: ArrayBuffer;
@@ -18,7 +19,7 @@ const MAGIC = 0x00000326;
  */
 function readGilEnvelope(buffer: ArrayBuffer): { payloadLength: number } {
   if (buffer.byteLength < HEADER_SIZE) {
-    throw new Error('模板.gil存档疑似已损坏，请重新从原神导出。');
+    throw new LocalizedError({ key: 'gil.export.templateCorrupted' });
   }
   const view = new DataView(buffer);
   const declaredSize = view.getUint32(0, false);
@@ -28,10 +29,10 @@ function readGilEnvelope(buffer: ArrayBuffer): { payloadLength: number } {
   const payloadLength = view.getUint32(16, false);
 
   if (version !== 1 || magic !== MAGIC || constant !== 2) {
-    throw new Error('无法识别的.gil文件头，请使用正式版原神导出.gil存档。');
+    throw new LocalizedError({ key: 'gil.export.unrecognizedHeader' });
   }
   if (payloadLength + HEADER_SIZE > buffer.byteLength) {
-    throw new Error('模板.gil文件的长度信息异常，请重新从原神导出。');
+    throw new LocalizedError({ key: 'gil.export.lengthMismatch' });
   }
   // declaredSize is totalLengthMinusHeader in samples; keep for reference
   const expectedLength = declaredSize + 4;
@@ -59,8 +60,5 @@ export async function exportGraphsToGil(options: GilExportOptions): Promise<GilE
   const { templateGil } = options;
   readGilEnvelope(templateGil);
 
-  throw new Error(
-    'gil 导出映射尚未完成（节点图格式仍在反推），请暂时使用`导出为.zip项目`。\n' +
-      '详见 docs/gil-node-format.md 了解当前进展。',
-  );
+  throw new LocalizedError({ key: 'gil.export.notImplemented' });
 }

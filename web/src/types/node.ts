@@ -32,11 +32,17 @@ export interface PortUiHints {
   decorator?: string;
   decoratorPosition?: PortDecoratorPosition;
   placeholder?: string;
+  placeholderEN?: string;
+  placeholderCHT?: string;
+  placeholderJPN?: string;
 }
 
 export interface PortDefinitionBase {
   id: string;
   label: string;
+  labelEN?: string;
+  labelCHT?: string;
+  labelJPN?: string;
   description?: string;
   allowMultipleConnections?: boolean;
   optional?: boolean;
@@ -64,6 +70,10 @@ export type NodeLayoutItem =
 export interface NodeDefinition {
   id: string;
   displayName: string;
+  displayNameEN: string;
+  displayNameCHT?: string;
+  displayNameJPN?: string;
+  officialID: number;
   category: string;
   kind: NodeKind;
   description?: string;
@@ -77,6 +87,9 @@ export interface NodeDefinition {
 export interface NodeControlDefinition {
   id: string;
   label: string;
+  labelEN?: string;
+  labelCHT?: string;
+  labelJPN?: string;
   valueType: ValueType;
   defaultValue?: unknown;
   options?: Array<{ label: string; value: string | number }>;
@@ -85,6 +98,8 @@ export interface NodeControlDefinition {
 export interface GraphNodeData {
   overrides?: Record<string, unknown>;
   controls?: Record<string, unknown>;
+  sequenceFlowOutCount?: number;
+  branchFlowOutLabels?: string[];
 }
 
 export interface GraphNode {
@@ -117,7 +132,14 @@ export interface GraphComment {
 
 export type GraphSchemaVersion = 1 | 2;
 
-export const CLIENT_GRAPH_TYPES = ['boolean', 'integer', 'skill'] as const;
+export const CLIENT_GRAPH_TYPES = [
+  'role-skill',
+  'creation-skill',
+  'creation-state',
+  'creation-state-decision',
+  'boolean',
+  'integer',
+] as const;
 export type ClientGraphType = (typeof CLIENT_GRAPH_TYPES)[number];
 export type ClientGraphEnvironment = `client:${ClientGraphType}`;
 
@@ -137,10 +159,12 @@ export interface GraphDocument {
 
 export const GRAPH_SCHEMA_VERSION: GraphSchemaVersion = 2;
 export const CLIENT_GRAPH_START_NODE_ID = 'event.graphStart';
+export const CLIENT_SEQUENCE_START_NODE_ID = 'event.executeByOrderUniquely';
 export const CLIENT_BOOLEAN_RESULT_NODE_ID = 'flow.graphEndBoolean';
 export const CLIENT_INTEGER_RESULT_NODE_ID = 'flow.graphEndInteger';
 export const GRAPH_SYSTEM_NODE_IDS = [
   CLIENT_GRAPH_START_NODE_ID,
+  CLIENT_SEQUENCE_START_NODE_ID,
   CLIENT_BOOLEAN_RESULT_NODE_ID,
   CLIENT_INTEGER_RESULT_NODE_ID,
 ] as const;

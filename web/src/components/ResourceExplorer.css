@@ -20,7 +20,7 @@
   align-items: center;
   gap: 10px;
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
   font-weight: 600;
   color: #ffdfa0;
 }
@@ -53,7 +53,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid transparent;
   color: inherit;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   cursor: var(--cursor-pointer);
   text-align: left;
   transition: border 0.2s ease, background 0.2s ease;
@@ -104,7 +104,7 @@
   border: 1px solid transparent;
   background: transparent;
   color: rgba(255, 255, 255, 0.85);
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   cursor: var(--cursor-pointer);
   text-align: left;
   transition: border 0.2s ease, background 0.2s ease;
@@ -129,7 +129,7 @@
 
 .resource-explorer__sidebar-subgroup--empty {
   color: rgba(255, 255, 255, 0.45);
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   padding: 8px 10px;
 }
 
@@ -193,7 +193,7 @@
   padding: 6px 10px;
   border-radius: 8px;
   background: rgba(0, 0, 0, 0.2);
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.85);
   display: flex;
   align-items: center;
@@ -229,7 +229,7 @@
 
 .resource-explorer__path-separator {
   color: rgba(255, 255, 255, 0.45);
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
 }
 
 .resource-explorer__path-empty {
@@ -261,7 +261,7 @@
   background: transparent;
   border: none;
   color: inherit;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   outline: none;
   width: 160px;
 }
@@ -287,7 +287,7 @@
 
 .resource-explorer__thead-cell {
   padding: 10px 18px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   font-weight: 600;
   color: rgba(255, 255, 255, 0.75);
   text-align: right;
@@ -384,7 +384,7 @@
   border-radius: 12px;
   background: rgba(50, 50, 55, 0.55);
   color: #eef1ff;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   letter-spacing: 0.4px;
   display: flex;
   align-items: center;
@@ -402,7 +402,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.86);
 }
 
@@ -419,8 +419,8 @@
 }
 
 .resource-explorer__cell--meta {
-  font-family: 'DreamHanSans';
-  font-size: 12px;
+  font-family: var(--app-font-family);
+  font-size: calc(var(--app-font-scale, 1) * 12px);
 }
 
 .resource-explorer__cell--meta.is-error {
@@ -445,7 +445,7 @@
 
 .resource-explorer__dialog-message {
   margin: 10px 0 18px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   line-height: 1.6;
   color: rgba(255, 255, 255, 0.85);
 }
@@ -461,15 +461,15 @@
   padding: 2px 6px;
   border-radius: 6px;
   background: rgba(0, 0, 0, 0.35);
-  font-family: 'DreamHanSans';
-  font-size: 12px;
+  font-family: var(--app-font-family);
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: #f6f9ff;
 }
 
 .resource-explorer__empty {
   padding: 32px 18px;
   text-align: center;
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: rgba(255, 255, 255, 0.55);
 }
 
@@ -498,7 +498,7 @@
   text-align: left;
   color: rgba(255, 255, 255, 0.85);
   cursor: var(--cursor-pointer);
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   border-radius: 10px;
   transition: background 0.15s ease;
 }
@@ -553,12 +553,12 @@
 
 .resource-explorer__dialog h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: calc(var(--app-font-scale, 1) * 18px);
 }
 
 .resource-explorer__dialog p {
   margin: 0;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
   line-height: 1.6;
   opacity: 0.8;
 }
@@ -570,7 +570,7 @@
   background: rgba(255, 255, 255, 0.05);
   color: inherit;
   padding: 10px 12px;
-  font-size: 14px;
+  font-size: calc(var(--app-font-scale, 1) * 14px);
 }
 
 .resource-explorer__dialog-input:focus {
@@ -578,7 +578,7 @@
 }
 
 .resource-explorer__dialog-error {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   color: #ffb0b0;
 }
 

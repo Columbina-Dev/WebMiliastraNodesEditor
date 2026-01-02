@@ -8,6 +8,7 @@
 import classNames from 'classnames';
 import { useOnViewportChange, useReactFlow, type Node } from 'reactflow';
 import { useGraphStore } from '../state/graphStore';
+import { useI18n } from '../utils/i18nContext';
 import './GraphCommentsOverlay.css';
 
 const ICON_EDIT = new URL('../assets/icons/comment-edit.svg', import.meta.url).href;
@@ -22,9 +23,11 @@ const NODE_ICON_OFFSET_Y = 14;
 
 type GraphCommentsOverlayProps = {
   selectionLocked?: boolean;
+  isReadOnly?: boolean;
 };
 
-const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayProps) => {
+const GraphCommentsOverlay = ({ selectionLocked = false, isReadOnly = false }: GraphCommentsOverlayProps) => {
+  const { t } = useI18n();
   const reactFlow = useReactFlow();
   const comments = useGraphStore((state) => state.comments);
   const selectedCommentId = useGraphStore((state) => state.selectedCommentId);
@@ -93,6 +96,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
 
   useEffect(() => {
     if (!selectedCommentId || editingCommentId) return;
+    if (isReadOnly) return;
     const selected = comments.find((comment) => comment.id === selectedCommentId);
     if (selected && !selected.text.trim()) {
       setEditingCommentId(selected.id);
@@ -105,6 +109,10 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
       setEditingCommentId(null);
     }
   }, [comments, editingCommentId]);
+  useEffect(() => {
+    if (!isReadOnly) return;
+    setEditingCommentId(null);
+  }, [isReadOnly]);
 
   useEffect(
     () => () => {
@@ -177,6 +185,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
   }
 
   const beginDrag = (commentId: string, event: React.MouseEvent) => {
+    if (isReadOnly) return;
     event.preventDefault();
     event.stopPropagation();
     const handleMove = (moveEvent: MouseEvent) => {
@@ -261,6 +270,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
         };
 
         const handleTextChange = (value: string) => {
+          if (isReadOnly) return;
           clearCollapseTimer(comment.id);
           updateCommentText(comment.id, value);
           resizeTextarea(comment.id);
@@ -297,7 +307,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                       setCommentCollapsed(comment.id, false);
                     }
                   }}
-                  title="查看注释"
+                  title={t('graphComments.view')}
                 >
                   <span className="graph-comment-icon__dots">
                     <span />
@@ -316,7 +326,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                 onMouseDown={(event) => {
                   event.stopPropagation();
                   setSelectedComment(comment.id);
-                  if (isFloating && !isEditing) {
+                  if (isFloating && !isEditing && !isReadOnly) {
                     beginDrag(comment.id, event);
                   }
                 }}
@@ -334,8 +344,9 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                     }}
                     className="graph-comment-bubble__textarea"
                     value={comment.text}
-                    placeholder="输入注释..."
+                    placeholder={t('graphComments.placeholder')}
                     onChange={(event) => handleTextChange(event.target.value)}
+                    readOnly={isReadOnly}
                     onKeyDown={(event) => {
                       if ((event.metaKey || event.ctrlKey) && event.key === 'Enter') {
                         finishEditing();
@@ -352,7 +363,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                       'is-empty': !comment.text.trim(),
                     })}
                   >
-                    {comment.text.trim() || '暂无内容'}
+                    {comment.text.trim() || t('graphComments.empty')}
                   </div>
                 )}
 
@@ -364,6 +375,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                     })}
                     onClick={(event) => {
                       event.stopPropagation();
+                      if (isReadOnly) return;
                       if (isEditing) {
                         finishEditing();
                       } else {
@@ -372,9 +384,10 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                         setSelectedComment(comment.id);
                         setCommentCollapsed(comment.id, false);
                       }
-                  }}
-                  title={isEditing ? '完成编辑' : '编辑注释'}
-                >
+                    }}
+                    title={isEditing ? t('graphComments.action.finishEdit') : t('graphComments.action.edit')}
+                    disabled={isReadOnly}
+                  >
                   <img src={ICON_EDIT} alt="" aria-hidden="true" />
                 </button>
                 {!isFloating && (
@@ -385,6 +398,7 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                       })}
                       onClick={(event) => {
                         event.stopPropagation();
+                        if (isReadOnly) return;
                         const nextPinned = !comment.pinned;
                         setCommentPinned(comment.id, nextPinned);
                         if (nextPinned) {
@@ -395,7 +409,8 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                           scheduleCollapse(comment.id);
                         }
                       }}
-                      title={comment.pinned ? '取消固定' : '固定注释'}
+                      title={comment.pinned ? t('graphComments.action.unpin') : t('graphComments.action.pin')}
+                      disabled={isReadOnly}
                     >
                       <img
                         src={comment.pinned ? ICON_PIN_ON : ICON_PIN_OFF}
@@ -409,12 +424,14 @@ const GraphCommentsOverlay = ({ selectionLocked = false }: GraphCommentsOverlayP
                     className="graph-comment-bubble__action graph-comment-bubble__action--danger"
                     onClick={(event) => {
                       event.stopPropagation();
+                      if (isReadOnly) return;
                       clearCollapseTimer(comment.id);
                       setEditingCommentId((current) => (current === comment.id ? null : current));
                       setHoveredCommentId((current) => (current === comment.id ? null : current));
                       removeComment(comment.id);
                     }}
-                    title="删除注释"
+                    title={t('graphComments.action.delete')}
+                    disabled={isReadOnly}
                   >
                     <img src={ICON_DELETE} alt="" aria-hidden="true" />
                   </button>

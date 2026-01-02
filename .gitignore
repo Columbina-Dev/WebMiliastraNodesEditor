@@ -22,8 +22,12 @@ dist-ssr
 *.sln
 *.sw?
 *.code-workspace
-Notes*.txt
+Notes*
 Examples/
+desktop.ini
+OL-Fork*
+Agent*
+*.bak
 
 # Official
 Official/

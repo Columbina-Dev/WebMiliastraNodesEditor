@@ -17,7 +17,7 @@
 }
 
 .miliastra-node {
-  font-family: 'DreamHanSans', system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  font-family: var(--app-font-family);
 }
 
 .miliastra-node__header {
@@ -27,7 +27,7 @@
   color: #000;
   padding: 10px 16px;
   border-radius: 14px 14px 0 0;
-  font-size: 20px;
+  font-size: calc(var(--app-font-scale, 1) * 20px);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -120,7 +120,7 @@
 }
 
 .miliastra-port__label {
-  font-size: 16px;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
   opacity: 0.9;
   display: inline-flex;
   align-items: center;
@@ -128,7 +128,7 @@
 }
 
 .miliastra-port__badge {
-  font-size: 13px;
+  font-size: calc(var(--app-font-scale, 1) * 13px);
   opacity: 0.7;
 }
 
@@ -139,8 +139,12 @@
   background: rgba(255, 255, 255, 0.07);
   color: inherit;
   padding: 4px 6px;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   appearance: none;
+}
+
+.miliastra-port__control--branch {
+  text-align: left;
 }
 
 .miliastra-port__control:focus {
@@ -184,9 +188,56 @@
   transform: translateY(-50%) rotate(45deg);
 }
 
+.miliastra-port__label--muted {
+  opacity: 0.7;
+}
+
 .miliastra-port--flow-out .miliastra-port__label,
 .miliastra-port--data-out .miliastra-port__label {
   text-align: right;
+}
+
+.miliastra-port--branch-label {
+  padding-left: 16px;
+}
+
+.miliastra-row--flow-actions {
+  margin-top: 4px;
+}
+
+.miliastra-flowout-action {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.08);
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: calc(var(--app-font-scale, 1) * 16px);
+  line-height: 1;
+  cursor: var(--cursor-pointer);
+  flex-shrink: 0;
+}
+
+.miliastra-flowout-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+
+.miliastra-flowout-action--delete {
+  border-color: rgba(255, 107, 107, 0.5);
+  background: rgba(255, 107, 107, 0.12);
+  color: #ff6b6b;
+}
+
+.miliastra-flowout-action--delete:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.2);
+}
+
+.miliastra-flowout-action--add:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.18);
 }
 
 .miliastra-vector3 {
@@ -199,7 +250,7 @@
   flex-direction: column;
   gap: 4px;
   flex: 1;
-  font-size: 12px;
+  font-size: calc(var(--app-font-scale, 1) * 12px);
   color: rgba(255, 255, 255, 0.72);
 }
 

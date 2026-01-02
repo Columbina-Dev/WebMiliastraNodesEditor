@@ -15,12 +15,21 @@ import {
   normalizeGraphEnvironment,
   sanitizeExecutionInterval,
 } from './graphEnvironment';
+import {
+  detectDefaultUiLanguage,
+  getDefaultSecondaryLanguage,
+  isUiLanguage,
+  t as translateText,
+  type UiLanguage,
+} from './i18n';
+import { sanitizeNickname } from './collaborationProfile';
 
 const STORAGE_NAMESPACE = 'miliastra-editor';
 const KEY_LAYOUT = STORAGE_NAMESPACE + ':layout';
 const KEY_PROJECTS = STORAGE_NAMESPACE + ':projects';
 const KEY_AUTOSAVES = STORAGE_NAMESPACE + ':autosaves';
 const KEY_SESSION = STORAGE_NAMESPACE + ':session';
+const KEY_SETTINGS = STORAGE_NAMESPACE + ':settings';
 const KEY_MIGRATION_V2 = STORAGE_NAMESPACE + ':migration:v2';
 
 const LEGACY_TOP_FOLDER: ProjectTopFolder = 'server';
@@ -100,8 +109,59 @@ export type AutoSaveMap = Record<string, AutoSaveEntry[]>;
 
 export interface SessionState {
   lastActiveProjectId?: string;
-  lastVisitedView?: 'home' | 'editor' | 'tutorial' | 'effects';
+  lastVisitedView?: 'home' | 'editor' | 'tutorial' | 'effects' | 'settings';
 }
+
+export type EditorPanButton = 'right' | 'middle';
+export type EditorZoomControl = 'wheel' | 'keys' | 'both';
+export type EditorSelectionActivation = 'drag' | 'click';
+export type EditorMultiSelectBehavior =
+  | 'touch'
+  | 'box'
+  | 'leftTouchRightBox'
+  | 'leftBoxRightTouch';
+export type GiaUidMode = 'perExport' | 'perSession' | 'fixed';
+export type PointerStyle = 'sandbox' | 'system';
+
+const DEFAULT_UI_PRIMARY_LANGUAGE: UiLanguage = detectDefaultUiLanguage();
+const DEFAULT_UI_SECONDARY_LANGUAGE: UiLanguage = getDefaultSecondaryLanguage(DEFAULT_UI_PRIMARY_LANGUAGE);
+const DEFAULT_GRAPH_NAME = translateText('graph.defaultName', DEFAULT_UI_PRIMARY_LANGUAGE, DEFAULT_UI_SECONDARY_LANGUAGE);
+
+export interface EditorSettings {
+  uiPrimaryLanguage: UiLanguage;
+  uiSecondaryLanguage: UiLanguage;
+  allowSearchAllLanguageNodeNames: boolean;
+  panButton: EditorPanButton;
+  zoomControl: EditorZoomControl;
+  selectionActivation: EditorSelectionActivation;
+  multiSelectBehavior: EditorMultiSelectBehavior;
+  enterInputOnNodeInsert: boolean;
+  enableGilExport: boolean;
+  enableGiaExport: boolean;
+  giaUidMode: GiaUidMode;
+  giaFixedUid: string;
+  pointerStyle: PointerStyle;
+  collabDefaultNickname: string;
+  collabAvatar: string;
+}
+
+export const DEFAULT_EDITOR_SETTINGS: EditorSettings = {
+  uiPrimaryLanguage: DEFAULT_UI_PRIMARY_LANGUAGE,
+  uiSecondaryLanguage: DEFAULT_UI_SECONDARY_LANGUAGE,
+  allowSearchAllLanguageNodeNames: false,
+  panButton: 'right',
+  zoomControl: 'wheel',
+  selectionActivation: 'drag',
+  multiSelectBehavior: 'touch',
+  enterInputOnNodeInsert: true,
+  enableGilExport: false,
+  enableGiaExport: false,
+  giaUidMode: 'perExport',
+  giaFixedUid: '',
+  pointerStyle: 'sandbox',
+  collabDefaultNickname: '',
+  collabAvatar: '',
+};
 
 const DEFAULT_LAYOUT: LayoutState = {
   paletteCollapsed: false,
@@ -133,7 +193,7 @@ const convertLegacyGraphToProjectDocument = (
   savedAt: string,
   topFolder: ProjectTopFolder = LEGACY_TOP_FOLDER,
 ): ProjectDocument => {
-  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:skill' : 'server';
+  const fallbackEnvironment: GraphEnvironment = topFolder === 'client' ? 'client:role-skill' : 'server';
   const fallbackKind = clientKindFromEnvironment(fallbackEnvironment) ?? undefined;
   const environment: GraphEnvironment = graph.environment
     ? normalizeGraphEnvironment(graph.environment, { fallbackClientKind: fallbackKind })
@@ -211,7 +271,7 @@ const convertLegacyAutoSaveEntry = (
   }
   const document = convertLegacyGraphToProjectDocument(
     projectId,
-    candidate.document.name ?? '未命名节点图',
+    candidate.document.name ?? DEFAULT_GRAPH_NAME,
     candidate.document,
     candidate.savedAt,
     LEGACY_TOP_FOLDER,
@@ -426,4 +486,58 @@ export const updateSessionState = (updater: (prev: SessionState) => SessionState
   const next = updater(loadSessionState());
   persistSessionState(next);
   return next;
+};
+
+export const loadEditorSettings = (): EditorSettings => {
+  const storage = getStorage();
+  if (!storage) return { ...DEFAULT_EDITOR_SETTINGS };
+  const parsed = safeParse<Partial<EditorSettings>>(storage.getItem(KEY_SETTINGS), {});
+  const merged = { ...DEFAULT_EDITOR_SETTINGS, ...parsed };
+  const normalizeLegacyUiLanguage = (value: unknown): UiLanguage | null => {
+    if (value === 'eng') return 'en-us';
+    return isUiLanguage(value) ? value : null;
+  };
+  // sanitize legacy values
+  const legacySelectionActivation = parsed.selectionActivation as
+    | EditorSelectionActivation
+    | 'both'
+    | undefined;
+  if (legacySelectionActivation === 'both') {
+    merged.selectionActivation = 'drag';
+  }
+  if (
+    merged.multiSelectBehavior !== 'touch' &&
+    merged.multiSelectBehavior !== 'box' &&
+    merged.multiSelectBehavior !== 'leftTouchRightBox' &&
+    merged.multiSelectBehavior !== 'leftBoxRightTouch'
+  ) {
+    merged.multiSelectBehavior = DEFAULT_EDITOR_SETTINGS.multiSelectBehavior;
+  }
+  if (merged.pointerStyle !== 'sandbox' && merged.pointerStyle !== 'system') {
+    merged.pointerStyle = DEFAULT_EDITOR_SETTINGS.pointerStyle;
+  }
+  merged.uiPrimaryLanguage =
+    normalizeLegacyUiLanguage(merged.uiPrimaryLanguage) ?? DEFAULT_EDITOR_SETTINGS.uiPrimaryLanguage;
+  const normalizedSecondary = normalizeLegacyUiLanguage(merged.uiSecondaryLanguage);
+  if (!normalizedSecondary || normalizedSecondary === merged.uiPrimaryLanguage) {
+    merged.uiSecondaryLanguage = getDefaultSecondaryLanguage(merged.uiPrimaryLanguage);
+  } else {
+    merged.uiSecondaryLanguage = normalizedSecondary;
+  }
+  if (typeof merged.allowSearchAllLanguageNodeNames !== 'boolean') {
+    merged.allowSearchAllLanguageNodeNames = DEFAULT_EDITOR_SETTINGS.allowSearchAllLanguageNodeNames;
+  }
+  if (typeof merged.collabDefaultNickname !== 'string') {
+    merged.collabDefaultNickname = DEFAULT_EDITOR_SETTINGS.collabDefaultNickname;
+  } else {
+    merged.collabDefaultNickname = sanitizeNickname(merged.collabDefaultNickname);
+  }
+  if (typeof merged.collabAvatar !== 'string') {
+    merged.collabAvatar = DEFAULT_EDITOR_SETTINGS.collabAvatar;
+  }
+  return merged;
+};
+
+export const persistEditorSettings = (settings: EditorSettings) => {
+  persist(KEY_SETTINGS, settings);
 };
