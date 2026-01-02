@@ -2,11 +2,20 @@
 
 # Significant Version Update Log
 
-## v1.0.52.C2 - 2025-11-30
-- Added feature to export .gia files from node graphs, and successfully export a .gia file that can be imported back in one piece into the official Miliastra Wonderland editor for the first time
+## v1.1.0 - 2026-01-03
+- Added feature to export GIA files from node graphs, and successfully export [a GIA file](./Artifacts/0-7632376/新建节点图-1024346482.gia) that can be imported back in one piece into the official Miliastra Wonderland editor for the first time
+- Added settings function to change preference and language
+- Added advanced data (structure) management, no adaptation to relevant nodes yet.
+- Added collaboration function for LAN and using public signal server, which includes:
+  - Cursor position syncing and display
+  - Node data (inputs, positions, etc.) syncing
+  - Advanced data (structure) syncing
+  - Chat function
+- Drafted MCP server for AI agents to generate node graphs and projects based on user's general language description of functions.
+- Added most of new node definition in version 6.3 based on what's new in the CECREATION server, these are TBC, and will update again once 6.3 is live. 
 
 ## v1.0.1 - 2025-11-21
-- Made some preparations for the .gil save export feature, but it has not been completed
+- Made some preparations for the GIL save export feature, but it has not been completed
 
 ## v1.0.0 - 2025-11-13
 - Completed the definition of all client nodes
@@ -26,4 +35,4 @@
 ## v0.0.1 - 2025-09-30
 - Had the initial idea to create a external editor
 - With the help of AI, completed the node graph editing feature, and replicated the event node `When Node Graph Variable Changes` and execution node `Print String`
-- Completed the import and export of JSON functionality
+- Completed the import and export of Json functionality

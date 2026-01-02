@@ -434,7 +434,9 @@ const buildSignalUrl = () => {
   const explicitUrl = import.meta.env.VITE_COLLAB_SIGNAL_URL;
   if (explicitUrl) return explicitUrl;
   const hostname = window.location.hostname || '127.0.0.1';
-  if (OFFICIAL_HOSTNAMES.has(hostname)) {
+  const isOfficialHost =
+    OFFICIAL_HOSTNAMES.has(hostname) || (import.meta.env.PROD && hostname.endsWith('.vercel.app'));
+  if (isOfficialHost) {
     return `wss://${OFFICIAL_SIGNAL_HOST}:${COLLAB_PUBLIC_DEFAULT_PORT}`;
   }
   const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
@@ -909,6 +911,10 @@ const App = () => {
       translateText(key, editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage, params),
     [editorSettings.uiPrimaryLanguage, editorSettings.uiSecondaryLanguage],
   );
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    document.title = t('home.title');
+  }, [t]);
   const defaultProjectName = t('project.defaultName');
   const shareTargetName = graphName || projectName || defaultProjectName;
   const shareProjectName =
@@ -1489,11 +1495,13 @@ const App = () => {
         }
         setSignalStatus('disconnected');
         setSignalShares([]);
-        if (collabModeRef.current === 'client') {
-          leaveCollaboratorSession('collab.disconnect.owner');
-        } else if (collabModeRef.current === 'host') {
-          setCollabMode('idle');
-          setCollabRoomId(null);
+        if (collabSignalKindRef.current === 'lan') {
+          if (collabModeRef.current === 'client') {
+            leaveCollaboratorSession('collab.disconnect.owner');
+          } else if (collabModeRef.current === 'host') {
+            setCollabMode('idle');
+            setCollabRoomId(null);
+          }
         }
         if (!cancelled) {
           if (reconnectTimeoutRef.current) {

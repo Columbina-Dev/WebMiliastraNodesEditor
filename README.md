@@ -8,6 +8,9 @@
 > **声明：** 该项目为同人制作，与米哈游无关联。所有引用的素材归其原始版权所有者所有。
 
 > [!WARNING]  
+> 默认情况下，此应用不会允许导出为GIA节点图及GIL存档文件。用户将本应用生成的GIA/GIL导入《原神》时违反 COGNOSPHERE PTE. LTD. 的**任何条款**（包括但不限于[奇匠条款](./docs/Craftsperson_Terms_EN.md)、[原神千星奇域创作者中心使用条款](https://act.hoyoverse.com/miliastra_wonderland/agreement?id=157329)和[原神服务条款](https://genshin.hoyoverse.com/en/company/terms)）造成的后果均与项目创建者**无关**。启用这些功能需自行承担风险。
+
+> [!WARNING]  
 > 该项目90%以上代码均由AI生成。
 
 ## 仓库结构
@@ -159,6 +162,32 @@ npm run dev
   16. 另存为：复制此节点图到当前项目的其他路径
   17. 导出此节点图为 `.server.json` / `.client.json` 文件
   18. 导出此节点图为GIA节点图文件以便在官方编辑器中直接加载（需在设置中启用）
+
+#### 联机编辑
+
+**自行使用[CollabServer](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer) websocket服务器 (实验性且不推荐，尽量使用局域网联机编辑)**
+
+1. 使用以下命令:
+    ```bash
+    git clone https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer.git
+    cd WebMiliastraNodesEditor-CollabServer/
+    npm install
+    npm start
+    ```
+
+2. 或者按照 [CollabServer 仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-CollabServer) 中的Docker指令操作
+
+3. 打开本地管理面板（默认为 `http://localhost:51983`）并配置API密钥和最大房间数量
+4. 将服务器暴露为 `wss://<host>:<port>`（反向代理 / Cloudflared 等）
+5. 在编辑器中选择 `Anyone with the link`，填写服务器地址/端口/API密钥并分享，生成的链接类似于 `https://miliastra.columbina.dev/join?server=wss%3A%2F%2Fsignal.example.com%3A51982&roomId=......&pwd=......`  
+
+此设置适用于已发布的版本（miliastra.columbina.dev 或 beta.miliastra.columbina.dev）或自行搭建的同版本
+
+**Local dev / 局域网 (`npm run dev`)**
+
+1. 运行 `npm install` 一次，然后运行 `npm run dev`，将会默认使用 `--host` 运行
+2. 在需要的设备上打开 `http://<局域网IP>:5173`
+3. 确保运行 `npm run` 的设备允许局域网设备的入站`5173`的TCP端口
 
 ### 额外页面
 
@@ -333,7 +362,7 @@ interface DataPortDefinition {
 - 需将服务器节点图和客户端节点图可使用的所有节点列表分别写入 `web/src/data/nodeDefinitions.server.ts` 和 `web/src/data/nodeDefinitions.client.ts`。
 - 两个文件若暂时为空，两种节点图均可使用 `nodeDefinitions.ts` 中所有已定义的节点。
 
-列表例子：
+列表示例：
 
 ```ts
 export const serverNodeList = [
@@ -342,6 +371,12 @@ export const serverNodeList = [
   // ...
 ] as const;
 ```
+
+## MCP服务器
+此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCP-Server)
+
+## 许可
+本项目采用 **GPL V3** 许可证，详情请见 [LICENSE](LICENSE) 文件  
 
 ## 特别鸣谢
 - [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件
