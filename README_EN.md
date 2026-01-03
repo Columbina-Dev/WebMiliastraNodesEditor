@@ -378,7 +378,7 @@ export const serverNodeList = [
 ```
 
 ## MCP Server
-This project provides a model context protocol (MCP) server to let AI agents to generate node graphs and projects automatically. Please refer to the [MCP Server repository](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCP-Server) for more details.
+This project provides a model context protocol (MCP) server to let AI agents to generate node graphs and projects automatically. Please refer to the [MCP Server repository](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCPServer) for more details.
 
 ## License
 This project is licensed under the **GPL V3** license, see the [LICENSE](LICENSE) file for details.  
