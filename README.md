@@ -30,6 +30,8 @@
 | [beta](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/beta) | 测试分支，会尽量保证 `npm run build` 可正常运行。不会有存档更新适配。重要项目请尽量使用正式版编辑器。 | v1.0.50 |
 | [canary](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/canary) | 小更新分支，任何小更新将推送到此分支。`npm run build` 可能会报错，没有公测地址。 | v1.0.49.C1 |
 
+##New Version System Follows Semantic Versioning 2.0.0##
+
 ## 快速上手
 
 ### 使用已搭建版本

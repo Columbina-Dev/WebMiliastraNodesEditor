@@ -15,7 +15,8 @@ import Avatar from "./components/Avatar";
 import SettingsPage from "./components/SettingsPage";
 import { useGraphStore } from "./state/graphStore";
 import { useProjectStore, type ProjectTab, type TabId } from "./state/projectStore";
-import type { GraphComment, GraphDocument, GraphEnvironment } from "./types/node";
+import type { GraphComment, GraphDocument, GraphEdge, GraphEnvironment, PortDefinition } from "./types/node";
+import { nodeDefinitionsById } from "./data/nodeDefinitions";
 import { GRAPH_SCHEMA_VERSION } from "./types/node";
 import type { StructDocument } from "./types/struct";
 import {
@@ -75,6 +76,13 @@ import { I18nProvider } from "./utils/i18nContext";
 import { t as translateText } from "./utils/i18n";
 import { isLocalizedError, type LocalizedText } from "./utils/localizedText";
 import { sanitizeNickname } from "./utils/collaborationProfile";
+import { isDataPort, isFlowPort } from "./utils/graph";
+import {
+  MULTI_BRANCH_NODE_ID,
+  SEQUENCE_NODE_ID,
+  parseBranchFlowOutIndex,
+  resolveNodePorts,
+} from "./utils/dynamicFlowOuts";
 import { graphDocumentSchema } from "./utils/validation";
 import "./App.css";
 
@@ -104,6 +112,7 @@ const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
 const ICON_DOCK_COMMENT = new URL("./assets/icons/dock-comment.png", import.meta.url).href;
+const ICON_DOCK_LAYOUT = new URL("./assets/icons/reload.png", import.meta.url).href;
 const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 const ICON_SHARE_LOCK = new URL("./assets/icons/lock.png", import.meta.url).href;
 const ICON_SHARE_GLOBAL = new URL("./assets/icons/global.png", import.meta.url).href;
@@ -327,19 +336,22 @@ const buildPublicSignalUrl = (server: PublicServerEntry) => {
 const formatServerParam = (server: PublicServerEntry) => {
   const parsed = parseServerAddress(server.host, server.port ?? '');
   const host = stripWsProtocol(parsed.host);
-  const port = parsed.port ? `:${parsed.port}` : '';
-  return `${host}${port}`;
+  const port = parsed.port || String(COLLAB_PUBLIC_DEFAULT_PORT);
+  const safeHost = host.includes(':') ? `[${host}]` : host;
+  return `${safeHost}:${port}`;
 };
 
 const buildJoinServerParam = (server: PublicServerEntry, socketUrl?: string | null) => {
+  const parsedServer = parseServerAddress(server.host, server.port ?? '');
+  const fallbackPort = parsedServer.port || String(COLLAB_PUBLIC_DEFAULT_PORT);
   if (socketUrl) {
     try {
       const url = new URL(socketUrl);
       const protocol = url.protocol.replace(':', '');
       if (protocol === 'ws' || protocol === 'wss') {
         const host = url.hostname.includes(':') ? `[${url.hostname}]` : url.hostname;
-        const port = url.port ? `:${url.port}` : '';
-        return `${protocol}://${host}${port}`;
+        const port = url.port || fallbackPort;
+        return `${protocol}://${host}:${port}`;
       }
     } catch {
       // fall through
@@ -824,6 +836,10 @@ const App = () => {
   const canRedo = useGraphStore((state) => state.future.length > 0);
   const importGraph = useGraphStore((state) => state.importGraph);
   const resetGraphStore = useGraphStore((state) => state.reset);
+  const graphNodes = useGraphStore((state) => state.nodes);
+  const graphEdges = useGraphStore((state) => state.edges);
+  const graphComments = useGraphStore((state) => state.comments);
+  const repositionNodes = useGraphStore((state) => state.repositionNodes);
   const environment = useGraphStore((state) => state.environment);
   const executionIntervalSeconds = useGraphStore((state) => state.executionIntervalSeconds);
   const setExecutionIntervalSeconds = useGraphStore((state) => state.setExecutionIntervalSeconds);
@@ -1907,6 +1923,309 @@ const App = () => {
       setCommentMode("selecting");
     }
   }, [commentMode, isViewer, setCommentMode, setSelectedComment]);
+
+  const handleAutoLayout = useCallback(() => {
+    if (isViewer || !graphNodes.length) return;
+
+    const NODE_WIDTH = 320;
+    const NODE_HEADER_HEIGHT = 44;
+    const NODE_BODY_PADDING = 36;
+    const NODE_ROW_HEIGHT = 36;
+    const NODE_ROW_GAP = 5;
+    const NODE_MIN_HEIGHT = 120;
+    const NODE_HORIZONTAL_GAP = 120;
+    const NODE_VERTICAL_GAP = 60;
+    const COMPONENT_GAP = 220;
+    const X_SPACING = NODE_WIDTH + NODE_HORIZONTAL_GAP;
+
+    const originalPositions = new Map<string, { x: number; y: number }>();
+    const portMapByNode = new Map<string, Map<string, PortDefinition>>();
+    const sizeByNode = new Map<string, { width: number; height: number }>();
+
+    const estimateNodeSize = (nodeId: string, ports: PortDefinition[]) => {
+      const flowIn = ports.filter((port) => port.kind === 'flow-in');
+      const flowOut = ports.filter((port) => port.kind === 'flow-out');
+      const dataIn = ports.filter((port) => port.kind === 'data-in');
+      const dataOut = ports.filter((port) => port.kind === 'data-out');
+      const isSequence = nodeId === SEQUENCE_NODE_ID;
+      const isMultiBranch = nodeId === MULTI_BRANCH_NODE_ID;
+      const branchFlowOut = isMultiBranch
+        ? flowOut.filter((port) => parseBranchFlowOutIndex(port.id))
+        : [];
+      const baseFlowOut = isMultiBranch
+        ? flowOut.filter((port) => !parseBranchFlowOutIndex(port.id))
+        : flowOut;
+      const flowRows = Math.max(flowIn.length, baseFlowOut.length);
+      const dataRows = Math.max(dataIn.length, dataOut.length);
+      let extraRows = 0;
+      if (isSequence) {
+        extraRows += 1;
+      }
+      if (isMultiBranch) {
+        extraRows += 1 + branchFlowOut.length + 1;
+      }
+      const totalRows = Math.max(1, flowRows + dataRows + extraRows);
+      const height =
+        NODE_HEADER_HEIGHT +
+        NODE_BODY_PADDING +
+        totalRows * NODE_ROW_HEIGHT +
+        Math.max(0, totalRows - 1) * NODE_ROW_GAP;
+      return { width: NODE_WIDTH, height: Math.max(NODE_MIN_HEIGHT, height) };
+    };
+
+    graphNodes.forEach((node) => {
+      originalPositions.set(node.id, { ...node.position });
+      const definition = nodeDefinitionsById[node.type];
+      if (!definition) {
+        sizeByNode.set(node.id, { width: NODE_WIDTH, height: NODE_MIN_HEIGHT });
+        return;
+      }
+      const ports = resolveNodePorts(node, definition);
+      const portMap = new Map<string, PortDefinition>();
+      ports.forEach((port) => portMap.set(port.id, port));
+      portMapByNode.set(node.id, portMap);
+      sizeByNode.set(node.id, estimateNodeSize(node.type, ports));
+    });
+
+    const flowEdges: GraphEdge[] = [];
+    const dataEdges: GraphEdge[] = [];
+    graphEdges.forEach((edge) => {
+      const sourcePorts = portMapByNode.get(edge.source.nodeId);
+      const targetPorts = portMapByNode.get(edge.target.nodeId);
+      if (!sourcePorts || !targetPorts) return;
+      const sourcePort = sourcePorts.get(edge.source.portId);
+      const targetPort = targetPorts.get(edge.target.portId);
+      if (!sourcePort || !targetPort) return;
+      if (isFlowPort(sourcePort) && isFlowPort(targetPort)) {
+        flowEdges.push(edge);
+      } else if (isDataPort(sourcePort) && isDataPort(targetPort)) {
+        dataEdges.push(edge);
+      }
+    });
+
+    const undirected = new Map<string, Set<string>>();
+    graphNodes.forEach((node) => {
+      undirected.set(node.id, new Set());
+    });
+    graphEdges.forEach((edge) => {
+      if (!undirected.has(edge.source.nodeId) || !undirected.has(edge.target.nodeId)) {
+        return;
+      }
+      undirected.get(edge.source.nodeId)?.add(edge.target.nodeId);
+      undirected.get(edge.target.nodeId)?.add(edge.source.nodeId);
+    });
+
+    const components: Array<{ ids: string[]; minX: number; minY: number }> = [];
+    const unvisited = new Set(graphNodes.map((node) => node.id));
+    while (unvisited.size) {
+      const start = unvisited.values().next().value as string;
+      const queue = [start];
+      const component: string[] = [];
+      let minX = Number.POSITIVE_INFINITY;
+      let minY = Number.POSITIVE_INFINITY;
+      unvisited.delete(start);
+      while (queue.length) {
+        const current = queue.shift();
+        if (!current) continue;
+        component.push(current);
+        const position = originalPositions.get(current);
+        if (position) {
+          minX = Math.min(minX, position.x);
+          minY = Math.min(minY, position.y);
+        }
+        const neighbors = undirected.get(current);
+        if (!neighbors) continue;
+        neighbors.forEach((neighbor) => {
+          if (!unvisited.has(neighbor)) return;
+          unvisited.delete(neighbor);
+          queue.push(neighbor);
+        });
+      }
+      components.push({
+        ids: component,
+        minX: Number.isFinite(minX) ? minX : 0,
+        minY: Number.isFinite(minY) ? minY : 0,
+      });
+    }
+
+    components.sort((a, b) => a.minY - b.minY);
+
+    const positions: Record<string, { x: number; y: number }> = {};
+    const commentPositions: Record<string, { x: number; y: number }> = {};
+    let offsetY = components.length ? components[0].minY : 0;
+
+    const buildAdjacency = (nodeIds: string[], edges: GraphEdge[]) => {
+      const inMap = new Map<string, Set<string>>();
+      const outMap = new Map<string, Set<string>>();
+      nodeIds.forEach((id) => {
+        inMap.set(id, new Set());
+        outMap.set(id, new Set());
+      });
+      edges.forEach((edge) => {
+        if (!outMap.has(edge.source.nodeId) || !outMap.has(edge.target.nodeId)) return;
+        outMap.get(edge.source.nodeId)?.add(edge.target.nodeId);
+        inMap.get(edge.target.nodeId)?.add(edge.source.nodeId);
+      });
+      return { inMap, outMap };
+    };
+
+    const getOriginalY = (id: string) => originalPositions.get(id)?.y ?? 0;
+    const getOriginalX = (id: string) => originalPositions.get(id)?.x ?? 0;
+
+    components.forEach((component) => {
+      const nodeSet = new Set(component.ids);
+      const componentEdges = graphEdges.filter(
+        (edge) => nodeSet.has(edge.source.nodeId) && nodeSet.has(edge.target.nodeId)
+      );
+      const componentFlowEdges = flowEdges.filter(
+        (edge) => nodeSet.has(edge.source.nodeId) && nodeSet.has(edge.target.nodeId)
+      );
+      const componentDataEdges = dataEdges.filter(
+        (edge) => nodeSet.has(edge.source.nodeId) && nodeSet.has(edge.target.nodeId)
+      );
+      const layoutEdges = componentFlowEdges.length
+        ? componentFlowEdges
+        : componentDataEdges.length
+          ? componentDataEdges
+          : componentEdges;
+
+      const { inMap, outMap } = buildAdjacency(component.ids, layoutEdges);
+
+      const indegreeMap = new Map<string, number>();
+      component.ids.forEach((id) => {
+        indegreeMap.set(id, inMap.get(id)?.size ?? 0);
+      });
+
+      const queue = component.ids
+        .filter((id) => (indegreeMap.get(id) ?? 0) === 0)
+        .sort((a, b) => getOriginalX(a) - getOriginalX(b));
+      const remaining = new Set(component.ids);
+      const order: string[] = [];
+
+      while (remaining.size) {
+        if (!queue.length) {
+          const next = Array.from(remaining).sort((a, b) => getOriginalX(a) - getOriginalX(b))[0];
+          queue.push(next);
+        }
+        const current = queue.shift();
+        if (!current || !remaining.has(current)) continue;
+        remaining.delete(current);
+        order.push(current);
+        outMap.get(current)?.forEach((target) => {
+          if (!remaining.has(target)) return;
+          const nextValue = (indegreeMap.get(target) ?? 0) - 1;
+          indegreeMap.set(target, nextValue);
+          if (nextValue <= 0) {
+            queue.push(target);
+          }
+        });
+        queue.sort((a, b) => getOriginalX(a) - getOriginalX(b));
+      }
+
+      const layerById = new Map<string, number>();
+      order.forEach((id) => {
+        let layer = 0;
+        const preds = inMap.get(id);
+        preds?.forEach((pred) => {
+          const predLayer = layerById.get(pred);
+          if (predLayer !== undefined) {
+            layer = Math.max(layer, predLayer + 1);
+          }
+        });
+        layerById.set(id, layer);
+      });
+
+      const layerOrder = new Map<number, string[]>();
+      component.ids.forEach((id) => {
+        const layer = layerById.get(id) ?? 0;
+        const list = layerOrder.get(layer) ?? [];
+        list.push(id);
+        layerOrder.set(layer, list);
+      });
+
+      const maxLayer = Math.max(0, ...Array.from(layerOrder.keys()));
+      layerOrder.forEach((ids, layer) => {
+        ids.sort((a, b) => getOriginalY(a) - getOriginalY(b));
+        layerOrder.set(layer, ids);
+      });
+
+      const buildIndexMap = (ids: string[]) => {
+        const map = new Map<string, number>();
+        ids.forEach((id, index) => map.set(id, index));
+        return map;
+      };
+
+      const sortLayerByBarycenter = (
+        layer: number,
+        neighborMap: Map<string, Set<string>>,
+        neighborIndexMap: Map<string, number>
+      ) => {
+        const ids = layerOrder.get(layer);
+        if (!ids || !ids.length) return;
+        const scored = ids.map((id) => {
+          const neighbors = neighborMap.get(id);
+          let sum = 0;
+          let count = 0;
+          neighbors?.forEach((neighbor) => {
+            const index = neighborIndexMap.get(neighbor);
+            if (index === undefined) return;
+            sum += index;
+            count += 1;
+          });
+          const fallback = getOriginalY(id);
+          const score = count ? sum / count : fallback;
+          return { id, score, fallback };
+        });
+        scored.sort((a, b) => a.score - b.score || a.fallback - b.fallback);
+        layerOrder.set(layer, scored.map((item) => item.id));
+      };
+
+      for (let layer = 1; layer <= maxLayer; layer += 1) {
+        const prevIds = layerOrder.get(layer - 1) ?? [];
+        if (!prevIds.length) continue;
+        sortLayerByBarycenter(layer, inMap, buildIndexMap(prevIds));
+      }
+      for (let layer = maxLayer - 1; layer >= 0; layer -= 1) {
+        const nextIds = layerOrder.get(layer + 1) ?? [];
+        if (!nextIds.length) continue;
+        sortLayerByBarycenter(layer, outMap, buildIndexMap(nextIds));
+      }
+
+      let componentHeight = 0;
+      layerOrder.forEach((ids, layer) => {
+        let cursorY = 0;
+        ids.forEach((id) => {
+          const size = sizeByNode.get(id) ?? { width: NODE_WIDTH, height: NODE_MIN_HEIGHT };
+          positions[id] = {
+            x: component.minX + layer * X_SPACING,
+            y: offsetY + cursorY,
+          };
+          cursorY += size.height + NODE_VERTICAL_GAP;
+        });
+        if (ids.length) {
+          componentHeight = Math.max(componentHeight, cursorY - NODE_VERTICAL_GAP);
+        }
+      });
+
+      offsetY += componentHeight + COMPONENT_GAP;
+    });
+
+    graphComments.forEach((comment) => {
+      if (!comment.nodeId || !comment.position) return;
+      const prevNodePosition = originalPositions.get(comment.nodeId);
+      const nextNodePosition = positions[comment.nodeId];
+      if (!prevNodePosition || !nextNodePosition) return;
+      const deltaX = nextNodePosition.x - prevNodePosition.x;
+      const deltaY = nextNodePosition.y - prevNodePosition.y;
+      if (deltaX === 0 && deltaY === 0) return;
+      commentPositions[comment.id] = {
+        x: comment.position.x + deltaX,
+        y: comment.position.y + deltaY,
+      };
+    });
+
+    repositionNodes(positions, commentPositions);
+  }, [graphComments, graphEdges, graphNodes, isViewer, repositionNodes]);
 
   const refreshHistory = useCallback(() => {
     setHistory(loadProjects());
@@ -6215,6 +6534,21 @@ const handleSaveGraphAs = useCallback(() => {
           {!dockCollapsed && (
             <div className="action_dock__content">
               <div className="action_dock__separator" aria-hidden="true" />
+              <button
+                type="button"
+                className="action_dock__button"
+                onClick={handleAutoLayout}
+                title={t('app.dock.autoLayout')}
+                disabled={isViewer}
+              >
+                <img
+                  src={ICON_DOCK_LAYOUT}
+                  alt=""
+                  aria-hidden="true"
+                  className="action_dock__icon-img"
+                />
+                <span className="sr-only">{t('app.dock.autoLayout')}</span>
+              </button>
               <button
                 type="button"
                 className={`action_dock__button${commentMode === 'selecting' ? ' is-active' : ''}`}

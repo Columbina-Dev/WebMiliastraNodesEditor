@@ -30,6 +30,7 @@ This project recreates the node graph editor from "Genshin Impact - Miliastra Wo
 | [beta](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/beta) | Beta branch, would try to keep `npm run build` runnable. No local save data update adaptation. For important projects, please use the stable editor. | v1.0.50 |
 | [canary](https://github.com/Columbina-Dev/WebMiliastraNodesEditor/tree/canary) | Small update branch, any small updates will be pushed here. `npm run build` may fail, no public test prebuilt. | v1.0.49.C1 |
 
+##New Version System Follows Semantic Versioning 2.0.0##
 
 ## Quick Start
 

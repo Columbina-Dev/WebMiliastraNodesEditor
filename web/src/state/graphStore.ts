@@ -245,6 +245,10 @@ interface GraphState {
   duplicateNode: (nodeId: string) => string | undefined;
   duplicateNodes: (nodeIds: string[]) => string[];
   updateNode: (nodeId: string, updater: (node: GraphNode) => GraphNode, options?: { recordHistory?: boolean }) => void;
+  repositionNodes: (
+    positions: Record<string, { x: number; y: number }>,
+    commentPositions?: Record<string, { x: number; y: number }>
+  ) => void;
   removeNode: (nodeId: string) => void;
   removeNodes: (nodeIds: string[], options?: { recordHistory?: boolean }) => void;
   setNodeData: (nodeId: string, data: GraphNodeData) => void;
@@ -500,6 +504,55 @@ export const useGraphStore = create<GraphState>((set, get) => {
       set((state) => ({
         nodes: state.nodes.map((node) => (node.id === nodeId ? updater(node) : node)),
       }));
+    },
+    repositionNodes: (positions, commentPositions) => {
+      const ids = Object.keys(positions);
+      const commentIds = commentPositions ? Object.keys(commentPositions) : [];
+      if (!ids.length && !commentIds.length) return;
+      captureSnapshot();
+      set((state) => {
+        let nodesChanged = false;
+        const nextNodes = state.nodes.map((node) => {
+          const nextPosition = positions[node.id];
+          if (!nextPosition) return node;
+          if (
+            node.position.x === nextPosition.x &&
+            node.position.y === nextPosition.y
+          ) {
+            return node;
+          }
+          nodesChanged = true;
+          return {
+            ...node,
+            position: { x: nextPosition.x, y: nextPosition.y },
+          };
+        });
+        let commentsChanged = false;
+        const nextComments = commentPositions
+          ? state.comments.map((comment) => {
+              const nextPosition = commentPositions[comment.id];
+              if (!nextPosition) return comment;
+              if (
+                comment.position?.x === nextPosition.x &&
+                comment.position?.y === nextPosition.y
+              ) {
+                return comment;
+              }
+              commentsChanged = true;
+              return {
+                ...comment,
+                position: { x: nextPosition.x, y: nextPosition.y },
+              };
+            })
+          : state.comments;
+        if (!nodesChanged && !commentsChanged) {
+          return {};
+        }
+        return {
+          ...(nodesChanged ? { nodes: nextNodes } : {}),
+          ...(commentsChanged ? { comments: nextComments } : {}),
+        };
+      });
     },
     removeNode: (nodeId) => {
       get().removeNodes([nodeId]);
