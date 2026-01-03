@@ -373,7 +373,7 @@ export const serverNodeList = [
 ```
 
 ## MCP服务器
-此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCP-Server)
+此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCPServer)
 
 ## 许可
 本项目采用 **GPL V3** 许可证，详情请见 [LICENSE](LICENSE) 文件  
