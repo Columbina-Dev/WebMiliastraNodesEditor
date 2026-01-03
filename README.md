@@ -96,7 +96,7 @@ npm run dev
   8. `服务器节点图资源管理器`标签
   9. `客户端节点图资源管理器`标签
   10. `节点图`标签，停留0.5s会显示此节点图文件的路径
-  11. `分享`按钮，点击可将当前项目进行局域网或通过协作服务器的协作编辑分享
+  11. `共享`按钮，点击可将当前项目进行局域网或通过协作服务器的协作编辑分享
   12. `交流`按钮，打开协作编辑的聊天面板
   13. 节点图分类
   14. 节点图文件夹/页签
@@ -375,11 +375,12 @@ export const serverNodeList = [
 ```
 
 ## MCP服务器
-此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCP-Server)
+此项目提供了一个允许AI代理自动生成节点图和项目的MCP服务器。详情请查看 [MCP服务器仓库](https://github.com/Columbina-Dev/WebMiliastraNodesEditor-MCPServer)
 
 ## 许可
 本项目采用 **GPL V3** 许可证，详情请见 [LICENSE](LICENSE) 文件  
 
-## 特别鸣谢
-- [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 .gil 存档文件
-- [Wu-Yijun](https://github.com/Wu-Yijun) - 提供 gia.proto及其他工具 帮助编码/解码 .gia 文件
+## 特别鸣谢（字母顺序）
+- [hackermdch](https://github.com/hackermdch) - 提供 UgcUtil.dll 帮助编码/解码 GIL 存档文件
+- [SpeedyOrc-C](https://github.com/SpeedyOrc-C) - 提供 TeyvatBlack-Regular.ttf 字体，用于演示截图
+- [Wu-Yijun](https://github.com/Wu-Yijun) - 提供 gia.proto及其他工具 帮助编码/解码 GIA 文件

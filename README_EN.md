@@ -384,6 +384,7 @@ This project provides a model context protocol (MCP) server to let AI agents to 
 ## License
 This project is licensed under the **GPL V3** license, see the [LICENSE](LICENSE) file for details.  
 
-## Special Thanks
-- [hackermdch](https://github.com/hackermdch) - Provided UgcUtil.dll to help encode/decode .gil save files
-- [Wu-Yijun](https://github.com/Wu-Yijun) - Provided gia.proto and other tools to help encode/decode .gia files
+## Special Thanks (Alphabetical Order)
+- [hackermdch](https://github.com/hackermdch) - Provided UgcUtil.dll to help encode/decode GIL save files
+- [SpeedyOrc-C](https://github.com/SpeedyOrc-C) - Provided TeyvatBlack-Regular.ttf font which is used in demonstration screenshots
+- [Wu-Yijun](https://github.com/Wu-Yijun) - Provided gia.proto and other tools to help encode/decode GIA files
