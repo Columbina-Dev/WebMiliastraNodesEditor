@@ -112,7 +112,7 @@ const ICON_APP_LOGO = new URL("./assets/icons/test.ico", import.meta.url).href;
 const ICON_DOCK_EXPAND = new URL("./assets/icons/dock-expand.svg", import.meta.url).href;
 const ICON_DOCK_COLLAPSE = new URL("./assets/icons/dock-collapse.svg", import.meta.url).href;
 const ICON_DOCK_COMMENT = new URL("./assets/icons/dock-comment.png", import.meta.url).href;
-const ICON_DOCK_LAYOUT = new URL("./assets/icons/reload.png", import.meta.url).href;
+const ICON_DOCK_LAYOUT = new URL("./assets/icons/auto_layout.png", import.meta.url).href;
 const ICON_INTERVAL = new URL("./assets/icons/interval.svg", import.meta.url).href;
 const ICON_SHARE_LOCK = new URL("./assets/icons/lock.png", import.meta.url).href;
 const ICON_SHARE_GLOBAL = new URL("./assets/icons/global.png", import.meta.url).href;
@@ -932,7 +932,7 @@ const App = () => {
     document.title = t('home.title');
   }, [t]);
   const defaultProjectName = t('project.defaultName');
-  const shareTargetName = graphName || projectName || defaultProjectName;
+  const shareTargetName = projectName || defaultProjectName;
   const shareProjectName =
     projectDocument?.manifest.project.name || projectName || defaultProjectName;
   const fallbackNickname = t('collab.nickname.fallback');
